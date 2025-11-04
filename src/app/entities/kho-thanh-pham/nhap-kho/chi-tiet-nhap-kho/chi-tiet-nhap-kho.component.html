@@ -1,0 +1,137 @@
+<div class="nhapkho-container">
+    <div class="nhapkho-header">
+        <div class="header-title">
+            <mat-icon class="title-icon">fact_check</mat-icon>
+            <div>
+                <h1>Kiểm duyệt nhập kho</h1>
+                <p class="subtitle">Warehouse management from production</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin chính Card -->
+    <mat-card class="nhapkho-card">
+        <div class="table-header">
+            <div class="table-title">
+                <mat-icon>info</mat-icon>
+                <span>Thông tin chính</span>
+            </div>
+        </div>
+
+        <div class="info-content">
+            <div class="info-table-wrapper">
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th>Mã PO</th>
+                            <th>Mã sản phẩm</th>
+                            <th>Mã khách hàng</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Số pallet</th>
+                            <th>Số thùng</th>
+                            <th>Số lượng SP</th>
+                            <th>Mã WO</th>
+                            <th>Số LOT</th>
+                            <th>Ngày nhập</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{mainInfo.maPO}}</td>
+                            <td>{{mainInfo.maSanPham}}</td>
+                            <td>{{mainInfo.maKhachHang}}</td>
+                            <td>{{mainInfo.tenSanPham}}</td>
+                            <td>{{mainInfo.soPallet}}</td>
+                            <td>{{mainInfo.soThung}}</td>
+                            <td>{{mainInfo.soLuongSP}}</td>
+                            <td>{{mainInfo.maWO}}</td>
+                            <td>{{mainInfo.soLOT}}</td>
+                            <td>{{mainInfo.ngayNhap}}</td>
+                            <td>{{mainInfo.ghiChu}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </mat-card>
+
+    <!-- Thông tin chi tiết Card -->
+    <mat-card class="nhapkho-card">
+        <div class="table-header">
+            <div class="table-title">
+                <mat-icon>description</mat-icon>
+                <span>Thông tin chi tiết</span>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table mat-table [dataSource]="detailList" class="detail-table">
+                <!-- STT Column -->
+                <ng-container matColumnDef="stt">
+                    <th mat-header-cell *matHeaderCellDef>STT</th>
+                    <td mat-cell *matCellDef="let item; let i = index">{{i + 1}}</td>
+                </ng-container>
+
+                <!-- Pallet code Column -->
+                <ng-container matColumnDef="palletCode">
+                    <th mat-header-cell *matHeaderCellDef>Pallet code</th>
+                    <td mat-cell *matCellDef="let item">{{item.palletCode}}</td>
+                </ng-container>
+
+                <!-- Box code Column -->
+                <ng-container matColumnDef="boxCode">
+                    <th mat-header-cell *matHeaderCellDef>Box code</th>
+                    <td mat-cell *matCellDef="let item">{{item.boxCode}}</td>
+                </ng-container>
+
+                <!-- Số pallet Column -->
+                <ng-container matColumnDef="soPallet">
+                    <th mat-header-cell *matHeaderCellDef>Số pallet</th>
+                    <td mat-cell *matCellDef="let item">{{item.soPallet}}</td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <button mat-button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+                <mat-icon>chevron_left</mat-icon>
+                Previous
+            </button>
+
+            <div class="pagination-numbers">
+                <button mat-button [class.active]="currentPage === 1" (click)="onPageChange(1)">1</button>
+                <button mat-button [class.active]="currentPage === 2" (click)="onPageChange(2)">2</button>
+                <button mat-button [class.active]="currentPage === 3" (click)="onPageChange(3)">3</button>
+                <span class="dots">...</span>
+                <button mat-button (click)="onPageChange(8)">8</button>
+                <button mat-button (click)="onPageChange(9)">9</button>
+            </div>
+
+            <button mat-button class="pagination-btn" (click)="nextPage()">
+                Next
+                <mat-icon>chevron_right</mat-icon>
+            </button>
+        </div>
+    </mat-card>
+
+    <!-- Action Buttons -->
+    <div class="action-footer">
+        <button mat-button class="cancel-btn" (click)="onCancel()">
+            <mat-icon>close</mat-icon>
+            Cancel
+        </button>
+        <!-- <button mat-raised-button class="warehouse-btn" (click)="onSelectWarehouse()">
+            <mat-icon>warehouse</mat-icon>
+            Chọn kho nhập
+        </button> -->
+        <!-- <button mat-raised-button color="primary" class="confirm-btn" (click)="onConfirm()">
+            <mat-icon>check</mat-icon>
+            Xác nhận
+        </button> -->
+    </div>
+</div>

@@ -1,0 +1,872 @@
+<div class="nhapkho-container">
+    <div class="nhapkho-header">
+        <div class="header-title">
+            <mat-icon class="title-icon">inventory</mat-icon>
+            <div>
+                <h1>Quản lý kho</h1>
+                <p class="subtitle">Warehouse materials management</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Card -->
+    <mat-card class="nhapkho-card">
+        <!-- Table Header -->
+        <div class="table-header">
+            <div class="table-title">
+                <mat-icon>list</mat-icon>
+                <span>Danh sách</span>
+            </div>
+            <div class="table-actions">
+                <button mat-raised-button color="primary" class="action-header-btn" (click)="onCheckWarehouse()">
+                    <mat-icon>search</mat-icon>
+                    Kiểm tra
+                </button>
+                <button mat-raised-button color="primary" class="action-header-btn" (click)="onUpdateInventory()">
+                    <mat-icon>update</mat-icon>
+                    Cập nhật tồn
+                </button>
+                <button mat-raised-button color="primary" class="action-header-btn" (click)="onTransferWarehouse()">
+                    <mat-icon>sync_alt</mat-icon>
+                    Chuyển kho
+                </button>
+                <div class="dropdown-group">
+                    <button mat-raised-button [matMenuTriggerFor]="viewMenu" class="dropdown-btn">
+                        Mode view
+                        <mat-icon>arrow_drop_down</mat-icon>
+                    </button>
+
+                    <mat-menu #viewMenu="matMenu">
+                        <button mat-menu-item (click)="onSelectView('area')">
+                            <mat-icon>location_on</mat-icon>
+                            <span>View theo Area</span>
+                        </button>
+                        <button mat-menu-item (click)="onSelectView('po')">
+                            <mat-icon>assignment</mat-icon>
+                            <span>View theo PO</span>
+                        </button>
+                        <button mat-menu-item (click)="onSelectView('customer')">
+                            <mat-icon>person</mat-icon>
+                            <span>View theo Mã khách hàng</span>
+                        </button>
+                        <button mat-menu-item (click)="onSelectView('product')">
+                            <mat-icon>category</mat-icon>
+                            <span>View theo Mã sản phẩm</span>
+                        </button>
+                    </mat-menu>
+                    <button mat-raised-button [matMenuTriggerFor]="columnMenu" class="dropdown-btn">
+                        View column
+                        <mat-icon>arrow_drop_down</mat-icon>
+                    </button>
+
+                    <mat-menu #columnMenu="matMenu">
+                        <div class="column-menu" (click)="$event.stopPropagation()">
+                            <mat-checkbox *ngFor="let col of allColumns" [(ngModel)]="col.visible"
+                                (change)="updateDisplayedColumns()">
+                                {{col.label}}
+                            </mat-checkbox>
+                        </div>
+                    </mat-menu>
+                </div>
+                <button mat-raised-button class="refresh-btn" matTooltip="Xuất dữ liệu">
+                    <mat-icon color="primary">ios_share</mat-icon>
+                </button>
+
+                <button mat-raised-button class="refresh-btn" matTooltip="Đồng bộ dữ liệu">
+                    <mat-icon color="primary">sync</mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <table mat-table [dataSource]="warehouseList" class="warehouse-table" *ngIf="currentViewMode === 'default'">
+                <!-- STT Column -->
+                <ng-container matColumnDef="stt">
+                    <th mat-header-cell *matHeaderCellDef>STT</th>
+                    <td mat-cell *matCellDef="let item; let i = index">{{i + 1}}</td>
+                </ng-container>
+
+                <!-- Mã sản phẩm Column -->
+                <ng-container matColumnDef="maSanPham">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Mã sản phẩm</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{item.maSanPham}}</td>
+                </ng-container>
+
+                <!-- Tên SP Column -->
+                <ng-container matColumnDef="tenSP">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Tên SP</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{item.tenSP}}</td>
+                </ng-container>
+
+                <!-- Mã KH Column -->
+                <ng-container matColumnDef="maKH">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Mã KH</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{item.maKH}}</td>
+                </ng-container>
+
+                <!-- Tên KH Column -->
+                <ng-container matColumnDef="tenKH">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Tên KH</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{item.tenKH}}</td>
+                </ng-container>
+
+                <!-- Mã pallet Column -->
+                <ng-container matColumnDef="maPallet">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Mã pallet</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{item.maPallet}}</td>
+                </ng-container>
+
+                <!-- Mã thùng Column -->
+                <ng-container matColumnDef="maThung">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Mã thùng</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{item.maThung}}</td>
+                </ng-container>
+
+                <!-- PO Column -->
+                <ng-container matColumnDef="po">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">PO</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{item.po}}</td>
+                </ng-container>
+
+                <!-- Số lượng tồn Column -->
+                <ng-container matColumnDef="soLuongTon">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số lượng tồn</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{item.soLuongTon}}</td>
+                </ng-container>
+
+                <!-- Số lượng gốc Column -->
+                <ng-container matColumnDef="soLuongGoc">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số lượng gốc</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{item.soLuongGoc}}</td>
+                </ng-container>
+
+                <!-- Khu vực Column -->
+                <ng-container matColumnDef="khuVuc">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Khu vực</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{item.khuVuc}}</td>
+                </ng-container>
+
+                <!-- Location Column -->
+                <ng-container matColumnDef="location">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Location</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">
+                        <span class="location-badge">{{item.location}}</span>
+                    </td>
+                </ng-container>
+
+                <!-- Status Column -->
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Status</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">
+                        <span class="status-badge" [ngClass]="getStatusClass(item.status)">
+                            {{item.status}}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="createdDate">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Ngày nhập</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">
+                        <span>{{item.createdDate}}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="updatedDate">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Ngày cập nhật</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">
+                        <span>{{item.updatedDate}}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="updatedBy">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Cập nhật bởi</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">
+                        <span>{{item.updatedBy}}</span>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+            </table>
+            <!-- PO View -->
+            <!-- PO View -->
+            <table mat-table [dataSource]="poDataSource" class="warehouse-table expandable-table" multiTemplateDataRows
+                *ngIf="currentViewMode === 'po'">
+
+                <!-- Expand Column -->
+                <ng-container matColumnDef="expand">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let item">
+                        <button mat-icon-button (click)="toggleRow(item); $event.stopPropagation()">
+                            <mat-icon>{{item.expanded ? 'expand_more' : 'chevron_right'}}</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <!-- PO Column -->
+                <ng-container matColumnDef="po">
+                    <th mat-header-cell *matHeaderCellDef>PO</th>
+                    <td mat-cell *matCellDef="let item">
+                        <span class="po-badge">{{item.po}}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="soLuongSP">
+                    <th mat-header-cell *matHeaderCellDef>Số lượng SP</th>
+                    <td mat-cell *matCellDef="let item">{{item.soLuongSP}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="tongSLTon">
+                    <th mat-header-cell *matHeaderCellDef>Tổng SL tồn</th>
+                    <td mat-cell *matCellDef="let item">{{item.tongSLTon}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="tongSLGoc">
+                    <th mat-header-cell *matHeaderCellDef>Tổng SL gốc</th>
+                    <td mat-cell *matCellDef="let item">{{item.tongSLGoc}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soPallet">
+                    <th mat-header-cell *matHeaderCellDef>Số Pallet</th>
+                    <td mat-cell *matCellDef="let item">{{item.soPallet}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soThung">
+                    <th mat-header-cell *matHeaderCellDef>Số Thùng</th>
+                    <td mat-cell *matCellDef="let item">{{item.soThung}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soKH">
+                    <th mat-header-cell *matHeaderCellDef>Số KH</th>
+                    <td mat-cell *matCellDef="let item">{{item.soKH}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="ngayNhapSomNhat">
+                    <th mat-header-cell *matHeaderCellDef>Ngày nhập</th>
+                    <td mat-cell *matCellDef="let item">{{item.ngayNhapSomNhat}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="ngayCapNhat">
+                    <th mat-header-cell *matHeaderCellDef>Ngày cập nhật</th>
+                    <td mat-cell *matCellDef="let item">{{item.ngayCapNhat}}</td>
+                </ng-container>
+
+                <!-- Expanded Detail Column -->
+                <ng-container matColumnDef="expandedDetail">
+                    <td mat-cell *matCellDef="let item" [attr.colspan]="poParentColumns.length">
+                        <div class="child-detail" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
+                            <div class="child-table-container" *ngIf="item.expanded">
+                                <h4 class="child-title">Chi tiết sản phẩm trong {{item.po}}</h4>
+                                <table class="child-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã SP</th>
+                                            <th>Tên SP</th>
+                                            <th>Mã KH</th>
+                                            <th>Tên KH</th>
+                                            <th>SL tồn</th>
+                                            <th>SL gốc</th>
+                                            <th>Số Pallet</th>
+                                            <th>Số Thùng</th>
+                                            <th>Khu vực</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let child of item.children">
+                                            <td><strong>{{child.maSanPham}}</strong></td>
+                                            <td>{{child.tenSP}}</td>
+                                            <td>{{child.maKH}}</td>
+                                            <td>{{child.tenKH}}</td>
+                                            <td>{{child.slTon}}</td>
+                                            <td>{{child.slGoc}}</td>
+                                            <td>{{child.soPallet}}</td>
+                                            <td>{{child.soThung}}</td>
+                                            <td>{{child.khuVuc}}</td>
+                                            <td>
+                                                <span class="status-badge" [ngClass]="getStatusClass(child.status)">
+                                                    {{child.status}}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <!-- Header Row -->
+                <tr mat-header-row *matHeaderRowDef="poParentColumns"></tr>
+
+                <!-- Parent Row -->
+                <tr mat-row *matRowDef="let row; columns: poParentColumns; when: isParentRow" class="parent-row"
+                    [class.expanded]="row.expanded" (click)="toggleRow(row)"></tr>
+
+                <!-- Child Row -->
+                <tr mat-row *matRowDef="let row; columns: ['expandedDetail']; when: isChildRow" class="child-row"></tr>
+            </table>
+
+            <!-- Product View -->
+            <table mat-table [dataSource]="productDataSource" class="warehouse-table expandable-table"
+                multiTemplateDataRows *ngIf="currentViewMode === 'product'">
+
+                <ng-container matColumnDef="expand">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let item">
+                        <button mat-icon-button (click)="toggleRow(item); $event.stopPropagation()">
+                            <mat-icon>{{item.expanded ? 'expand_more' : 'chevron_right'}}</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="maSanPham">
+                    <th mat-header-cell *matHeaderCellDef>Mã sản phẩm</th>
+                    <td mat-cell *matCellDef="let item">{{item.maSanPham}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="tenSP">
+                    <th mat-header-cell *matHeaderCellDef>Tên SP</th>
+                    <td mat-cell *matCellDef="let item">{{item.tenSP}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="tongSLTon">
+                    <th mat-header-cell *matHeaderCellDef>Tổng SL tồn</th>
+                    <td mat-cell *matCellDef="let item">{{item.tongSLTon}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="tongSLGoc">
+                    <th mat-header-cell *matHeaderCellDef>Tổng SL gốc</th>
+                    <td mat-cell *matCellDef="let item">{{item.tongSLGoc}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soPO">
+                    <th mat-header-cell *matHeaderCellDef>Số PO</th>
+                    <td mat-cell *matCellDef="let item">{{item.soPO}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soKH">
+                    <th mat-header-cell *matHeaderCellDef>Số KH</th>
+                    <td mat-cell *matCellDef="let item">{{item.soKH}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soKhuVuc">
+                    <th mat-header-cell *matHeaderCellDef>Số khu vực</th>
+                    <td mat-cell *matCellDef="let item">{{item.soKhuVuc}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soPallet">
+                    <th mat-header-cell *matHeaderCellDef>Số Pallet</th>
+                    <td mat-cell *matCellDef="let item">{{item.soPallet}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soThung">
+                    <th mat-header-cell *matHeaderCellDef>Số Thùng</th>
+                    <td mat-cell *matCellDef="let item">{{item.soThung}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="ngayNhapSomNhat">
+                    <th mat-header-cell *matHeaderCellDef>Ngày nhập</th>
+                    <td mat-cell *matCellDef="let item">{{item.ngayNhapSomNhat}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="expandedDetail">
+                    <td mat-cell *matCellDef="let item" [attr.colspan]="productParentColumns.length">
+                        <div class="child-detail" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
+                            <div class="child-table-container" *ngIf="item.expanded">
+                                <h4 class="child-title">Chi tiết theo từng PO/KH - {{item.maSanPham}}</h4>
+                                <table class="child-table">
+                                    <thead>
+                                        <tr>
+                                            <th>PO</th>
+                                            <th>Mã KH</th>
+                                            <th>Tên KH</th>
+                                            <th>SL tồn</th>
+                                            <th>SL gốc</th>
+                                            <th>Khu vực</th>
+                                            <th>Location</th>
+                                            <th>Mã pallet</th>
+                                            <th>Mã thùng</th>
+                                            <th>Status</th>
+                                            <th>Ngày nhập</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let child of item.children">
+                                            <td>{{child.po}}</td>
+                                            <td>{{child.maKH}}</td>
+                                            <td>{{child.tenKH}}</td>
+                                            <td>{{child.slTon}}</td>
+                                            <td>{{child.slGoc}}</td>
+                                            <td>{{child.khuVuc}}</td>
+                                            <td>{{child.location}}</td>
+                                            <td>{{child.maPallet}}</td>
+                                            <td>{{child.maThung}}</td>
+                                            <td>
+                                                <span class="status-badge" [ngClass]="getStatusClass(child.status)">
+                                                    {{child.status}}
+                                                </span>
+                                            </td>
+                                            <td>{{child.ngayNhap}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="productParentColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: productParentColumns; when: isParentRow" class="parent-row"
+                    [class.expanded]="row.expanded" (click)="toggleRow(row)"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['expandedDetail']; when: isChildRow" class="child-row"></tr>
+            </table>
+
+            <!-- Area View -->
+            <table mat-table [dataSource]="areaDataSource" class="warehouse-table expandable-table"
+                multiTemplateDataRows *ngIf="currentViewMode === 'area'">
+
+                <ng-container matColumnDef="expand">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let item">
+                        <button mat-icon-button (click)="toggleRow(item); $event.stopPropagation()">
+                            <mat-icon>{{item.expanded ? 'expand_more' : 'chevron_right'}}</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="khuVuc">
+                    <th mat-header-cell *matHeaderCellDef>Khu vực</th>
+                    <td mat-cell *matCellDef="let item">{{item.khuVuc}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="tongSLTon">
+                    <th mat-header-cell *matHeaderCellDef>Tổng SL tồn</th>
+                    <td mat-cell *matCellDef="let item">{{item.tongSLTon}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="tongSLGoc">
+                    <th mat-header-cell *matHeaderCellDef>Tổng SL gốc</th>
+                    <td mat-cell *matCellDef="let item">{{item.tongSLGoc}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soSP">
+                    <th mat-header-cell *matHeaderCellDef>Số SP</th>
+                    <td mat-cell *matCellDef="let item">{{item.soSP}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soKH">
+                    <th mat-header-cell *matHeaderCellDef>Số KH</th>
+                    <td mat-cell *matCellDef="let item">{{item.soKH}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soPO">
+                    <th mat-header-cell *matHeaderCellDef>Số PO</th>
+                    <td mat-cell *matCellDef="let item">{{item.soPO}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soPallet">
+                    <th mat-header-cell *matHeaderCellDef>Số Pallet</th>
+                    <td mat-cell *matCellDef="let item">{{item.soPallet}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soThung">
+                    <th mat-header-cell *matHeaderCellDef>Số Thùng</th>
+                    <td mat-cell *matCellDef="let item">{{item.soThung}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soLocation">
+                    <th mat-header-cell *matHeaderCellDef>Số Location</th>
+                    <td mat-cell *matCellDef="let item">{{item.soLocation}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="ngayCapNhat">
+                    <th mat-header-cell *matHeaderCellDef>Ngày cập nhật</th>
+                    <td mat-cell *matCellDef="let item">{{item.ngayCapNhat}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="expandedDetail">
+                    <td mat-cell *matCellDef="let item" [attr.colspan]="areaParentColumns.length">
+                        <div class="child-detail" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
+                            <div class="child-table-container" *ngIf="item.expanded">
+                                <h4 class="child-title">Chi tiết sản phẩm trong khu vực {{item.khuVuc}}</h4>
+                                <table class="child-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Location</th>
+                                            <th>Mã SP</th>
+                                            <th>Tên SP</th>
+                                            <th>Mã KH</th>
+                                            <th>Tên KH</th>
+                                            <th>PO</th>
+                                            <th>SL tồn</th>
+                                            <th>SL gốc</th>
+                                            <th>Mã pallet</th>
+                                            <th>Mã thùng</th>
+                                            <th>Status</th>
+                                            <th>Ngày nhập</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let child of item.children">
+                                            <td>{{child.location}}</td>
+                                            <td><strong>{{child.maSanPham}}</strong></td>
+                                            <td>{{child.tenSP}}</td>
+                                            <td>{{child.maKH}}</td>
+                                            <td>{{child.tenKH}}</td>
+                                            <td>{{child.po}}</td>
+                                            <td>{{child.slTon}}</td>
+                                            <td>{{child.slGoc}}</td>
+                                            <td>{{child.maPallet}}</td>
+                                            <td>{{child.maThung}}</td>
+                                            <td>
+                                                <span class="status-badge" [ngClass]="getStatusClass(child.status)">
+                                                    {{child.status}}
+                                                </span>
+                                            </td>
+                                            <td>{{child.ngayNhap}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="areaParentColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: areaParentColumns; when: isParentRow" class="parent-row"
+                    [class.expanded]="row.expanded" (click)="toggleRow(row)"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['expandedDetail']; when: isChildRow" class="child-row"></tr>
+            </table>
+
+            <!-- Customer View -->
+            <table mat-table [dataSource]="customerDataSource" class="warehouse-table expandable-table"
+                multiTemplateDataRows *ngIf="currentViewMode === 'customer'">
+
+                <ng-container matColumnDef="expand">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let item">
+                        <button mat-icon-button (click)="toggleRow(item); $event.stopPropagation()">
+                            <mat-icon>{{item.expanded ? 'expand_more' : 'chevron_right'}}</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="maKH">
+                    <th mat-header-cell *matHeaderCellDef>Mã KH</th>
+                    <td mat-cell *matCellDef="let item">{{item.maKH}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="tenKH">
+                    <th mat-header-cell *matHeaderCellDef>Tên KH</th>
+                    <td mat-cell *matCellDef="let item">{{item.tenKH}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="tongSLTon">
+                    <th mat-header-cell *matHeaderCellDef>Tổng SL tồn</th>
+                    <td mat-cell *matCellDef="let item">{{item.tongSLTon}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="tongSLGoc">
+                    <th mat-header-cell *matHeaderCellDef>Tổng SL gốc</th>
+                    <td mat-cell *matCellDef="let item">{{item.tongSLGoc}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soSP">
+                    <th mat-header-cell *matHeaderCellDef>Số SP</th>
+                    <td mat-cell *matCellDef="let item">{{item.soSP}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soPO">
+                    <th mat-header-cell *matHeaderCellDef>Số PO</th>
+                    <td mat-cell *matCellDef="let item">{{item.soPO}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soKhuVuc">
+                    <th mat-header-cell *matHeaderCellDef>Số khu vực</th>
+                    <td mat-cell *matCellDef="let item">{{item.soKhuVuc}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soPallet">
+                    <th mat-header-cell *matHeaderCellDef>Số Pallet</th>
+                    <td mat-cell *matCellDef="let item">{{item.soPallet}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="soThung">
+                    <th mat-header-cell *matHeaderCellDef>Số Thùng</th>
+                    <td mat-cell *matCellDef="let item">{{item.soThung}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="ngayNhapSomNhat">
+                    <th mat-header-cell *matHeaderCellDef>Ngày nhập</th>
+                    <td mat-cell *matCellDef="let item">{{item.ngayNhapSomNhat}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="expandedDetail">
+                    <td mat-cell *matCellDef="let item" [attr.colspan]="customerParentColumns.length">
+                        <div class="child-detail" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
+                            <div class="child-table-container" *ngIf="item.expanded">
+                                <h4 class="child-title">Chi tiết sản phẩm của khách hàng {{item.tenKH}}</h4>
+                                <table class="child-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã SP</th>
+                                            <th>Tên SP</th>
+                                            <th>PO</th>
+                                            <th>SL tồn</th>
+                                            <th>SL gốc</th>
+                                            <th>Khu vực</th>
+                                            <th>Location</th>
+                                            <th>Mã pallet</th>
+                                            <th>Mã thùng</th>
+                                            <th>Status</th>
+                                            <th>Ngày nhập</th>
+                                            <th>Ngày cập nhật</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let child of item.children">
+                                            <td><strong>{{child.maSanPham}}</strong></td>
+                                            <td>{{child.tenSP}}</td>
+                                            <td>{{child.po}}</td>
+                                            <td>{{child.slTon}}</td>
+                                            <td>{{child.slGoc}}</td>
+                                            <td>{{child.khuVuc}}</td>
+                                            <td>{{child.location}}</td>
+                                            <td>{{child.maPallet}}</td>
+                                            <td>{{child.maThung}}</td>
+                                            <td>
+                                                <span class="status-badge" [ngClass]="getStatusClass(child.status)">
+                                                    {{child.status}}
+                                                </span>
+                                            </td>
+                                            <td>{{child.ngayNhap}}</td>
+                                            <td>{{child.ngayCapNhat}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="customerParentColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: customerParentColumns; when: isParentRow" class="parent-row"
+                    [class.expanded]="row.expanded" (click)="toggleRow(row)"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['expandedDetail']; when: isChildRow" class="child-row"></tr>
+            </table>
+        </div>
+        <div class="mobile-warehouse-list" *ngIf="currentViewMode === 'default'">
+            <div class="mobile-warehouse-card" *ngFor="let item of warehouseList; let i = index">
+                <div class="card-header">
+                    <div class="card-id">
+                        <span class="stt">#{{(i + 1)}}</span>
+                        <span class="product-code">{{item.maSanPham}}</span>
+                    </div>
+                    <span class="status-badge" [ngClass]="getStatusClass(item.status)">
+                        {{item.status}}
+                    </span>
+                </div>
+
+                <div class="card-content">
+                    <div class="info-row">
+                        <span class="label">Tên SP</span>
+                        <span class="value">{{item.tenSP}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Khách hàng</span>
+                        <span class="value">{{item.tenKH}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">PO</span>
+                        <span class="value">{{item.po}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Location</span>
+                        <span class="value location-badge">{{item.location}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Mã pallet</span>
+                        <span class="value location-badge">{{item.maPallet}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Mã thùng</span>
+                        <span class="value location-badge">{{item.maThung}}</span>
+                    </div>
+
+                    <div class="quantity-row">
+                        <div class="qty-box stock">
+                            <div class="qty-label">SL Tồn</div>
+                            <div class="qty-value">{{item.soLuongTon}}</div>
+                        </div>
+                        <div class="qty-box">
+                            <div class="qty-label">SL Gốc</div>
+                            <div class="qty-value">{{item.soLuongGoc}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Expandable View - PO -->
+        <div class="mobile-warehouse-list view-po" *ngIf="currentViewMode === 'po'">
+            <div class="mobile-expandable-card" *ngFor="let item of poDataSource">
+                <div class="parent-header" (click)="toggleRow(item)">
+                    <div class="parent-info">
+                        <div class="parent-title">{{item.po}}</div>
+                        <!-- <div class="parent-subtitle">{{item.soSP}} sản phẩm</div> -->
+                    </div>
+                    <div class="expand-icon" [class.expanded]="item.expanded">
+                        <span class="badge">{{item.children?.length || 0}}</span>
+                        <mat-icon>chevron_right</mat-icon>
+                    </div>
+                </div>
+
+                <div class="parent-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">SL Tồn</div>
+                        <div class="stat-value">{{item.tongSLTon}}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Pallet</div>
+                        <div class="stat-value">{{item.soPallet}}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Thùng</div>
+                        <div class="stat-value">{{item.soThung}}</div>
+                    </div>
+                </div>
+
+                <div class="children-list" [class.show]="item.expanded">
+                    <div class="child-item" *ngFor="let child of item.children">
+                        <div class="child-row">
+                            <span class="label">Mã SP</span>
+                            <span class="value">{{child.maSanPham}}</span>
+                        </div>
+                        <div class="child-row">
+                            <span class="label">Tên SP</span>
+                            <span class="value">{{child.tenSP}}</span>
+                        </div>
+                        <div class="child-row">
+                            <span class="label">Khách hàng</span>
+                            <span class="value">{{child.tenKH}}</span>
+                        </div>
+                        <div class="child-row">
+                            <span class="label">SL Tồn</span>
+                            <span class="value">{{child.slTon}}</span>
+                        </div>
+                        <div class="child-row">
+                            <span class="label">Khu vực</span>
+                            <span class="value">{{child.khuVuc}}</span>
+                        </div>
+                        <div class="child-row">
+                            <span class="label">Status</span>
+                            <span class="value">
+                                <span class="status-badge" [ngClass]="getStatusClass(child.status)">
+                                    {{child.status}}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <mat-form-field class="page-size-select" appearance="outline">
+                <mat-select [(value)]="pageSize">
+                    <mat-option [value]="10">10</mat-option>
+                    <mat-option [value]="25">25</mat-option>
+                    <mat-option [value]="50">50</mat-option>
+                    <mat-option [value]="100">100</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <div class="pagination-buttons">
+                <button mat-flat-button [class.page-active]="currentPage === 1" (click)="onPageChange(1)">1</button>
+                <button mat-stroked-button (click)="onPageChange(2)">2</button>
+                <button mat-stroked-button (click)="onPageChange(3)">3</button>
+                <span class="page-dots">...</span>
+                <button mat-stroked-button (click)="onPageChange(8)">8</button>
+                <button mat-stroked-button (click)="onPageChange(9)">9</button>
+            </div>
+        </div>
+    </mat-card>
+</div>
