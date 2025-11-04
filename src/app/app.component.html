@@ -1,0 +1,34 @@
+<div class="layout-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed">
+  <div class="sidebar-container" [class.collapsed]="isSidebarCollapsed">
+    <app-sidebar [isCollapsed]="isSidebarCollapsed" (collapseSidebar)="toggleSidebar()"></app-sidebar>
+    <div class="sidebar-toggle" (click)="toggleSidebar()">
+      <a style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"
+        class="btn-toggle-sidebar">
+        <mat-icon>menu</mat-icon>
+      </a>
+    </div>
+  </div>
+  
+  <div>
+    <div class="topnav" style="display: flex;">
+      <div class="user">
+        <button class="btn user-option">
+          <mat-icon>person_outline</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="main-container">
+    <div class="main-content-container">
+      <div class="main-content">
+        <mat-tab-nav-panel #tabPanel></mat-tab-nav-panel>
+        <main class="main-content-area">
+          <div>
+            <router-outlet></router-outlet>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+</div>

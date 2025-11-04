@@ -1,0 +1,318 @@
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="header-title">
+            <mat-icon class="title-icon">dashboard</mat-icon>
+            <div>
+                <h1>Báo cáo xuất & nhập tồn</h1>
+                <p class="subtitle">Warehouse Report & Analytics</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <mat-form-field appearance="outline" class="date-range-picker">
+                <mat-label>Chọn khoảng thời gian</mat-label>
+                <mat-date-range-input [rangePicker]="picker">
+                    <input matStartDate placeholder="Từ ngày" >
+                    <!-- <input matStartDate placeholder="Từ ngày" [(ngModel)]="startDate">
+                    <input matEndDate placeholder="Đến ngày" [(ngModel)]="endDate"> -->
+                    <input matEndDate placeholder="Đến ngày" >
+                </mat-date-range-input>
+                <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-date-range-picker #picker></mat-date-range-picker>
+            </mat-form-field>
+            <button mat-raised-button color="primary" class="export-btn" (click)="onExportReport()">
+                <mat-icon>file_download</mat-icon>
+                Xuất báo cáo
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-cards">
+        <mat-card class="stat-card card-primary">
+            <div class="stat-icon">
+                <mat-icon>inventory_2</mat-icon>
+            </div>
+            <div class="stat-content">
+                <h3>Tổng tồn kho</h3>
+                <p class="stat-value">{{totalInventory | number}}</p>
+                <span class="stat-change positive">
+                    <mat-icon>trending_up</mat-icon>
+                    +12.5% so với tháng trước
+                </span>
+            </div>
+        </mat-card>
+
+        <mat-card class="stat-card card-success">
+            <div class="stat-icon">
+                <mat-icon>local_shipping</mat-icon>
+            </div>
+            <div class="stat-content">
+                <h3>Nhập kho (tháng)</h3>
+                <p class="stat-value">{{monthlyImport | number}}</p>
+                <span class="stat-change positive">
+                    <mat-icon>trending_up</mat-icon>
+                    +8.3% so với tháng trước
+                </span>
+            </div>
+        </mat-card>
+
+        <mat-card class="stat-card card-warning">
+            <div class="stat-icon">
+                <mat-icon>shopping_cart</mat-icon>
+            </div>
+            <div class="stat-content">
+                <h3>Xuất kho (tháng)</h3>
+                <p class="stat-value">{{monthlyExport | number}}</p>
+                <span class="stat-change negative">
+                    <mat-icon>trending_down</mat-icon>
+                    -3.2% so với tháng trước
+                </span>
+            </div>
+        </mat-card>
+
+        <mat-card class="stat-card card-info">
+            <div class="stat-icon">
+                <mat-icon>apartment</mat-icon>
+            </div>
+            <div class="stat-content">
+                <h3>Tỷ lệ lấp đầy kho</h3>
+                <p class="stat-value">{{warehouseUtilization}}%</p>
+                <span class="stat-change positive">
+                    <mat-icon>trending_up</mat-icon>
+                    +5.1% so với tháng trước
+                </span>
+            </div>
+        </mat-card>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+        <!-- Inventory Trend Chart -->
+        <mat-card class="chart-card full-width">
+            <div class="card-header">
+                <div class="card-title">
+                    <mat-icon>show_chart</mat-icon>
+                    <span>Biểu đồ xu hướng tồn kho</span>
+                </div>
+                <button mat-icon-button [matMenuTriggerFor]="chartMenu">
+                    <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #chartMenu="matMenu">
+                    <button mat-menu-item>
+                        <mat-icon>file_download</mat-icon>
+                        Xuất dữ liệu
+                    </button>
+                    <button mat-menu-item>
+                        <mat-icon>refresh</mat-icon>
+                        Làm mới
+                    </button>
+                </mat-menu>
+            </div>
+            <div class="chart-container">
+                <!-- Chart placeholder - integrate with Chart.js or other library -->
+                <canvas id="inventoryTrendChart"></canvas>
+            </div>
+        </mat-card>
+
+        <!-- Warehouse Status -->
+        <mat-card class="chart-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <mat-icon>pie_chart</mat-icon>
+                    <span>Trạng thái kho</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="warehouseStatusChart"></canvas>
+            </div>
+        </mat-card>
+
+        <!-- Product Category -->
+        <mat-card class="chart-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <mat-icon>category</mat-icon>
+                    <span>Phân loại sản phẩm</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="productCategoryChart"></canvas>
+            </div>
+        </mat-card>
+    </div>
+
+    <!-- Data Tables Section -->
+    <div class="tables-section">
+        <!-- Top Products -->
+        <mat-card class="table-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <mat-icon>star</mat-icon>
+                    <span>Top 10 sản phẩm tồn kho cao nhất</span>
+                </div>
+                <button mat-stroked-button color="primary" >
+                    Xem tất cả
+                    <mat-icon>arrow_forward</mat-icon>
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Mã SP</th>
+                            <th>Tên SP</th>
+                            <th>Khách hàng</th>
+                            <th>Số lượng tồn</th>
+                            <th>Giá trị (VNĐ)</th>
+                            <th>Khu vực</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let product of topProducts; let i = index">
+                            <td>{{i + 1}}</td>
+                            <td><strong>{{product.code}}</strong></td>
+                            <td>{{product.name}}</td>
+                            <td>{{product.customer}}</td>
+                            <td>
+                                <span class="quantity-badge">{{product.quantity | number}}</span>
+                            </td>
+                            <td>{{product.value | number}}</td>
+                            <td>
+                                <span class="area-badge">{{product.area}}</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </mat-card>
+
+        <!-- Recent Activities -->
+        <mat-card class="table-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <mat-icon>history</mat-icon>
+                    <span>Hoạt động gần đây</span>
+                </div>
+                <button mat-stroked-button color="primary" >
+                    Xem tất cả
+                    <mat-icon>arrow_forward</mat-icon>
+                </button>
+            </div>
+            <div class="activities-list">
+                <div class="activity-item" *ngFor="let activity of recentActivities">
+                    <div class="activity-icon" [ngClass]="activity.type">
+                        <!-- <mat-icon>{{getActivityIcon(activity.type)}}</mat-icon> -->
+                        <mat-icon></mat-icon>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-title">{{activity.title}}</p>
+                        <p class="activity-description">{{activity.description}}</p>
+                        <span class="activity-time">{{activity.time}}</span>
+                    </div>
+                    <div class="activity-status">
+                        <span class="status-badge" [ngClass]="activity.status">
+                            {{activity.statusLabel}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </mat-card>
+    </div>
+
+    <!-- Warehouse Overview -->
+    <mat-card class="overview-card">
+        <div class="card-header">
+            <div class="card-title">
+                <mat-icon>business</mat-icon>
+                <span>Tổng quan các khu vực kho</span>
+            </div>
+        </div>
+        <div class="warehouse-grid">
+            <div class="warehouse-item" *ngFor="let area of warehouseAreas">
+                <div class="warehouse-header">
+                    <h4>{{area.name}}</h4>
+                    <span class="capacity-badge" [ngClass]="getCapacityClass(area.capacity)">
+                        {{area.capacity}}%
+                    </span>
+                </div>
+                <div class="warehouse-stats">
+                    <div class="stat-row">
+                        <span class="label">Tổng locations:</span>
+                        <span class="value">{{area.totalLocations}}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="label">Đang sử dụng:</span>
+                        <span class="value">{{area.usedLocations}}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="label">Còn trống:</span>
+                        <span class="value">{{area.emptyLocations}}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="label">Sản phẩm:</span>
+                        <span class="value">{{area.products}}</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="area.capacity" 
+                         [ngClass]="getCapacityClass(area.capacity)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </mat-card>
+
+    <!-- Performance Metrics -->
+    <div class="metrics-section">
+        <mat-card class="metric-card">
+            <div class="metric-header">
+                <mat-icon>timer</mat-icon>
+                <h3>Thời gian xử lý TB</h3>
+            </div>
+            <p class="metric-value">2.5 <span class="unit">giờ</span></p>
+            <div class="metric-footer">
+                <span class="change positive">-15%</span>
+                <span class="label">vs tháng trước</span>
+            </div>
+        </mat-card>
+
+        <mat-card class="metric-card">
+            <div class="metric-header">
+                <mat-icon>error_outline</mat-icon>
+                <h3>Tỷ lệ lỗi</h3>
+            </div>
+            <p class="metric-value">1.2 <span class="unit">%</span></p>
+            <div class="metric-footer">
+                <span class="change positive">-0.3%</span>
+                <span class="label">vs tháng trước</span>
+            </div>
+        </mat-card>
+
+        <mat-card class="metric-card">
+            <div class="metric-header">
+                <mat-icon>people</mat-icon>
+                <h3>Nhân viên hoạt động</h3>
+            </div>
+            <p class="metric-value">48 <span class="unit">người</span></p>
+            <div class="metric-footer">
+                <span class="change neutral">0</span>
+                <span class="label">vs tháng trước</span>
+            </div>
+        </mat-card>
+
+        <mat-card class="metric-card">
+            <div class="metric-header">
+                <mat-icon>assessment</mat-icon>
+                <h3>Hiệu suất kho</h3>
+            </div>
+            <p class="metric-value">94 <span class="unit">%</span></p>
+            <div class="metric-footer">
+                <span class="change positive">+2%</span>
+                <span class="label">vs tháng trước</span>
+            </div>
+        </mat-card>
+    </div>
+</div>

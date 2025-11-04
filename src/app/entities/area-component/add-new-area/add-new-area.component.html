@@ -1,0 +1,94 @@
+<div class="area-container">
+    <!-- Header -->
+    <div class="area-header">
+        <div class="header-title">
+            <mat-icon class="title-icon">map</mat-icon>
+            <div>
+                <h1>Thêm mới Area</h1>
+                <p class="subtitle">Area Management</p>
+            </div>
+        </div>
+        <button mat-raised-button color="primary" class="add-btn" [routerLink]="'/areas'">
+            <mat-icon>arrow_back</mat-icon>
+            Back
+        </button>
+    </div>
+
+    <!-- Content Card -->
+    <!-- Area Form -->
+    <form #areaForm="ngForm" (ngSubmit)="onSave(areaForm)">
+    <mat-card class="area-card">
+        <!-- Table Header -->
+        <div class="card-header">
+            <div class="table-title">
+                <mat-icon>add_circle_outline</mat-icon>
+                <span>Thông tin Area</span>
+            </div>
+        </div>
+
+            <div class="area-form">
+                <!-- Row 1 -->
+                <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>Mã Area</mat-label>
+                        <input matInput name="code" [(ngModel)]="area.code" required placeholder="Nhập mã area"
+                            #code="ngModel" />
+                        <mat-error *ngIf="code.invalid && code.touched">Mã area là bắt buộc</mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>Tên Area</mat-label>
+                        <input matInput name="name" [(ngModel)]="area.name" required placeholder="Nhập tên area"
+                            #name="ngModel" />
+                        <mat-error *ngIf="name.invalid && name.touched">Tên area là bắt buộc</mat-error>
+                    </mat-form-field>
+                </div>
+
+                <!-- Row 2 -->
+                <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>Thủ kho</mat-label>
+                        <input matInput name="thu_kho" [(ngModel)]="area.thu_kho" required placeholder="Thủ kho"
+                            #thu_kho="ngModel" />
+                        <mat-error *ngIf="thu_kho.invalid && thu_kho.touched">Thủ kho là bắt buộc</mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>Địa chỉ</mat-label>
+                        <input matInput name="address" [(ngModel)]="area.address" required placeholder="Nhập địa chỉ"
+                            #address="ngModel" />
+                        <mat-error *ngIf="address.invalid && address.touched">Địa chỉ là bắt buộc</mat-error>
+                    </mat-form-field>
+                </div>
+
+                <!-- Row 3 -->
+                <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field full-width">
+                        <mat-label>Description</mat-label>
+                        <textarea matInput name="description" [(ngModel)]="area.description"
+                            placeholder="Mô tả area" #description="ngModel"></textarea>
+                        <mat-error *ngIf="description.invalid && description.touched">Mô tả là bắt buộc</mat-error>
+                    </mat-form-field>
+                </div>
+
+                <!-- Row 4 -->
+                <div class="form-row">
+                    <button *ngIf="isSaveArea" mat-raised-button color="primary" class="add-btn"
+                        [routerLink]="'/location/add-new'">
+                        <mat-icon>add_circle</mat-icon>
+                        Thêm mới location
+                    </button>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+        </mat-card>
+        <mat-card class="area-card">
+            <div class="action-buttons">
+                <button mat-button [routerLink]="'/areas'">Cancel</button>
+                <button mat-flat-button color="primary" type="submit">Lưu</button>
+            </div>
+        </mat-card>
+    </form>
+
+</div>

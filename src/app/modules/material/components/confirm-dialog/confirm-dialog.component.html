@@ -1,0 +1,8 @@
+<h2 mat-dialog-title>{{ data.title || 'Xác nhận' }}</h2>
+<mat-dialog-content class="mat-typography">
+  <p>{{ data.message }}</p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onNoClick()">{{ data.cancelText || 'Hủy' }}</button>
+  <button mat-raised-button color="primary"  [mat-dialog-close]="true" cdkFocusInitial>{{ data.confirmText || 'Đồng ý' }}</button>
+</mat-dialog-actions>
