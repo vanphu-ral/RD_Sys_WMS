@@ -5,6 +5,7 @@ import { XuatHangTheoDonBanService } from '../service/xuat-hang-theo-don-ban.ser
 import { ConfirmDialogXuatHangComponent } from '../dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 export interface MainInfo {
+  donViLinh: string;
   soPhieuGiaoHang: string;
   maKhachHang: string;
   tenKhachHang: string;
@@ -57,6 +58,7 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
     'donViTinh',
   ];
   mainInfo: MainInfo = {
+    donViLinh:'',
     soPhieuGiaoHang: '',
     maKhachHang: '',
     tenKhachHang: '',
@@ -114,7 +116,7 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
   onApplyRequest(): void {
     const id = +this.maYeuCau;
     if (!id) return;
-    
+
     this.xuatHangServie.getOutOfStockRequestById(id).subscribe({
       next: (res) => {
         if (!res.ORDR) {
@@ -136,6 +138,7 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
           soChungTu: ordr.U_Docnum || '',
           ghiChu: ordr.Comments || '',
           lyDoNhapXuat: ordr.U_Category || '',
+          donViLinh: ordr.U_Pur_NvNhan || '',
           ngayGiaoHang: ordr.DocDueDate
             ? new Date(ordr.DocDueDate).toLocaleDateString()
             : '',
@@ -235,7 +238,77 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
   }
 
   //xác nhận xuất kho
-  saveOutOfStockRequest(): void {}
+  saveOutOfStockRequest(): void {
+    const fromWarehouse = this.fromWarehouseId;
+    const toWarehouse = this.toWarehouseId;
+
+    if (!fromWarehouse || !toWarehouse) {
+      this.snackBar.open('Vui lòng chọn đầy đủ Từ kho và Đến kho!', 'Đóng', {
+        duration: 3000,
+        panelClass: ['snackbar-error'],
+      });
+      return;
+    }
+
+    const headerPayload = {
+      don_vi_linh: this.mainInfo.donViLinh || 'Phòng kỹ thuật',
+      don_vi_nhan: this.mainInfo.tenKhachHang || 'Phòng sản xuất',
+      kho_xuat: fromWarehouse,
+      xuat_toi: toWarehouse,
+      ly_do_xuat_nhap: this.mainInfo.lyDoNhapXuat || 'Chuyển kho nội bộ',
+      ma_yc_xk: this.mainInfo.soChungTu || 'ORS-2024-001',
+      ngay_chung_tu:
+        this.mainInfo.ngayGiaoHang || new Date().toISOString().slice(0, 10),
+      note: this.mainInfo.ghiChu || '',
+      series_PGH: 's',
+      status: 'Mới tạo',
+      updated_by: 'admin',
+    };
+
+    this.xuatHangServie.saveSalesExportRequest(headerPayload).subscribe({
+      next: (res) => {
+        if (res.success && res.osr_id) {
+          const itemsPayload = this.detailList.map((item) => ({
+            DVT: item.donViTinh,
+            product_code: item.maHangHoa,
+            product_name: item.tenHangHoa,
+            total_quantity: item.soLuong,
+            updated_by: 'admin',
+          }));
+
+          this.xuatHangServie
+            .saveSalesExportItems(res.osr_id, itemsPayload)
+            .subscribe({
+              next: () => {
+                this.snackBar.open('Lưu xuất kho thành công!', 'Đóng', {
+                  duration: 3000,
+                  panelClass: ['snackbar-success'],
+                });
+              },
+              error: (err) => {
+                console.error('Lỗi khi lưu bảng phụ:', err);
+                this.snackBar.open('Lỗi khi lưu chi tiết sản phẩm!', 'Đóng', {
+                  duration: 3000,
+                  panelClass: ['snackbar-error'],
+                });
+              },
+            });
+        } else {
+          this.snackBar.open('Lưu bảng chính thất bại!', 'Đóng', {
+            duration: 3000,
+            panelClass: ['snackbar-error'],
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Lỗi khi lưu bảng chính:', err);
+        this.snackBar.open('Lỗi khi gửi yêu cầu xuất kho!', 'Đóng', {
+          duration: 3000,
+          panelClass: ['snackbar-error'],
+        });
+      },
+    });
+  }
 
   goBack(): void {
     this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']);

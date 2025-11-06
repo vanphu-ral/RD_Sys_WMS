@@ -75,6 +75,11 @@ export const routes: Routes = [
         component: ScanDetailComponent,
         data: { tabLabel: 'Chi tiết yêu cầu chuyển kho', isClosable: true },
       },
+      {
+        path: 'chuyen-kho-noi-bo/detail/:id/scan',
+        component: ScanDetailComponent,
+        data: { tabLabel: 'Chi tiết yêu cầu chuyển kho', isClosable: true },
+      },
       { path: 'nhap-kho-sx', component: NhapKhoComponent },
       {
         path: 'nhap-kho-sx/phe-duyet/:id',
@@ -85,6 +90,11 @@ export const routes: Routes = [
         path: 'nhap-kho-sx/detail/:id',
         component: ChiTietNhapKhoComponent,
         data: { tabLabel: 'Chi tiết nhập kho', isClosable: true },
+      },
+      {
+        path: 'nhap-kho-sx/scan',
+        component: ScanCheckComponent,
+        data: { tabLabel: 'Quét mã', isClosable: true },
       },
       {
         path: 'nhap-kho-sx/scan/:id',

@@ -227,3 +227,50 @@
         }
     }
 }
+.action-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 8px;
+    // position: sticky;
+    bottom: 10px;
+
+    button {
+        height: 44px;
+        padding: 0 24px;
+        font-weight: 500;
+        font-size: 15px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+            margin: 0;
+        }
+    }
+
+    .cancel-btn {
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+
+        &:hover {
+            background-color: #f8fafc;
+        }
+    }
+
+    .confirm-btn {
+        background-color: #0D6EFD;
+        color: white;
+
+        &:hover {
+            background-color: #0257d5;
+        }
+    }
+}

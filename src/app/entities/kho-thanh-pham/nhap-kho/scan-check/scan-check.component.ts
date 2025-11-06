@@ -53,6 +53,7 @@ export class ScanCheckComponent implements OnInit {
 
   @ViewChild('palletInput') palletInput!: ElementRef;
   @ViewChild('locationInput') locationInput!: ElementRef;
+  detailList: any;
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -68,27 +69,46 @@ export class ScanCheckComponent implements OnInit {
       console.log('Mã sản phẩm:', queryParams['maSanPham']);
       console.log('Status:', queryParams['status']);
     });
-  }
-  onSelectMode(mode: 'pallet' | 'thung') {
-    if (this.selectedMode === mode) {
-      this.selectedMode = null;
-    } else {
-      this.selectedMode = mode;
+    const state = history.state;
+    this.detailList = state.detailList || [];
 
-      // focus vào input pallet sau khi chọn mode
+    // Gắn mặc định trạng thái nếu chưa có
+    this.detailList = this.detailList.map((item: { scanStatus: any }) => ({
+      ...item,
+      scanStatus: item.scanStatus || 'Chưa scan',
+    }));
+  }
+  onSelectMode(mode: 'pallet' | 'thung'): void {
+    if (this.selectedMode === mode) {
+      // Bỏ chọn mode - reset và clear focus
+      this.selectedMode = null;
+      this.scanPallet = '';
+      this.scanLocation = '';
+      this.palletInput?.nativeElement?.blur();
+    } else {
+      // Chọn mode mới
+      this.selectedMode = mode;
+      this.scanPallet = '';
+      this.scanLocation = '';
+
+      // Focus vào input pallet sau khi chọn mode
       setTimeout(() => {
         this.palletInput?.nativeElement?.focus();
       }, 100);
     }
   }
 
-  onPalletScanEnter() {
-    // chuyển focus sang input location
-    this.locationInput?.nativeElement?.focus();
+  onPalletScanEnter(): void {
+    if (!this.scanPallet.trim()) return;
+
+    // Chuyển focus sang input location
+    setTimeout(() => {
+      this.locationInput?.nativeElement?.focus();
+    }, 50);
   }
 
-  onLocationScanEnter() {
-    if (!this.scanPallet || !this.scanLocation) return;
+  onLocationScanEnter(): void {
+    if (!this.scanPallet.trim() || !this.scanLocation.trim()) return;
 
     const now = new Date();
     const formattedTime = now.toLocaleString('vi-VN', {
@@ -109,22 +129,26 @@ export class ScanCheckComponent implements OnInit {
       location: this.scanLocation,
       thoiDiemScan: formattedTime,
     };
+
     this.scannedList.unshift(newItem);
-    
+
     this.snackBar.open('Lưu thành công!', 'Đóng', {
       duration: 3000,
       horizontalPosition: 'right',
       verticalPosition: 'bottom',
-      panelClass: ['snackbar-success', 'snackbar-position'],
+      panelClass: ['snackbar-success'],
     });
-    // reset input
+
+    // Reset CHỈ input values, GIỮ NGUYÊN selectedMode
     this.scanPallet = '';
     this.scanLocation = '';
-    this.selectedMode = null;
 
-    // focus lại vào pallet để scan tiếp
-    setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
+    // Focus lại về pallet để tiếp tục scan
+    setTimeout(() => {
+      this.palletInput?.nativeElement?.focus();
+    }, 100);
   }
+
   loadData(): void {
     // Load dữ liệu từ service
   }
@@ -140,8 +164,20 @@ export class ScanCheckComponent implements OnInit {
   onReject(): void {
     // Xử lý từ chối
   }
+  clearScanMode(): void {
+    this.selectedMode = null;
+    this.scanPallet = '';
+    this.scanLocation = '';
+  }
 
   onConfirm(): void {
-    // Xử lý xác nhận
+    this.detailList = this.detailList.map((item: any) => ({
+      ...item,
+      scanStatus: 'Đã scan',
+    }));
+
+    this.router.navigate(['/kho-thanh-pham/nhap-kho-sx'], {
+      state: { updatedList: this.detailList },
+    });
   }
 }

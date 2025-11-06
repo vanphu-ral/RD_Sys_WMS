@@ -5,7 +5,7 @@ import { SalesExportRequest } from '../xuat-hang-theo-don-ban-hang.component';
 
 @Injectable({ providedIn: 'root' })
 export class XuatHangTheoDonBanService {
-  private apiUrl = 'http://192.168.10.99:8050/api';
+  private apiUrl = 'http://192.168.20.101:8050/api';
 
   constructor(private http: HttpClient) {}
 
@@ -30,6 +30,23 @@ export class XuatHangTheoDonBanService {
             }))
           : []
       )
+    );
+  }
+
+  //them moi don xuat kho
+  saveSalesExportRequest(
+    payload: any
+  ): Observable<{ success: boolean; osr_id: number }> {
+    return this.http.post<{ success: boolean; osr_id: number }>(
+      `${this.apiUrl}/osr/requests/with-items`,
+      payload
+    );
+  }
+
+  saveSalesExportItems(requestId: number, inventories: any[]): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/osr/requests/${requestId}/inventories`,
+      { inventories }
     );
   }
 }

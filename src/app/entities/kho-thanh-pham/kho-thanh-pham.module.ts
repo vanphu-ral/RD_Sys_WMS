@@ -73,6 +73,6 @@ import { ConfirmDialogXuatHangComponent } from './xuat-hang-theo-don-ban-hang/di
     MatTooltipModule,
     ConfirmDialogXuatHangComponent,
   ],
-  exports: [MatIconModule,MatTableModule, MatDialogModule, ConfirmDialogComponent, ConfirmDialogXuatHangComponent],
+  exports: [MatIconModule,MatTableModule, MatDialogModule, ConfirmDialogComponent],
 })
 export class KhoThanhPhamModule {}

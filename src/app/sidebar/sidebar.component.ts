@@ -77,16 +77,19 @@ export class SidebarComponent implements OnInit {
       });
     }
   }
-  onMenuClick(menu: any): void {
-    if (!this.isCollapsed) {
-      this.collapseSidebar.emit(); // báo cho AppComponent đóng sidebar
-    }
+onMenuClick(menu: any): void {
+  // Chỉ collapse khi click vào menu thường (không phải dropdown)
+  if (menu.type !== 'dropdown' && !this.isCollapsed) {
+    this.collapseSidebar.emit();
   }
-  onSubmenuClick(): void {
-    if (!this.isCollapsed) {
-      this.collapseSidebar.emit();
-    }
+}
+
+onSubmenuClick(): void {
+  // Collapse khi click vào submenu
+  if (!this.isCollapsed) {
+    this.collapseSidebar.emit();
   }
+}
 
 
 

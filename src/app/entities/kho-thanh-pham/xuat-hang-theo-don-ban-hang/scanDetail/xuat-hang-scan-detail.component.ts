@@ -1,6 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 export interface ScannedItem {
+    xuatKhoId: number;
     maHangHoa: string;
     tenHangHoa: string;
     serialPallet: string;
@@ -37,6 +38,7 @@ export class ScanDetailXuatHangComponent implements OnInit {
     ];
     scannedList: ScannedItem[] = [
         {
+            xuatKhoId: 1,
             maHangHoa: 'LED000035',
             tenHangHoa: 'Đèn LED cắm ứng 8W',
             serialPallet: 'P202500191',
@@ -48,12 +50,13 @@ export class ScanDetailXuatHangComponent implements OnInit {
         },
     ];
     selectedMode: 'pallet' | 'thung' | null = null;
-
+  chuyenKhoId:number | undefined;
     @ViewChild('palletInput') palletInput!: ElementRef;
     @ViewChild('locationInput') locationInput!: ElementRef;
     constructor(private route: ActivatedRoute, private router: Router) { }
     ngOnInit(): void {
-        const chuyenKhoId = this.route.snapshot.paramMap.get('id');
+        const idParam = this.route.snapshot.paramMap.get('id');
+    this.chuyenKhoId = idParam !== null ? Number(idParam) : undefined;
         const scanId = this.route.snapshot.paramMap.get('scanId');
     }
     onSelectMode(mode: 'pallet' | 'thung') {
@@ -87,6 +90,7 @@ export class ScanDetailXuatHangComponent implements OnInit {
         });
 
         const newItem: ScannedItem = {
+            xuatKhoId: 1,
             maHangHoa: 'LED000035',
             tenHangHoa: 'Đèn LED cắm ứng 8W',
             serialPallet: this.scanPallet,
@@ -125,4 +129,10 @@ export class ScanDetailXuatHangComponent implements OnInit {
             this.onPageChange(this.currentPage);
         }
     }
+    back(): void {
+    this.router.navigate([
+      '/kho-thanh-pham/xuat-don-ban-hang/detail/',
+      this.chuyenKhoId,
+    ]);
+  }
 }

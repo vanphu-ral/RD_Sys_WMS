@@ -187,6 +187,17 @@
                 </ng-container>
 
                 <!-- Khu vực Column -->
+                <ng-container matColumnDef="area">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Kho</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{item.area}}</td>
+                </ng-container>
+
+                <!-- Location Column -->
                 <ng-container matColumnDef="khuVuc">
                     <th mat-header-cell *matHeaderCellDef>
                         <div class="header-content">Khu vực</div>
@@ -194,19 +205,8 @@
                             <input matInput>
                         </mat-form-field>
                     </th>
-                    <td mat-cell *matCellDef="let item">{{item.khuVuc}}</td>
-                </ng-container>
-
-                <!-- Location Column -->
-                <ng-container matColumnDef="location">
-                    <th mat-header-cell *matHeaderCellDef>
-                        <div class="header-content">Location</div>
-                        <mat-form-field class="search-field" appearance="outline">
-                            <input matInput>
-                        </mat-form-field>
-                    </th>
                     <td mat-cell *matCellDef="let item">
-                        <span class="location-badge">{{item.location}}</span>
+                        <span class="location-badge">{{item.khuVuc}}</span>
                     </td>
                 </ng-container>
 
@@ -281,49 +281,101 @@
 
                 <!-- PO Column -->
                 <ng-container matColumnDef="po">
-                    <th mat-header-cell *matHeaderCellDef>PO</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">PO</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">
                         <span class="po-badge">{{item.po}}</span>
                     </td>
                 </ng-container>
 
                 <ng-container matColumnDef="soLuongSP">
-                    <th mat-header-cell *matHeaderCellDef>Số lượng SP</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số lượng SP</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soLuongSP}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="tongSLTon">
-                    <th mat-header-cell *matHeaderCellDef>Tổng SL tồn</th>
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        <div class="header-content">Tổng SL tồn</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.tongSLTon}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="tongSLGoc">
-                    <th mat-header-cell *matHeaderCellDef>Tổng SL gốc</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Tổng số lượng gốc</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.tongSLGoc}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soPallet">
-                    <th mat-header-cell *matHeaderCellDef>Số Pallet</th>
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        <div class="header-content">Số Pallet</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soPallet}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soThung">
-                    <th mat-header-cell *matHeaderCellDef>Số Thùng</th>
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        <div class="header-content">Số Thùng</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soThung}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soKH">
-                    <th mat-header-cell *matHeaderCellDef>Số KH</th>
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        <div class="header-content">Số KH</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soKH}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="ngayNhapSomNhat">
-                    <th mat-header-cell *matHeaderCellDef>Ngày nhập</th>
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        <div class="header-content">Ngày nhập</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.ngayNhapSomNhat}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="ngayCapNhat">
-                    <th mat-header-cell *matHeaderCellDef>Ngày cập nhật</th>
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        <div class="header-content">Ngày cập nhật</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.ngayCapNhat}}</td>
                 </ng-container>
 
@@ -397,52 +449,104 @@
                 </ng-container>
 
                 <ng-container matColumnDef="maSanPham">
-                    <th mat-header-cell *matHeaderCellDef>Mã sản phẩm</th>
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        <div class="header-content">Mã sản phẩm</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.maSanPham}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="tenSP">
-                    <th mat-header-cell *matHeaderCellDef>Tên SP</th>
+                    <th mat-header-cell *matHeaderCellDef>
+
+                        <div class="header-content">Tên SP</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.tenSP}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="tongSLTon">
-                    <th mat-header-cell *matHeaderCellDef>Tổng SL tồn</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Tổng SL tồn</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.tongSLTon}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="tongSLGoc">
-                    <th mat-header-cell *matHeaderCellDef>Tổng SL gốc</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Tổng SL gốc</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.tongSLGoc}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soPO">
-                    <th mat-header-cell *matHeaderCellDef>Số PO</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số PO</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soPO}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soKH">
-                    <th mat-header-cell *matHeaderCellDef>Số KH</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số KH</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soKH}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soKhuVuc">
-                    <th mat-header-cell *matHeaderCellDef>Số khu vực</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số khu vực</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soKhuVuc}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soPallet">
-                    <th mat-header-cell *matHeaderCellDef>Số Pallet</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số Pallet</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soPallet}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soThung">
-                    <th mat-header-cell *matHeaderCellDef>Số Thùng</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số Thùng</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soThung}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="ngayNhapSomNhat">
-                    <th mat-header-cell *matHeaderCellDef>Ngày nhập</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Ngày nhập</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.ngayNhapSomNhat}}</td>
                 </ng-container>
 
@@ -512,52 +616,102 @@
                 </ng-container>
 
                 <ng-container matColumnDef="khuVuc">
-                    <th mat-header-cell *matHeaderCellDef>Khu vực</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Khu vực</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.khuVuc}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="tongSLTon">
-                    <th mat-header-cell *matHeaderCellDef>Tổng SL tồn</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Tổng SL tồn</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.tongSLTon}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="tongSLGoc">
-                    <th mat-header-cell *matHeaderCellDef>Tổng SL gốc</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Tổng SL gốc</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.tongSLGoc}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soSP">
-                    <th mat-header-cell *matHeaderCellDef>Số SP</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số SP</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soSP}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soKH">
-                    <th mat-header-cell *matHeaderCellDef>Số KH</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số KH</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soKH}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soPO">
-                    <th mat-header-cell *matHeaderCellDef>Số PO</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số PO</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soPO}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soPallet">
-                    <th mat-header-cell *matHeaderCellDef>Số Pallet</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số Pallet</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soPallet}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soThung">
-                    <th mat-header-cell *matHeaderCellDef>Số Thùng</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số Thùng</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soThung}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soLocation">
-                    <th mat-header-cell *matHeaderCellDef>Số Location</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số Location</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soLocation}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="ngayCapNhat">
-                    <th mat-header-cell *matHeaderCellDef>Ngày cập nhật</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Ngày cập nhật</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.ngayCapNhat}}</td>
                 </ng-container>
 
@@ -629,52 +783,102 @@
                 </ng-container>
 
                 <ng-container matColumnDef="maKH">
-                    <th mat-header-cell *matHeaderCellDef>Mã KH</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Mã KH</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.maKH}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="tenKH">
-                    <th mat-header-cell *matHeaderCellDef>Tên KH</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Tên KH</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.tenKH}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="tongSLTon">
-                    <th mat-header-cell *matHeaderCellDef>Tổng SL tồn</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Tổng SL tồn</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.tongSLTon}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="tongSLGoc">
-                    <th mat-header-cell *matHeaderCellDef>Tổng SL gốc</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Tổng SL gốc</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.tongSLGoc}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soSP">
-                    <th mat-header-cell *matHeaderCellDef>Số SP</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số SP</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soSP}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soPO">
-                    <th mat-header-cell *matHeaderCellDef>Số PO</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số PO</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soPO}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soKhuVuc">
-                    <th mat-header-cell *matHeaderCellDef>Số khu vực</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số khu vực</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soKhuVuc}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soPallet">
-                    <th mat-header-cell *matHeaderCellDef>Số Pallet</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số Pallet</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soPallet}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="soThung">
-                    <th mat-header-cell *matHeaderCellDef>Số Thùng</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Số Thùng</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.soThung}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="ngayNhapSomNhat">
-                    <th mat-header-cell *matHeaderCellDef>Ngày nhập</th>
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div class="header-content">Ngày nhập</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let item">{{item.ngayNhapSomNhat}}</td>
                 </ng-container>
 
@@ -758,8 +962,8 @@
                         <span class="value">{{item.po}}</span>
                     </div>
                     <div class="info-row">
-                        <span class="label">Location</span>
-                        <span class="value location-badge">{{item.location}}</span>
+                        <span class="label">Kho</span>
+                        <span class="value location-badge">{{item.area}}</span>
                     </div>
                     <div class="info-row">
                         <span class="label">Mã pallet</span>

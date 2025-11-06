@@ -51,14 +51,14 @@
                     <th mat-header-cell *matHeaderCellDef>Dvt</th>
                     <td mat-cell *matCellDef="let item">{{item.unit}}</td>
                 </ng-container>
-                <ng-container matColumnDef="actions">
+                <!-- <ng-container matColumnDef="actions">
                     <th mat-header-cell *matHeaderCellDef>Options</th>
                     <td mat-cell *matCellDef="let item">
                         <button mat-mini-fab class="action-btn detail-btn" (click)="onScan(item)">
                             <mat-icon>qr_code_2</mat-icon>
                         </button>
                     </td>
-                </ng-container>
+                </ng-container> -->
 
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
@@ -87,4 +87,18 @@
             </button>
         </div>
     </mat-card>
+    <div class="action-footer">
+        <button mat-button class="cancel-btn" (click)="back()">
+            <mat-icon>arrow_back</mat-icon>
+            Back
+        </button>
+        <button mat-raised-button class="warehouse-btn" (click)="onScan(detailList[0])">
+            <mat-icon>qr_code_2</mat-icon>
+            Scan vật tư
+        </button>
+        <button mat-raised-button color="primary" class="confirm-btn">
+            <mat-icon>check</mat-icon>
+            Phê duyệt
+        </button>
+    </div>
 </div>

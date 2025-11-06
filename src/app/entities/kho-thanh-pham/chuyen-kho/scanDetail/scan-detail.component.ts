@@ -1,16 +1,18 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ChuyenKhoService } from '../service/chuyen-kho.service.component';
 export interface ScannedItem {
-  maHangHoa: string;
-  tenHangHoa: string;
+  productId: number;
+  inventoryCode: string;
   serialPallet: string;
-  serialBox: string;
-  soLuong: number;
-  area: string;
-  location: string;
-  thoiDiemScan: string;
+  quantity: number;
+  originalQuantity: number;
+  productName?: string;
+  scanTime?: string;
+  warehouse: string;
 }
+
 @Component({
   selector: 'app-nhap-kho-component',
   standalone: false,
@@ -27,51 +29,36 @@ export class ScanDetailComponent implements OnInit {
 
   displayedColumns: string[] = [
     'stt',
-    'maHangHoa',
-    'tenHangHoa',
+    'productId',
+    'productName',
+    'inventoryCode',
     'serialPallet',
-    'serialBox',
-    'soLuong',
-    'area',
-    'location',
-    'thoiDiemScan',
+    'quantity',
+    'scanTime',
+    'warehouse',
   ];
-  scannedList: ScannedItem[] = [
-    {
-      maHangHoa: 'LED000035',
-      tenHangHoa: 'Đèn LED cắm ứng 8W',
-      serialPallet: 'P202500191',
-      serialBox: 'B202500191',
-      soLuong: 10,
-      area: 'RD-01',
-      location: '01-B01-01-001',
-      thoiDiemScan: '31/10/2025 08:35',
-    },
-  ];
+  total_quantity: number = 1;
+  scannedList: ScannedItem[] = [];
   selectedMode: 'pallet' | 'thung' | null = null;
-
+  globalQuantity: number | null = null;
   @ViewChild('palletInput') palletInput!: ElementRef;
   @ViewChild('locationInput') locationInput!: ElementRef;
+  requestId: any;
+  detailList: any;
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private chuyenKhoService: ChuyenKhoService
   ) {}
   ngOnInit(): void {
-    const chuyenKhoId = this.route.snapshot.paramMap.get('id');
-    const scanId = this.route.snapshot.paramMap.get('scanId');
+    const state = history.state;
+    this.requestId = state.requestId;
+    this.detailList = state.detailList || [];
   }
   onSelectMode(mode: 'pallet' | 'thung') {
-    if (this.selectedMode === mode) {
-      this.selectedMode = null;
-    } else {
-      this.selectedMode = mode;
-
-      // focus vào input pallet sau khi chọn mode
-      setTimeout(() => {
-        this.palletInput?.nativeElement?.focus();
-      }, 100);
-    }
+    this.selectedMode = mode;
+    setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
   }
 
   onPalletScanEnter() {
@@ -79,8 +66,29 @@ export class ScanDetailComponent implements OnInit {
     this.locationInput?.nativeElement?.focus();
   }
 
+  applyGlobalQuantity(): void {
+    if (this.globalQuantity == null || this.globalQuantity < 0) return;
+
+    this.scannedList.forEach((item) => {
+      item.quantity = this.globalQuantity!;
+    });
+  }
+
   onLocationScanEnter() {
     if (!this.scanPallet || !this.scanLocation) return;
+
+    const matched = this.detailList.find(
+      (item: { productCode: string }) =>
+        item.productCode === this.scanPallet ||
+        item.productCode === this.scanLocation
+    );
+    if (!matched) {
+      this.snackBar.open('Không tìm thấy mã hàng trong danh sách!', 'Đóng', {
+        duration: 3000,
+        panelClass: ['snackbar-error'],
+      });
+      return;
+    }
 
     const now = new Date();
     const formattedTime = now.toLocaleString('vi-VN', {
@@ -92,30 +100,23 @@ export class ScanDetailComponent implements OnInit {
     });
 
     const newItem: ScannedItem = {
-      maHangHoa: 'LED000035',
-      tenHangHoa: 'Đèn LED cắm ứng 8W',
+      productId: matched?.id || 0,
+      // productName: matched?.productName || 'Không xác định',
+      inventoryCode: this.scanLocation,
       serialPallet: this.scanPallet,
-      serialBox: this.selectedMode === 'thung' ? this.scanPallet : '',
-      soLuong: 1,
-      area: 'RD-01',
-      location: this.scanLocation,
-      thoiDiemScan: formattedTime,
+      quantity: matched.quantity,
+      originalQuantity: matched.quantity,
+      productName: matched.productName,
+      scanTime: formattedTime,
+      warehouse: this.scanLocation,
     };
+    console.log('Matched:', matched);
 
-    this.scannedList.unshift(newItem);
+    this.scannedList = [...this.scannedList, newItem];
 
-    // reset input
     this.scanPallet = '';
     this.scanLocation = '';
-    this.selectedMode = null;
 
-    this.snackBar.open('Lưu thành công!', 'Đóng', {
-      duration: 3000,
-      horizontalPosition: 'right',
-      verticalPosition: 'bottom',
-      panelClass: ['snackbar-success', 'snackbar-position'],
-    });
-    // focus lại vào pallet để scan tiếp
     setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
   }
   onPageChange(page: number): void {
@@ -135,5 +136,55 @@ export class ScanDetailComponent implements OnInit {
       this.currentPage++;
       this.onPageChange(this.currentPage);
     }
+  }
+
+  //lưu thông tin scan
+  submitScan(): void {
+    if (this.scannedList.length === 0) {
+      this.snackBar.open('Chưa có dữ liệu scan để gửi!', 'Đóng', {
+        duration: 3000,
+        panelClass: ['snackbar-error'],
+      });
+      return;
+    }
+
+    const payload = {
+      scan_details: this.scannedList.map((item) => {
+        const dispatched = item.originalQuantity - item.quantity;
+
+        return {
+          products_in_IWTR_id: item.productId,
+          inventory_identifier: item.inventoryCode,
+          serial_pallet: item.serialPallet,
+          quantity_dispatched: dispatched >= 0 ? dispatched : 0, // ✅ không âm
+          scan_time: new Date().toISOString(),
+          scan_by: 'admin',
+        };
+      }),
+    };
+
+    this.chuyenKhoService.submitScan(this.requestId, payload).subscribe({
+      next: () => {
+        this.snackBar.open('Lưu thông tin scan thành công!', 'Đóng', {
+          duration: 3000,
+          panelClass: ['snackbar-success'],
+        });
+        this.router.navigate(['/kho-thanh-pham/chuyen-kho-noi-bo']);
+      },
+      error: (err) => {
+        console.error('Lỗi khi gửi scan:', err);
+        this.snackBar.open('Lỗi khi gửi dữ liệu scan!', 'Đóng', {
+          duration: 3000,
+          panelClass: ['snackbar-error'],
+        });
+      },
+    });
+  }
+
+  back(): void {
+    this.router.navigate([
+      '/kho-thanh-pham/chuyen-kho-noi-bo/detail/',
+      this.requestId,
+    ]);
   }
 }

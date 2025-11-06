@@ -110,7 +110,7 @@
                 <ng-container matColumnDef="ngay_chung_tu">
                     <th mat-header-cell *matHeaderCellDef>
                         <div>Ngày chứng từ</div>
-                        <mat-form-field class="search-field" appearance="outline">
+                        <mat-form-field class="search-field" appearance="outline" style="width: 5rem;">
                             <input matInput [(ngModel)]="filterValues.ngay_chung_tu" [(ngModel)]="searchTerm"
                                 (keyup.enter)="applyFilter()">
                         </mat-form-field>
@@ -142,7 +142,7 @@
                 <ng-container matColumnDef="series_PGH">
                     <th mat-header-cell *matHeaderCellDef>
                         <div>Serial PGH</div>
-                        <mat-form-field class="search-field" appearance="outline">
+                        <mat-form-field class="search-field" appearance="outline" style="width: 4rem;">
                             <input matInput [(ngModel)]="filterValues.series_PGH" [(ngModel)]="searchTerm"
                                 (keyup.enter)="applyFilter()">
                         </mat-form-field>

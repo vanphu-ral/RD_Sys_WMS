@@ -1,15 +1,15 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ChuyenKhoService } from '../service/chuyen-kho.service.component';
 import { ActivatedRoute, Router } from '@angular/router';
-export interface DetailItem {
+import { MatSnackBar } from '@angular/material/snack-bar';
+export interface TransferItemDetail {
   id: number;
-  maHangHoa: string;
-  tenHangHoa: string;
-  ngayGiaoHang: string;
-  maPO: string;
-  khoXuatBan: string;
-  soLuongSP: number;
-  donViTinh: string;
+  productCode: string;
+  productName: string;
+  quantity: number;
+  unit: string;
+  updatedBy: string;
+  updatedDate: string;
 }
 @Component({
   selector: 'app-nhap-kho-component',
@@ -21,41 +21,46 @@ export class ChuyenKhoDetailComponent implements OnInit {
   id: number | undefined;
   displayedColumns: string[] = [
     'stt',
-    'maHangHoa',
-    'tenHangHoa',
-    'ngayGiaoHang',
-    'maPO',
-    'khoXuatBan',
-    'soLuongSP',
-    'donViTinh',
-    'actions',
+    'productCode',
+    'productName',
+    'quantity',
+    'unit',
+    'updated_by',
+    'updatedDate',
   ];
   totalPages = 0;
-  detailList: DetailItem[] = [];
+  detailList: TransferItemDetail[] = [];
   pageSizeOptions = [5, 10, 20];
   pageSize = 10;
   currentPage = 1;
-  constructor(private route: ActivatedRoute, private router: Router, private chuyenKhoService: ChuyenKhoService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private chuyenKhoService: ChuyenKhoService,
+    private snackBar: MatSnackBar
+  ) {}
   ngOnInit(): void {
-    this.id = +this.route.snapshot.paramMap.get('id')!;
-    this.id = +this.route.snapshot.paramMap.get('id')!;
-    if (!this.id) return;
+    const id = +this.route.snapshot.paramMap.get('id')!;
+    if (!id) return;
 
-    this.chuyenKhoService.getTransferRequestById(this.id).subscribe({
-      next: (res) => {
-        const wtr1 = res.WTR1 || [];
-
-        this.detailList = wtr1.map((item: any, index: number) => ({
-          id: index + 1,
-          productName: item.Dscription || '',
-          from: res.OWTR?.Filler || '', // giả định trường "from" là OWTR.Filler
-          to: res.OWTR?.ToWhsCode || '', // giả định trường "to" là OWTR.ToWhsCode
-          quantity: item.Quantity || 0,
-          unit: item.UomCode || '',
+    this.chuyenKhoService.getTransferItemsById(id).subscribe({
+      next: (items) => {
+        this.detailList = items.map((item: any) => ({
+          id: item.id,
+          productCode: item.product_code,
+          productName: item.product_name,
+          quantity: item.total_quantity,
+          unit: item.DVT,
+          updatedBy: item.updated_by,
+          updatedDate: item.updated_date,
         }));
       },
       error: (err) => {
-        console.error('Lỗi khi lấy chi tiết chuyển kho:', err);
+        console.error('Lỗi khi lấy chi tiết:', err);
+        this.snackBar.open('Không lấy được dữ liệu chi tiết!', 'Đóng', {
+          duration: 3000,
+          panelClass: ['snackbar-error'],
+        });
       },
     });
   }
@@ -78,22 +83,35 @@ export class ChuyenKhoDetailComponent implements OnInit {
       this.onPageChange(this.currentPage);
     }
   }
-  onScan(scan: DetailItem): void {
-    const chuyenKhoId = this.route.snapshot.paramMap.get('id');
-    this.router.navigate([
-      '/kho-thanh-pham/chuyen-kho-noi-bo/detail',
-      chuyenKhoId,
-      'scan',
-      scan.id,
-    ]);
+  onScan(item: TransferItemDetail): void {
+    const requestId = this.route.snapshot.paramMap.get('id');
+    this.router.navigate(
+      ['/kho-thanh-pham/chuyen-kho-noi-bo/detail', requestId, 'scan'],
+      {
+        state: {
+          requestId: requestId,
+          detailList: this.detailList,
+        },
+      }
+    );
   }
   onPageSizeChange(size: number): void {
     this.pageSize = size;
     this.currentPage = 1;
   }
-  get pagedDetailList(): DetailItem[] {
+  get pagedDetailList(): TransferItemDetail[] {
     const start = (this.currentPage - 1) * this.pageSize;
     const end = start + this.pageSize;
     return this.detailList.slice(start, end);
+  }
+  onScanCheck(): void {
+    this.router.navigate(['/kho-thanh-pham/nhap-kho-sx/scan'], {
+      state: { detailList: this.detailList },
+    });
+  }
+  back(): void {
+    this.router.navigate(['/kho-thanh-pham/chuyen-kho-noi-bo'], {
+      state: { detailList: this.detailList },
+    });
   }
 }

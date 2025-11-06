@@ -4,7 +4,7 @@ import { Observable, map } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class QuanLyKhoService {
-  private baseUrl = 'http://192.168.10.99:8050/api';
+  private baseUrl = 'http://192.168.20.101:8050/api';
 
   constructor(private http: HttpClient) {}
 

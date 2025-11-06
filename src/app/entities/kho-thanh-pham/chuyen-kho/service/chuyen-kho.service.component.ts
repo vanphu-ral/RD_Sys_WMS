@@ -5,8 +5,7 @@ import { InternalTransferRequest } from '../chuyen-kho.component';
 
 @Injectable({ providedIn: 'root' })
 export class ChuyenKhoService {
-  private apiUrl = 'http://192.168.10.99:8050/api/locations/minimal';
-  private baseUrl = 'http://192.168.10.99:8050/api';
+  private baseUrl = 'http://192.168.20.101:8050/api';
 
   constructor(private http: HttpClient) {}
 
@@ -25,7 +24,7 @@ export class ChuyenKhoService {
 
   getInternalTransfers(): Observable<InternalTransferRequest[]> {
     return this.http.get<InternalTransferRequest[]>(
-      'http://192.168.10.99:8050/api/iwtr/requests'
+      'http://192.168.20.101:8050/api/iwtr/requests'
     );
   }
 
@@ -36,7 +35,7 @@ export class ChuyenKhoService {
   // Lưu bảng cha
   saveRequestHeader(payload: any): Observable<any> {
     return this.http.post(
-      'http://192.168.10.99:8050/api/iwtr/requests/with-items',
+      'http://192.168.20.101:8050/api/iwtr/requests/with-items',
       payload
     );
   }
@@ -44,10 +43,22 @@ export class ChuyenKhoService {
   // Lưu bảng con
   saveRequestItems(requestId: number, items: any[]): Observable<any> {
     return this.http.post(
-      `http://192.168.10.99:8050/api/iwtr/requests/${requestId}/items`,
+      `http://192.168.20.101:8050/api/iwtr/requests/${requestId}/items`,
       {
         items,
       }
+    );
+  }
+  //lay thong tin detail
+  getTransferItemsById(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/iwtr/requests/${id}/items`);
+  }
+
+  //lưu thông tin scan
+  submitScan(requestId: number, payload: any): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}/iwtr/requests/${requestId}/scan`,
+      payload
     );
   }
 }

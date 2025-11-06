@@ -16,7 +16,7 @@ interface WarehouseItem {
   soLuongTon: number;
   soLuongGoc: number;
   khuVuc: string;
-  location: string;
+  area: string;
   status: string;
   createdDate: string;
   updatedDate: string;
@@ -184,7 +184,7 @@ export class QuanLyKhoComponent implements OnInit {
     { key: 'soLuongTon', label: 'Số lượng tồn', visible: true },
     { key: 'soLuongGoc', label: 'Số lượng gốc', visible: false },
     { key: 'khuVuc', label: 'Khu vực', visible: true },
-    { key: 'location', label: 'Location', visible: true },
+    { key: 'area', label: 'Kho', visible: true },
     { key: 'status', label: 'Status', visible: true },
     { key: 'updatedBy', label: 'Cập nhật bởi', visible: false },
     { key: 'createdDate', label: 'Ngày nhập', visible: false },
@@ -215,7 +215,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongTon: 10,
         soLuongGoc: 10,
         khuVuc: 'RD-Warehouse',
-        location: 'RD',
+        area: 'RD',
         status: 'Available',
         updatedBy: 'Nguyen Van A',
         createdDate: '01/11/2025 08:30',
@@ -232,7 +232,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongTon: 100,
         soLuongGoc: 100,
         khuVuc: 'RD-Warehouse',
-        location: 'RD',
+        area: 'RD',
         status: 'Available',
         updatedBy: 'Nguyen Van B',
         createdDate: '01/11/2025 08:30',
@@ -249,7 +249,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongTon: 128,
         soLuongGoc: 128,
         khuVuc: 'RD-Warehouse',
-        location: 'RD',
+        area: 'RD',
         status: 'Available',
         updatedBy: 'Tran Thi C',
         createdDate: '01/11/2025 08:30',
@@ -266,7 +266,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongTon: 32,
         soLuongGoc: 32,
         khuVuc: 'RD-Warehouse',
-        location: 'RD',
+        area: 'RD',
         status: 'Available',
         updatedBy: 'Le Van D',
         createdDate: '01/11/2025 08:30',
@@ -283,7 +283,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongTon: 30,
         soLuongGoc: 30,
         khuVuc: 'RD-Warehouse',
-        location: 'RD',
+        area: 'RD',
         status: 'Available',
         updatedBy: 'Pham Thi E',
         createdDate: '01/11/2025 08:30',
@@ -300,7 +300,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongTon: 0,
         soLuongGoc: 0,
         khuVuc: 'RD-Warehouse',
-        location: 'RD',
+        area: 'RD',
         status: 'Unavailable',
         updatedBy: 'Hoang Van F',
         createdDate: '01/11/2025 08:30',
@@ -317,7 +317,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongTon: 100,
         soLuongGoc: 100,
         khuVuc: 'RD-Warehouse',
-        location: 'RD',
+        area: 'RD',
         status: 'Available',
         updatedBy: 'Nguyen Thi G',
         createdDate: '01/11/2025 08:30',
@@ -334,7 +334,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongTon: 200,
         soLuongGoc: 200,
         khuVuc: 'RD-Warehouse',
-        location: 'RD',
+        area: 'RD',
         status: 'Available',
         updatedBy: 'Dang Van H',
         createdDate: '01/11/2025 08:30',
@@ -351,7 +351,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongTon: 25,
         soLuongGoc: 25,
         khuVuc: 'RD-Warehouse',
-        location: 'RD',
+        area: 'RD',
         status: 'Available',
         updatedBy: 'Bui Thi I',
         createdDate: '01/11/2025 08:30',

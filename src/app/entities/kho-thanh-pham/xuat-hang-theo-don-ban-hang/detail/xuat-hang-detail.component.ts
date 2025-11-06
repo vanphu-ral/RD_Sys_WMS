@@ -16,7 +16,7 @@ export interface DetailItem {
 })
 export class XuatHangDetailComponent implements OnInit {
     id: number | undefined;
-    displayedColumns: string[] = ['stt', 'productName', 'from', 'to', 'quantity', 'unit', 'actions'];
+    displayedColumns: string[] = ['stt', 'productName', 'from', 'to', 'quantity', 'unit'];
     currentPage = 1;
     totalPages = 9;
     detailList: DetailItem[] = [
@@ -55,4 +55,9 @@ export class XuatHangDetailComponent implements OnInit {
             scan.id
         ]);
     }
+      back():void{
+    this.router.navigate(['/kho-thanh-pham/xuat-don-ban-hang'], {
+      state: { detailList: this.detailList },
+    });
+  }
 }

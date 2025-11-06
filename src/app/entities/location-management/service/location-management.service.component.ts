@@ -5,7 +5,7 @@ import { Location } from '../models/location.model';
 
 @Injectable({ providedIn: 'root' })
 export class LocationService {
-  private apiUrl = 'http://192.168.10.99:8050/api/locations';
+  private apiUrl = 'http://192.168.20.101:8050/api/locations';
 
   constructor(private http: HttpClient) {}
 
@@ -41,20 +41,20 @@ export class LocationService {
   //doi status location
   updateLocationStatus(id: number, isActive: boolean): Observable<any> {
     const statusInt = isActive ? 1 : 0;
-    const url = `http://192.168.10.99:8050/api/locations/${id}/status?is_active=${statusInt}`;
+    const url = `http://192.168.20.101:8050/api/locations/${id}/status?is_active=${statusInt}`;
     return this.http.patch(url, {});
   }
 
   //get location by id
   getLocationById(id: number): Observable<Location> {
     return this.http.get<Location>(
-      `http://192.168.10.99:8050/api/locations/${id}`
+      `http://192.168.20.101:8050/api/locations/${id}`
     );
   }
 
   //cap nhat location
   updateLocation(id: number, payload: Location): Observable<any> {
-    const url = `http://192.168.10.99:8050/api/locations/${id}`;
+    const url = `http://192.168.20.101:8050/api/locations/${id}`;
     return this.http.put(url, payload);
   }
 

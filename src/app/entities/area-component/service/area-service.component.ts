@@ -7,7 +7,7 @@ import { Area } from '../area-management.component';
   providedIn: 'root',
 })
 export class AreaService {
-  private apiUrl = 'http://192.168.10.99:8050/api/areas';
+  private apiUrl = 'http://192.168.20.101:8050/api/areas';
 
   constructor(private http: HttpClient) {}
 
@@ -16,7 +16,7 @@ export class AreaService {
     data: Area[];
     meta: { total_items: number; size: number; page: number };
   }> {
-    return this.http.get<any>('http://192.168.10.99:8050/api/areas').pipe(
+    return this.http.get<any>('http://192.168.20.101:8050/api/areas').pipe(
       map((res) => ({
         data: res.data.map((item: any) => ({
           id: item.id,
@@ -35,7 +35,7 @@ export class AreaService {
   //cap nhat trang thai
   updateAreaStatus(id: number, isActive: boolean): Observable<any> {
     const statusInt = isActive ? 1 : 0;
-    const url = `http://192.168.10.99:8050/api/areas/${id}/status?is_active=${statusInt}`;
+    const url = `http://192.168.20.101:8050/api/areas/${id}/status?is_active=${statusInt}`;
     return this.http.patch(url, {});
   }
 

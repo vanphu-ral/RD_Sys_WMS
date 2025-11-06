@@ -231,6 +231,8 @@ export class AddYeuCauChuyenKhoComponent implements OnInit {
       don_vi_nhan: this.mainInfo.tenKhachHang,
       ly_do_xuat_nhap: this.mainInfo.lyDoNhapXuat,
       ma_yc_cknb: this.mainInfo.maChungTu,
+      so_phieu_xuat: this.mainInfo.maPO, 
+      so_chung_tu: this.mainInfo.maChungTu, 
       ngay_chung_tu: this.mainInfo.ngayNhap,
       note: this.mainInfo.ghiChu,
       series_PGH: 's',
@@ -242,7 +244,7 @@ export class AddYeuCauChuyenKhoComponent implements OnInit {
       next: (res) => {
         const requestId = res.id;
 
-        const itemsPayload  = this.detailList.map((item) => ({
+        const itemsPayload = this.detailList.map((item) => ({
           DVT: item.donViTinh,
           product_code: item.maHangHoa,
           product_name: item.tenHangHoa,
@@ -251,7 +253,7 @@ export class AddYeuCauChuyenKhoComponent implements OnInit {
         }));
 
         this.chuyenKhoService
-          .saveRequestItems(requestId, itemsPayload )
+          .saveRequestItems(requestId, itemsPayload)
           .subscribe({
             next: () => {
               this.snackBar.open('Lưu thành công!', 'Đóng', {
