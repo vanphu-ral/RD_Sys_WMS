@@ -6,8 +6,8 @@ export interface Location {
   address: string;
   description?: string;
   is_multi_location: boolean;
-  number_of_rack: number;
-  number_of_rack_empty: number;
+  number_of_rack?: number;
+  number_of_rack_empty?: number;
   parent_location_id?: number;
   prefix_name?: string;
   prefix_separator?: string;
@@ -20,4 +20,9 @@ export interface Location {
   barcode: string;
   is_active?: boolean;
   updated_by?: string;
+  sub_locations?: {
+    subCode: string;
+    locationName: string;
+    isEditing?: boolean;
+  }[];
 }

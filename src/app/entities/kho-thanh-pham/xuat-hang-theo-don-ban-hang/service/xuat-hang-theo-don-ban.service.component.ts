@@ -1,15 +1,35 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { SalesExportRequest } from '../xuat-hang-theo-don-ban-hang.component';
 
 @Injectable({ providedIn: 'root' })
 export class XuatHangTheoDonBanService {
-  private apiUrl = 'http://192.168.10.99:8050/api/osr/requests';
+  private apiUrl = 'http://192.168.10.99:8050/api';
 
   constructor(private http: HttpClient) {}
 
+  // Lấy danh sách đơn xuất hàng
   getSalesExportRequests(): Observable<SalesExportRequest[]> {
-    return this.http.get<SalesExportRequest[]>(this.apiUrl);
+    return this.http.get<SalesExportRequest[]>(`${this.apiUrl}/osr/requests`);
+  }
+  // Lấy danh sách kho
+  getAreas(): Observable<{ data: any[] }> {
+    return this.http.get<{ data: any[] }>(`${this.apiUrl}/areas`);
+  }
+  getOutOfStockRequestById(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/external-apps/osr/${id}`);
+  }
+  getWarehouses(): Observable<{ id: number; name: string }[]> {
+    return this.http.get<any>(`${this.apiUrl}/areas`).pipe(
+      map((res) =>
+        Array.isArray(res.data)
+          ? res.data.map((item: any) => ({
+              id: item.id,
+              name: item.name,
+            }))
+          : []
+      )
+    );
   }
 }

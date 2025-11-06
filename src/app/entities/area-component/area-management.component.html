@@ -4,13 +4,13 @@
         <div class="header-title">
             <mat-icon class="title-icon">map</mat-icon>
             <div>
-                <h1>Quản lý Area</h1>
-                <p class="subtitle">Area Management</p>
+                <h1>Quản lý kho</h1>
+                <p class="subtitle">Warehouse Management</p>
             </div>
         </div>
         <button mat-raised-button color="primary" class="add-btn" [routerLink]="'/areas/add-new'">
             <mat-icon>add_circle</mat-icon>
-            Thêm mới Area
+            Thêm mới kho
         </button>
     </div>
 
@@ -20,7 +20,7 @@
         <div class="table-header">
             <div class="table-title">
                 <mat-icon>list</mat-icon>
-                <span>Danh sách Areas ({{totalItems}})</span>
+                <span>Danh sách kho ({{totalItems}})</span>
             </div>
             <div class="table-actions">
                 <button mat-raised-button (click)="onRefresh()" class="refresh-btn icon-only" matTooltip="Làm mới">
@@ -41,7 +41,7 @@
                 <!-- Code Column -->
                 <ng-container matColumnDef="code">
                     <th mat-header-cell *matHeaderCellDef>
-                        <div>Mã Area</div>
+                        <div>Mã kho</div>
                         <mat-form-field class="search-field" appearance="outline">
                             <input matInput [(ngModel)]="filterValues.code" (keyup.enter)="applyFilter()">
                         </mat-form-field>
@@ -53,7 +53,7 @@
                 <!-- Name Column -->
                 <ng-container matColumnDef="name">
                     <th mat-header-cell *matHeaderCellDef>
-                        <div>Tên Area</div>
+                        <div>Tên kho</div>
                         <mat-form-field class="search-field" appearance="outline">
                             <input matInput [(ngModel)]="filterValues.name" (keyup.enter)="applyFilter()">
                         </mat-form-field>
@@ -76,7 +76,7 @@
                 <!-- storekeeper Column -->
                 <ng-container matColumnDef="storekeeper">
                     <th mat-header-cell *matHeaderCellDef>
-                        <div>Storekeeper</div>
+                        <div>Thủ kho</div>
                         <mat-form-field class="search-field" appearance="outline">
                             <input matInput [(ngModel)]="filterValues.storekeeper" (keyup.enter)="applyFilter()">
                         </mat-form-field>
@@ -85,7 +85,7 @@
                 </ng-container>
                 <ng-container matColumnDef="address">
                     <th mat-header-cell *matHeaderCellDef>
-                        <div>Address</div>
+                        <div>Địa chỉ</div>
                         <mat-form-field class="search-field" appearance="outline">
                             <input matInput [(ngModel)]="filterValues.address" (keyup.enter)="applyFilter()">
                         </mat-form-field>
@@ -94,7 +94,7 @@
                 </ng-container>
                 <ng-container matColumnDef="description">
                     <th mat-header-cell *matHeaderCellDef>
-                        <div>Description</div>
+                        <div>Ghi chú</div>
                         <mat-form-field class="search-field" appearance="outline">
                             <input matInput [(ngModel)]="filterValues.description" (keyup.enter)="applyFilter()">
                         </mat-form-field>
@@ -111,13 +111,13 @@
                 <!-- Multi Column -->
                 <ng-container matColumnDef="is_active">
                     <th mat-header-cell *matHeaderCellDef>
-                        <div>Status</div>
+                        <div>Trạng thái</div>
                         <mat-form-field class="search-field" appearance="outline">
                             <mat-select [(ngModel)]="filterValues.is_active" (selectionChange)="applyFilter()"
                                 placeholder="Chọn loại">
                                 <mat-option value="">Tất cả</mat-option>
-                                <mat-option value="true">Active</mat-option>
-                                <mat-option value="false">Inactive</mat-option>
+                                <mat-option value="true">Hoạt động</mat-option>
+                                <mat-option value="false">Không hoạt động</mat-option>
                             </mat-select>
                         </mat-form-field>
                     </th>
@@ -162,29 +162,29 @@
             <!-- Mobile Filters Panel (Collapsible) -->
             <div class="mobile-filters" [class.show]="showMobileFilters">
                 <mat-form-field class="filter-field" appearance="outline">
-                    <mat-label>Mã Location</mat-label>
+                    <mat-label>Mã kho</mat-label>
                     <input matInput [(ngModel)]="filterValues.code" (keyup.enter)="applyFilter()">
                     <mat-icon matSuffix>search</mat-icon>
                 </mat-form-field>
 
                 <mat-form-field class="filter-field" appearance="outline">
-                    <mat-label>Tên Location</mat-label>
+                    <mat-label>Tên kho</mat-label>
                     <input matInput [(ngModel)]="filterValues.name" (keyup.enter)="applyFilter()">
                     <mat-icon matSuffix>search</mat-icon>
                 </mat-form-field>
 
                 <mat-form-field class="filter-field" appearance="outline">
-                    <mat-label>Storekeeper</mat-label>
+                    <mat-label>Thủ kho</mat-label>
                     <input matInput [(ngModel)]="filterValues.storekeeper" (keyup.enter)="applyFilter()">
                     <mat-icon matSuffix>search</mat-icon>
                 </mat-form-field>
 
                 <mat-form-field class="filter-field" appearance="outline">
-                    <mat-label>Status</mat-label>
+                    <mat-label>Trạng thái</mat-label>
                     <mat-select [(ngModel)]="filterValues.is_active" (selectionChange)="applyFilter()">
                         <mat-option value="">Tất cả</mat-option>
-                        <mat-option value="true">Active</mat-option>
-                        <mat-option value="false">Inactive</mat-option>
+                        <mat-option value="true">Hoạt động</mat-option>
+                        <mat-option value="false">Không hoạt động</mat-option>
                     </mat-select>
                 </mat-form-field>
 
@@ -219,7 +219,7 @@
                         <div class="info-row">
                             <div class="info-label">
                                 <mat-icon>qr_code_2</mat-icon>
-                                <span>Mã Location</span>
+                                <span>Mã kho</span>
                             </div>
                             <div class="info-value">{{item.code}}</div>
                         </div>
@@ -227,7 +227,7 @@
                         <div class="info-row">
                             <div class="info-label">
                                 <mat-icon>location_on</mat-icon>
-                                <span>Tên Location</span>
+                                <span>Tên kho</span>
                             </div>
                             <div class="info-value">{{item.name}}</div>
                         </div>
@@ -245,7 +245,7 @@
                         <div class="info-row">
                             <div class="info-label">
                                 <mat-icon>person</mat-icon>
-                                <span>Storekeeper</span>
+                                <span>Thủ kho</span>
                             </div>
                             <div class="info-value">{{item.storekeeper || 'N/A'}}</div>
                         </div>

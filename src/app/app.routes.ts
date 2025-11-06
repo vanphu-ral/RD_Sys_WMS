@@ -22,7 +22,7 @@ import { ScanDetailComponent } from './entities/kho-thanh-pham/chuyen-kho/scanDe
 import { ScanDetailXuatHangComponent } from './entities/kho-thanh-pham/xuat-hang-theo-don-ban-hang/scanDetail/xuat-hang-scan-detail.component';
 import { XuatHangDetailComponent } from './entities/kho-thanh-pham/xuat-hang-theo-don-ban-hang/detail/xuat-hang-detail.component'; 
 import { BaoCaoThongKeComponent } from './entities/bao-cao-thong-ke/bao-cao-thong-ke.component';
-
+import { AddXuatHangTheoDonBanHangComponent } from './entities/kho-thanh-pham/xuat-hang-theo-don-ban-hang/add-new/add-xuat-hang-theo-don-ban-hang.component';
 
 export const routes: Routes = [
   {
@@ -49,6 +49,11 @@ export const routes: Routes = [
     path: 'location/add-new',
     component: AddNewLocationComponentComponent,
     data: { tabLabel: 'Thêm mới Locations', isClosable: false },
+  },
+  {
+    path: 'location/add-new/:id',
+    component: AddNewLocationComponentComponent,
+    data: { tabLabel: 'Chỉnh sửa mới Locations', isClosable: false },
   },
 
   {
@@ -92,6 +97,11 @@ export const routes: Routes = [
         path: 'xuat-don-ban-hang/detail/:id',
         component: XuatHangDetailComponent,
         data: { tabLabel: 'Chi tiết yêu cầu xuất kho', isClosable: true },
+      },
+      {
+        path: 'xuat-don-ban-hang/add-new',
+        component: AddXuatHangTheoDonBanHangComponent,
+        data: { tabLabel: 'Thêm mới yêu cầu xuất kho', isClosable: true },
       },
       {
         path: 'xuat-don-ban-hang/detail/:id/scan/:id',

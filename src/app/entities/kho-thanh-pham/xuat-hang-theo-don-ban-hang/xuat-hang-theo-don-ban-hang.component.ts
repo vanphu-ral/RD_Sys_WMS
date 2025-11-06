@@ -74,60 +74,72 @@ export class XuatHangTheoDonBanHangComponent {
     'scan_status',
   ];
   salesRequests: SalesExportRequest[] = [];
-
-  //  chuyenKho: Warehouse[] = [
-  //    {
-  //      id: 1,
-  //      code: 'REQ-285875',
-  //      from: 'RD',
-  //      to: 'RD-02',
-  //      unit: 'Kho vật tư TBCS',
-  //      reason: 'Xuất chuyển kho',
-  //      type: 1,
-  //      documentDate: '1/11/2025',
-  //      documentNumber: 'RD.PN.CS1.T01.2025',
-  //      serialPGH: '6C25NRD',
-  //      status: 'Đã duyệt',
-  //    },
-  //    {
-  //      id: 2,
-  //      code: 'REQ-285876',
-  //      from: 'RD-01',
-  //      to: 'RD-02',
-  //      unit: 'Kho vật tư TBCS',
-  //      reason: 'Xuất chuyển kho',
-  //      type: 1,
-  //      documentDate: '1/11/2025',
-  //      documentNumber: 'RD.PN.CS1.T01.2025',
-  //      serialPGH: '6C25NRD',
-  //      status: 'Đã scan',
-  //    },
-  //  ];
+  pagedSalesRequests: SalesExportRequest[] = [];
+  totalPages: number = 0;
+  pageNumbers: number[] = [];
 
   searchTerm: string = '';
   pageSize: number = 10;
   currentPage: number = 1;
-  totalItems: number = 1200;
-  constructor(private router: Router, private xuatDonBanService: XuatHangTheoDonBanService) {}
+  totalItems: number = 0;
+  areas: any[] = [];
+  constructor(
+    private router: Router,
+    private xuatDonBanService: XuatHangTheoDonBanService
+  ) {}
   ngOnInit(): void {
-    this.loadData();
+    this.xuatDonBanService.getAreas().subscribe({
+      next: (res) => {
+        this.areas = res.data;
+        this.loadSalesRequests();
+      },
+      error: (err) => console.error('Lỗi khi lấy kho:', err),
+    });
   }
 
   //load data
-  loadData():void {
+  loadSalesRequests(): void {
     this.xuatDonBanService.getSalesExportRequests().subscribe({
-    next: (res) => {
-      this.salesRequests = res;
-    },
-    error: (err) => {
-      console.error('Lỗi khi lấy danh sách xuất hàng:', err);
-    }
-  });
+      next: (res) => {
+        this.salesRequests = res.map((item) => ({
+          ...item,
+          ten_kho_xuat: this.getAreaName(item.kho_xuat),
+          ten_kho_nhan: this.getAreaName(item.xuat_toi),
+        }));
+        this.totalItems = this.salesRequests.length;
+        this.applyPagination();
+      },
+      error: (err) => console.error('Lỗi khi lấy đơn xuất:', err),
+    });
+  }
+
+  //phan trang
+  applyPagination(): void {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.pagedSalesRequests = this.salesRequests.slice(startIndex, endIndex);
+
+    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    this.pageNumbers = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.applyPagination();
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.applyPagination();
+  }
+
+  getAreaName(id: number): string {
+    const area = this.areas.find((a) => a.id === id);
+    return area?.name || `Kho #${id}`;
   }
   //naviagte
   onAddNew(): void {
     this.router.navigate(
-      ['/kho-thanh-pham/chuyen-kho-noi-bo/add-new']
+      ['/kho-thanh-pham/xuat-don-ban-hang/add-new']
       // {
       //   queryParams: {
       //     maSanPham: nhapkho.maSanPham,
@@ -175,11 +187,7 @@ export class XuatHangTheoDonBanHangComponent {
   onDelete(location: Location): void {
     console.log('Delete location:', location);
   }
-
-  onPageChange(page: number): void {
-    this.currentPage = page;
-    console.log('Page changed to:', page);
-  }
+  
   applyFilter() {
     //code
   }

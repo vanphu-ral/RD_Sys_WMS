@@ -3,7 +3,7 @@
         <div class="header-title">
             <mat-icon class="title-icon">fact_check</mat-icon>
             <div>
-                <h1>Thêm mới yêu cầu chuyển kho</h1>
+                <h1>Thêm mới yêu cầu xuất kho</h1>
                 <p class="subtitle">Internal warehouse transfer management</p>
             </div>
         </div>
@@ -32,32 +32,30 @@
                 <table class="info-table">
                     <thead>
                         <tr>
-                            <th>Mã PO</th>
-                            <th>Mã chứng từ</th>
-                            <th>Số phiếu</th>
-                            <th>Số pallet</th>
-                            <th>Số thùng</th>
-                            <th>Tổng số lượng SP</th>
-                            <th>Ngày nhập</th>
-                            <th>Ghi chú</th>
+                            <th>Số phiếu giao hàng</th>
+                            <th>Mã khách hàng</th>
                             <th>Tên khách hàng</th>
-                            <th>Đơn vị lĩnh</th>
+                            <th>Số chứng từ</th>
+                            <th>Ghi chú</th>
                             <th>Lý do nhập/xuất</th>
+                            <th>Ngày giao hàng</th>
+                            <th>Số pallet</th>
+                            <th>Số box</th>
+                            <th>Tổng số lượng</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>{{ mainInfo.maPO }}</td>
-                            <td>{{ mainInfo.maChungTu }}</td>
-                            <td>{{ mainInfo.soPhieu }}</td>
-                            <td>{{ mainInfo.soPallet }}</td>
-                            <td>{{ mainInfo.soThung }}</td>
-                            <td>{{ mainInfo.soLuongSP }}</td>
-                            <td>{{ mainInfo.ngayNhap }}</td>
-                            <td>{{ mainInfo.ghiChu }}</td>
-                            <td>{{ mainInfo.tenKhachHang }}</td>
-                            <td>{{ mainInfo.donViLinh }}</td>
-                            <td>{{ mainInfo.lyDoNhapXuat }}</td>
+                            <td>{{mainInfo.soPhieuGiaoHang}}</td>
+                            <td>{{mainInfo.maKhachHang}}</td>
+                            <td>{{mainInfo.tenKhachHang}}</td>
+                            <td>{{mainInfo.soChungTu}}</td>
+                            <td>{{mainInfo.ghiChu}}</td>
+                            <td>{{mainInfo.lyDoNhapXuat}}</td>
+                            <td>{{mainInfo.ngayGiaoHang}}</td>
+                            <td>{{mainInfo.soPallet}}</td>
+                            <td>{{mainInfo.soBox}}</td>
+                            <td>{{mainInfo.tongSoLuong}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -75,59 +73,47 @@
         </div>
 
         <div class="table-container">
-            <table mat-table [dataSource]="pagedDetailList" class="detail-table">
-                <!-- STT -->
+            <table mat-table [dataSource]="detailList" class="detail-table">
+                <!-- STT Column -->
                 <ng-container matColumnDef="stt">
                     <th mat-header-cell *matHeaderCellDef>STT</th>
-                    <td mat-cell *matCellDef="let item; let i = index">{{ i + 1 }}</td>
+                    <td mat-cell *matCellDef="let item; let i = index">{{i + 1}}</td>
                 </ng-container>
 
-                <!-- Mã hàng hoá -->
                 <ng-container matColumnDef="maHangHoa">
                     <th mat-header-cell *matHeaderCellDef>Mã hàng hoá</th>
-                    <td mat-cell *matCellDef="let item">{{ item.maHangHoa }}</td>
+                    <td mat-cell *matCellDef="let item">{{item.maHangHoa}}</td>
                 </ng-container>
 
-                <!-- Tên hàng hoá -->
                 <ng-container matColumnDef="tenHangHoa">
                     <th mat-header-cell *matHeaderCellDef>Tên hàng hoá</th>
-                    <td mat-cell *matCellDef="let item">{{ item.tenHangHoa }}</td>
+                    <td mat-cell *matCellDef="let item">{{item.tenHangHoa}}</td>
                 </ng-container>
 
-                <!-- Ngày giao hàng -->
                 <ng-container matColumnDef="ngayGiaoHang">
                     <th mat-header-cell *matHeaderCellDef>Ngày giao hàng</th>
-                    <td mat-cell *matCellDef="let item">{{ item.ngayGiaoHang }}</td>
+                    <td mat-cell *matCellDef="let item">{{item.ngayGiaoHang}}</td>
                 </ng-container>
 
-                <!-- Mã PO -->
+                <ng-container matColumnDef="soLuong">
+                    <th mat-header-cell *matHeaderCellDef>Số lượng</th>
+                    <td mat-cell *matCellDef="let item">{{item.soLuong}}</td>
+                </ng-container>
+
                 <ng-container matColumnDef="maPO">
                     <th mat-header-cell *matHeaderCellDef>Mã PO</th>
-                    <td mat-cell *matCellDef="let item">{{ item.maPO }}</td>
+                    <td mat-cell *matCellDef="let item">{{item.maPO}}</td>
                 </ng-container>
 
-                <!-- Kho xuất bán hàng -->
-                <ng-container matColumnDef="khoXuatBan">
-                    <th mat-header-cell *matHeaderCellDef>Kho xuất bán hàng</th>
-                    <td mat-cell *matCellDef="let item">{{ item.khoXuatBan }}</td>
-                </ng-container>
-
-                <!-- Số lượng SP -->
-                <ng-container matColumnDef="soLuongSP">
-                    <th mat-header-cell *matHeaderCellDef>Số lượng SP</th>
-                    <td mat-cell *matCellDef="let item">{{ item.soLuongSP }}</td>
-                </ng-container>
-
-                <!-- Đơn vị tính -->
                 <ng-container matColumnDef="donViTinh">
                     <th mat-header-cell *matHeaderCellDef>Đơn vị tính</th>
-                    <td mat-cell *matCellDef="let item">{{ item.donViTinh }}</td>
+                    <td mat-cell *matCellDef="let item">{{item.donViTinh}}</td>
                 </ng-container>
+
 
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
             </table>
-
         </div>
 
         <!-- Pagination -->
@@ -185,9 +171,6 @@
                 </mat-option>
             </mat-autocomplete>
         </mat-form-field>
-
-
-
 
         <button mat-raised-button color="primary" class="confirm-btn" (click)="onConfirm()">
             <mat-icon>check</mat-icon>

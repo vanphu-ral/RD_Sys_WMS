@@ -45,12 +45,30 @@ export class LocationService {
     return this.http.patch(url, {});
   }
 
+  //get location by id
+  getLocationById(id: number): Observable<Location> {
+    return this.http.get<Location>(
+      `http://192.168.10.99:8050/api/locations/${id}`
+    );
+  }
+
+  //cap nhat location
+  updateLocation(id: number, payload: Location): Observable<any> {
+    const url = `http://192.168.10.99:8050/api/locations/${id}`;
+    return this.http.put(url, payload);
+  }
+
   createLocation(location: Location): Observable<Location> {
     return this.http.post<Location>(this.apiUrl, location);
   }
 
   createSubLocations(parentId: number, subPayload: any[]): Observable<any> {
-    const url = `${this.apiUrl}/${parentId}/sub-location/bulk`;
+    const url = `${this.apiUrl}/${parentId}/sub-locations/bulk`;
     return this.http.post<any>(url, subPayload);
+  }
+
+  clearSubLocations(locationId: number): Observable<any> {
+    const url = `${this.apiUrl}/${locationId}/clear-sub-locations`;
+    return this.http.post(url, {});
   }
 }

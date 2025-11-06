@@ -75,6 +75,7 @@
     background-color: #dc2626 !important;
     color: white !important;
 }
+
 .nhapkho-card {
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
     border-radius: 8px;
@@ -206,6 +207,13 @@
 
     }
 
+    .mat-mdc-cell {
+        white-space: normal;
+        word-break: break-word;
+        max-width: 200px; // hoặc tuỳ theo cột
+    }
+
+
     .font-medium {
         font-weight: 500;
         color: #1e293b;
@@ -227,7 +235,7 @@
     }
 
     .mat-mdc-column-id {
-        width: 60px !important;
+        width: 120px !important;
     }
 
     .mat-mdc-column-code {

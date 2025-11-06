@@ -14,7 +14,10 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LocationService } from '../service/location-management.service.component';
 import { Location } from '../models/location.model';
+import { ActivatedRoute } from '@angular/router';
 import { AreaService } from '../../area-component/service/area-service.component';
+import * as XLSX from 'xlsx';
+import * as FileSaver from 'file-saver';
 
 @Component({
   selector: 'app-location-component',
@@ -37,26 +40,50 @@ import { AreaService } from '../../area-component/service/area-service.component
   styleUrl: './add-new-location.component.scss',
 })
 export class AddNewLocationComponentComponent implements OnInit {
+  isEditMode = false;
+  shouldCreateSubLocations: boolean = false;
+
+  appendMode: boolean = false;
+
   subLocations: {
     subCode: string;
     locationName: string;
+    locationCode: string;
     isEditing?: boolean;
   }[] = [];
-  subLocationColumns: string[] = ['stt', 'location', 'subLocation', 'actions'];
+  subLocationColumns: string[] = [
+    'stt',
+    'location',
+    'subLocation',
+    'combined',
+    'actions',
+  ];
   pagedSubLocations: any[] = [];
   areaList: any[] = [];
   pageSize = 5;
   pageIndex = 0;
-  location = {
+  location: Location = {
+    id: undefined,
     code: '',
     name: '',
     description: '',
-    area_id: '',
+    area_id: 0,
     address: '',
-    humidity: '',
-    temperature: '',
+    humidity: 0,
+    temperature: 0,
     barcode: '',
-    restrictMulti: false,
+    is_multi_location: false,
+    number_of_rack: 0,
+    number_of_rack_empty: 0,
+    parent_location_id: undefined,
+    prefix_name: '',
+    prefix_separator: '',
+    child_location_row_count: 0,
+    child_location_column_count: 0,
+    suffix_separator: '',
+    suffix_digit_len: '',
+    is_active: true,
+    updated_by: '',
   };
 
   //bien sinh sublocation
@@ -74,21 +101,57 @@ export class AddNewLocationComponentComponent implements OnInit {
     suffixSeparator: '-',
   };
   selectedAreaId: number | undefined;
-
   constructor(
     private snackBar: MatSnackBar,
     private locationService: LocationService,
-    private areaService: AreaService
+    private areaService: AreaService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.loadDataArea();
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEditMode = true;
+      this.locationService.getLocationById(+id).subscribe({
+        next: (res) => {
+          this.location = res;
+          this.selectedAreaId = res.area_id;
+
+          this.subLocations = (res.sub_locations || []).map((item: any) => ({
+            subCode: item.code,
+            locationCode: res.code,
+            locationName: item.name || item.code,
+            isEditing: false,
+          }));
+          this.updatePagedSubLocations();
+
+          if (res.is_multi_location) {
+            this.location.is_multi_location = true;
+            this.grid.rows = res.child_location_row_count || 0;
+            this.grid.columns = res.child_location_column_count || 0;
+            this.grid.suffixSeparator = res.suffix_separator || '';
+            this.grid.suffixLength = +(res.suffix_digit_len || 2);
+            this.prefix.name = res.prefix_name || '';
+            this.prefix.separator = res.prefix_separator || '';
+          }
+        },
+        error: (err) => {
+          console.error('Lỗi khi lấy location:', err);
+        },
+      });
+    }
+  }
+
+  getSelectedAreaName(): string {
+    const area = this.areaList.find((a) => a.id === this.selectedAreaId);
+    return area?.name || '';
   }
 
   loadDataArea(): void {
     this.areaService.getAreas().subscribe({
       next: (res) => {
-        this.areaList = res.data; 
+        this.areaList = res.data;
       },
       error: (err) => {
         console.error('Lỗi khi lấy danh sách area:', err);
@@ -100,8 +163,30 @@ export class AddNewLocationComponentComponent implements OnInit {
     console.log('Searching for:');
   }
 
-  onRefresh(): void {
-    console.log('Refreshing data...');
+  onExportExcel(): void {
+    const exportData = this.subLocations.map((item) => ({
+      STT: this.subLocations.indexOf(item) + 1,
+      Location: item.locationCode,
+      SubLocation: item.subCode,
+      FullCode: `${item.locationCode}-${item.subCode}`,
+    }));
+
+    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook: XLSX.WorkBook = {
+      Sheets: { SubLocations: worksheet },
+      SheetNames: ['SubLocations'],
+    };
+
+    const excelBuffer: any = XLSX.write(workbook, {
+      bookType: 'xlsx',
+      type: 'array',
+    });
+
+    const blob: Blob = new Blob([excelBuffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8',
+    });
+
+    FileSaver.saveAs(blob, `SubLocations_${this.location.code}.xlsx`);
   }
 
   onAddNew(): void {
@@ -118,7 +203,26 @@ export class AddNewLocationComponentComponent implements OnInit {
 
   //xu ly su kien sub location
   onClear() {
-    // reset cấu hình
+    if (!this.location?.id) return;
+
+    this.locationService.clearSubLocations(this.location.id).subscribe({
+      next: () => {
+        this.snackBar.open('Đã xoá toàn bộ sub-location thành công!', 'Đóng', {
+          duration: 3000,
+          panelClass: ['snackbar-success'],
+        });
+
+        this.subLocations = [];
+        this.updatePagedSubLocations();
+      },
+      error: (err) => {
+        console.error('Lỗi khi xoá sub-location:', err);
+        this.snackBar.open('Xoá sub-location thất bại!', 'Đóng', {
+          duration: 3000,
+          panelClass: ['snackbar-error'],
+        });
+      },
+    });
   }
 
   getPreview(): string {
@@ -140,35 +244,30 @@ export class AddNewLocationComponentComponent implements OnInit {
   }
 
   onGenerate() {
-    this.subLocations = []; // reset danh sách cũ
+    this.shouldCreateSubLocations = true;
 
-    this.subLocations = [];
+    const existingCount = this.subLocations.length;
+    const start = this.appendMode ? existingCount + 1 : 1;
 
-    const prefix = this.prefix.name || 'SLOT';
-    const separator = this.prefix.separator || '-';
+    this.subLocations = this.appendMode ? [...this.subLocations] : [];
 
-    const rows = this.grid.rows || 1;
-    const columns = this.grid.columns || 1;
-    const start = this.grid.start || 1;
-    const slotLength = this.grid.slotLength || 2;
-    const suffixLength = this.grid.suffixLength || 2;
-    const suffixSeparator = this.grid.suffixSeparator || separator;
+    for (let r = 0; r < this.grid.rows; r++) {
+      const rowNum = (start + r).toString().padStart(this.grid.slotLength, '0');
 
-    for (let r = 0; r < rows; r++) {
-      const rowNum = (start + r).toString().padStart(slotLength, '0');
-
-      for (let c = 0; c < columns; c++) {
-        const colNum = (c + 1).toString().padStart(suffixLength, '0');
-        const subCode = `${prefix}${separator}${rowNum}${suffixSeparator}${colNum}`;
+      for (let c = 0; c < this.grid.columns; c++) {
+        const colNum = (c + 1).toString().padStart(this.grid.suffixLength, '0');
+        const subCode = `${this.prefix.name}${this.prefix.separator}${rowNum}${this.grid.suffixSeparator}${colNum}`;
 
         this.subLocations.push({
           subCode,
           locationName: this.location.name,
+          locationCode: this.location.code,
+          isEditing: false,
         });
       }
     }
+
     this.updatePagedData();
-    console.log('Generated SubLocations:', this.subLocations);
   }
 
   onEditSubLocation(index: number) {
@@ -180,6 +279,18 @@ export class AddNewLocationComponentComponent implements OnInit {
     const globalIndex = this.pageIndex * this.pageSize + index;
     this.subLocations[globalIndex].isEditing = false;
     this.updatePagedData();
+  }
+  updatePagedSubLocations(): void {
+    const start = this.pageIndex * this.pageSize;
+    this.pagedSubLocations = this.subLocations.slice(
+      start,
+      start + this.pageSize
+    );
+  }
+  onPageChangeSubs(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.updatePagedSubLocations();
   }
 
   onPageChange(event: PageEvent) {
@@ -203,39 +314,67 @@ export class AddNewLocationComponentComponent implements OnInit {
   onCancel() {
     // location.restrictMulti = false;
   }
+  getBarcodeValue(): string {
+    const area = this.areaList.find((a) => a.id === this.selectedAreaId);
+    const areaName = (area?.name || '').replace(/\s+/g, '');
+    const locationName = (this.location.name || '').replace(/\s+/g, '');
+    return `${areaName}-${locationName}`;
+  }
+
+  updateBarcode(): void {
+    this.location.barcode = this.getBarcodeValue();
+  }
 
   onSave(): void {
+    const isMulti = this.location.is_multi_location;
+
     const payload: Location = {
       code: this.location.code,
       name: this.location.name,
       area_id: this.selectedAreaId || 0,
       address: this.location.address,
       description: this.location.description,
-      is_multi_location: this.location.restrictMulti || false,
-      number_of_rack: this.grid.rows * this.grid.columns,
-      number_of_rack_empty: this.grid.rows * this.grid.columns,
-      parent_location_id: undefined,
+      is_multi_location: isMulti,
       barcode: this.location.barcode,
-      humidity: 50,
-      temperature: 24,
-      prefix_name: this.prefix.name,
-      prefix_separator: this.prefix.separator,
-      child_location_row_count: this.grid.rows,
-      child_location_column_count: this.grid.columns,
-      suffix_separator: this.grid.suffixSeparator,
-      suffix_digit_len: this.grid.suffixLength.toString(),
+      humidity: +(this.location?.humidity ?? 0),
+      temperature: +(this.location?.temperature ?? 0),
     };
 
-    this.locationService.createLocation(payload).subscribe({
-      next: (res) => {
-        const parentId = res.id!;
-        this.snackBar.open('Tạo location thành công!', 'Đóng', {
-          duration: 3000,
-          panelClass: ['snackbar-success'],
-        });
+    if (isMulti) {
+      Object.assign(payload, {
+        number_of_rack: this.grid.rows * this.grid.columns,
+        number_of_rack_empty: this.grid.rows * this.grid.columns,
+        prefix_name: this.prefix.name,
+        prefix_separator: this.prefix.separator,
+        child_location_row_count: this.grid.rows,
+        child_location_column_count: this.grid.columns,
+        suffix_separator: this.grid.suffixSeparator,
+        suffix_digit_len: this.grid.suffixLength.toString(),
+      });
+    }
 
-        // Nếu có sub-location thì gọi tiếp
-        if (this.location.restrictMulti && this.subLocations.length > 0) {
+    const request$ =
+      this.isEditMode && this.location.id
+        ? this.locationService.updateLocation(this.location.id, payload)
+        : this.locationService.createLocation(payload);
+
+    request$.subscribe({
+      next: (res) => {
+        const parentId = res.id || this.location.id;
+        this.snackBar.open(
+          `${this.isEditMode ? 'Cập nhật' : 'Tạo'} location thành công!`,
+          'Đóng',
+          {
+            duration: 3000,
+            panelClass: ['snackbar-success'],
+          }
+        );
+
+        if (
+          isMulti &&
+          this.shouldCreateSubLocations &&
+          this.subLocations.length > 0
+        ) {
           const subPayload = this.subLocations.map((sub) => ({
             code: sub.subCode,
             name: sub.subCode,
@@ -247,37 +386,48 @@ export class AddNewLocationComponentComponent implements OnInit {
             barcode: sub.subCode,
             is_active: 1,
             updated_by: 'test',
-            parent_location_id: parentId,
+            // parent_location_id: parentId,
           }));
 
           this.locationService
             .createSubLocations(parentId, subPayload)
             .subscribe({
               next: () => {
-                this.snackBar.open('Tạo sub-location thành công!', 'Đóng', {
-                  duration: 3000,
-                  panelClass: ['snackbar-success'],
-                });
-                // this.router.navigate(['/locations']);
+                this.snackBar.open(
+                  `${
+                    this.isEditMode ? 'Cập nhật' : 'Tạo'
+                  } sub location thành công!`,
+                  'Đóng',
+                  {
+                    duration: 3000,
+                    panelClass: ['snackbar-success'],
+                  }
+                );
               },
               error: (err) => {
                 console.error('Lỗi khi tạo sub-location:', err);
-                this.snackBar.open('Tạo sub-location thất bại!', 'Đóng', {
-                  duration: 3000,
-                  panelClass: ['snackbar-error'],
-                });
+                this.snackBar.open(
+                  `${this.isEditMode ? 'Cập nhật' : 'Tạo'} location thất bại!`,
+                  'Đóng',
+                  {
+                    duration: 3000,
+                    panelClass: ['snackbar-error'],
+                  }
+                );
               },
             });
-        } else {
-          // this.router.navigate(['/locations']);
         }
       },
       error: (err) => {
-        console.error('Lỗi khi tạo location:', err);
-        this.snackBar.open('Tạo location thất bại!', 'Đóng', {
-          duration: 3000,
-          panelClass: ['snackbar-error'],
-        });
+        console.error('Lỗi khi lưu location:', err);
+        this.snackBar.open(
+          `${this.isEditMode ? 'Cập nhật' : 'Tạo'} location thất bại!`,
+          'Đóng',
+          {
+            duration: 3000,
+            panelClass: ['snackbar-error'],
+          }
+        );
       },
     });
   }

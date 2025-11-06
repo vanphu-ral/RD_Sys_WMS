@@ -9,7 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
-import { RouterLinkWithHref } from '@angular/router';
+import { Router, RouterLinkWithHref } from '@angular/router';
 import { LocationService } from './service/location-management.service.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -68,7 +68,8 @@ export class LocationManagementComponent implements OnInit {
   totalPages: number = 1;
   constructor(
     private locationService: LocationService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private router: Router
   ) {}
   ngOnInit(): void {
     this.loadLocations();
@@ -121,7 +122,7 @@ export class LocationManagementComponent implements OnInit {
   }
 
   onEdit(location: Location): void {
-    console.log('Edit location:', location);
+    this.router.navigate(['/location/add-new', location.id]);
   }
 
   onDelete(location: Location): void {
@@ -134,6 +135,11 @@ export class LocationManagementComponent implements OnInit {
 
   onPageChange(page: number): void {
     this.currentPage = page;
+    this.loadLocations();
+  }
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 1;
     this.loadLocations();
   }
 

@@ -13,6 +13,7 @@
     </div>
 
     <mat-dialog-content>
+        <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
         <!-- Scan Mode Selection -->
         <div class="mode-section">
             <div class="section-title">
@@ -146,6 +147,35 @@
                     </div>
                     <div class="info-item"></div>
                 </div>
+                <div class="info-row">
+                    <div class="info-item">
+                        <span class="info-label">PO:</span>
+                        <span class="info-value">{{ productInfo.po }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">LOT:</span>
+                        <span class="info-value">{{ productInfo.lot }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Part Number:</span>
+                        <span class="info-value">{{ productInfo.partNumber }}</span>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-item">
+                        <span class="info-label">Ngày sản xuất:</span>
+                        <span class="info-value">{{ productInfo.ngaySanXuat }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Hạn sử dụng:</span>
+                        <span class="info-value">{{ productInfo.hanSuDung }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Ghi chú:</span>
+                        <span class="info-value">{{ productInfo.ghiChu }}</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -185,12 +215,12 @@
 
     </mat-dialog-content>
 
-    <mat-dialog-actions align="end">
-        <button mat-raised-button color="primary" class="save-btn" (click)="onSave()">
-            <mat-icon>save</mat-icon>
-            Lưu
-        </button>
+    <mat-dialog-actions align="end" *ngIf="isInfoVisible && (mode === 'update' || mode === 'transfer')">
+        <button mat-button (click)="onCancel()">Huỷ</button>
+        <button mat-raised-button color="primary" (click)="onSave()">Lưu</button>
     </mat-dialog-actions>
+
+
 
 
 </div>

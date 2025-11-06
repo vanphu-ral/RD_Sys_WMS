@@ -70,53 +70,74 @@ export class ChuyenKhoComponent {
     'scan_status',
   ];
   internalTransfers: InternalTransferRequest[] = [];
-  // chuyenKho: Warehouse[] = [
-  //   {
-  //     id: 1,
-  //     code: 'REQ-285875',
-  //     from: 'RD',
-  //     to: 'RD-02',
-  //     unit: 'Kho vật tư TBCS',
-  //     reason: 'Xuất chuyển kho',
-  //     type: 1,
-  //     documentDate: '1/11/2025',
-  //     documentNumber: 'RD.PN.CS1.T01.2025',
-  //     serialPGH: '6C25NRD',
-  //     status: 'Đã duyệt',
-  //   },
-  //   {
-  //     id: 2,
-  //     code: 'REQ-285876',
-  //     from: 'RD-01',
-  //     to: 'RD-02',
-  //     unit: 'Kho vật tư TBCS',
-  //     reason: 'Xuất chuyển kho',
-  //     type: 1,
-  //     documentDate: '1/11/2025',
-  //     documentNumber: 'RD.PN.CS1.T01.2025',
-  //     serialPGH: '6C25NRD',
-  //     status: 'Đã scan',
-  //   },
-  // ];
+  warehouses: { id: number; name: string }[] = [];
+  pagedTransfers: InternalTransferRequest[] = [];
 
   searchTerm: string = '';
+  totalPages: number = 0;
+  pageNumbers: number[] = [];
+  totalItems: number = 0;
   pageSize: number = 10;
   currentPage: number = 1;
-  totalItems: number = 1200;
   constructor(
     private router: Router,
     private chuyenKhoService: ChuyenKhoService
   ) {}
   ngOnInit(): void {
+    this.loadDataChuyenKho();
+    this.loadAreaData();
+  }
+  //danh sach kho
+  loadAreaData(): void {
+    this.chuyenKhoService.getWarehouses().subscribe({
+      next: (data) => {
+        this.warehouses = data;
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy danh sách kho:', err);
+      },
+    });
+  }
+
+  //load danh sach chuyen kho
+  loadDataChuyenKho(): void {
     this.chuyenKhoService.getInternalTransfers().subscribe({
       next: (res) => {
         this.internalTransfers = res;
+        this.totalItems = res.length;
+        this.applyPagination(); // cập nhật trang hiện tại
       },
       error: (err) => {
         console.error('Lỗi khi lấy danh sách chuyển kho:', err);
       },
     });
   }
+
+  //phan tran
+  applyPagination(): void {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.pagedTransfers = this.internalTransfers.slice(startIndex, endIndex);
+
+    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    this.pageNumbers = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.applyPagination();
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.applyPagination();
+  }
+
+  getWarehouseName(id: number): string {
+    const warehouse = this.warehouses.find((w) => w.id === id);
+    return warehouse?.name || `#${id}`;
+  }
+
   //naviagte
   onAddNew(): void {
     this.router.navigate(
@@ -169,10 +190,6 @@ export class ChuyenKhoComponent {
     console.log('Delete location:', location);
   }
 
-  onPageChange(page: number): void {
-    this.currentPage = page;
-    console.log('Page changed to:', page);
-  }
   applyFilter() {
     //code
   }

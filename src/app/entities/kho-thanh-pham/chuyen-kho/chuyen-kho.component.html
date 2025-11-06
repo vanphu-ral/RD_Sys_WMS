@@ -21,7 +21,7 @@
                 <span>Danh sách chuyển kho ({{totalItems}})</span>
             </div>
             <div class="table-actions">
-                <button mat-raised-button (click)="onRefresh()" class="refresh-btn icon-only"  matTooltip="Làm mới">
+                <button mat-raised-button (click)="onRefresh()" class="refresh-btn icon-only" matTooltip="Làm mới">
                     <mat-icon color="primary">sync</mat-icon>
                 </button>
             </div>
@@ -29,7 +29,7 @@
 
         <!-- Table -->
         <div class="table-container">
-            <table mat-table [dataSource]="internalTransfers" class="chuyenkho-table">
+            <table mat-table [dataSource]="pagedTransfers" class="chuyenkho-table">
                 <!-- ID Column -->
                 <ng-container matColumnDef="id">
                     <th mat-header-cell *matHeaderCellDef>ID</th>
@@ -59,7 +59,7 @@
                                 (keyup.enter)="applyFilter()">
                         </mat-form-field>
                     </th>
-                    <td mat-cell *matCellDef="let chuyenkho">{{chuyenkho.tu_kho}}</td>
+                    <td mat-cell *matCellDef="let chuyenkho">{{getWarehouseName(chuyenkho.tu_kho)}}</td>
                 </ng-container>
                 <ng-container matColumnDef="den_kho">
                     <th mat-header-cell *matHeaderCellDef>
@@ -69,7 +69,7 @@
                                 (keyup.enter)="applyFilter()">
                         </mat-form-field>
                     </th>
-                    <td mat-cell *matCellDef="let chuyenkho">{{chuyenkho.den_kho}}</td>
+                    <td mat-cell *matCellDef="let chuyenkho">{{getWarehouseName(chuyenkho.den_kho)}}</td>
                 </ng-container>
                 <ng-container matColumnDef="don_vi_linh">
                     <th mat-header-cell *matHeaderCellDef>
@@ -191,7 +191,8 @@
                 <ng-container matColumnDef="actions">
                     <th mat-header-cell *matHeaderCellDef class="text-center">Options</th>
                     <td mat-cell *matCellDef="let chuyenkho" class="text-center">
-                        <button mat-mini-fab class="action-btn detail-btn" (click)="onDetail(chuyenkho)"  matTooltip="Danh sách chi tiết">
+                        <button mat-mini-fab class="action-btn detail-btn" (click)="onDetail(chuyenkho)"
+                            matTooltip="Danh sách chi tiết">
                             <mat-icon>playlist_add_check</mat-icon>
                         </button>
                     </td>
@@ -201,12 +202,12 @@
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
             </table>
         </div>
-        
+
 
         <!-- Pagination -->
         <div class="pagination">
             <mat-form-field class="page-size-select" appearance="outline">
-                <mat-select [(value)]="pageSize">
+                <mat-select [(value)]="pageSize" (selectionChange)="onPageSizeChange()">
                     <mat-option [value]="10">10</mat-option>
                     <mat-option [value]="25">25</mat-option>
                     <mat-option [value]="50">50</mat-option>
@@ -215,15 +216,12 @@
             </mat-form-field>
 
             <div class="pagination-buttons">
-                <button mat-flat-button [class.page-active]="currentPage === 1" (click)="onPageChange(1)">
-                    1
+                <button *ngFor="let page of pageNumbers" mat-stroked-button [class.page-active]="currentPage === page"
+                    (click)="onPageChange(page)">
+                    {{ page }}
                 </button>
-                <button mat-stroked-button (click)="onPageChange(2)">2</button>
-                <button mat-stroked-button (click)="onPageChange(3)">3</button>
-                <span class="page-dots">...</span>
-                <button mat-stroked-button (click)="onPageChange(8)">8</button>
-                <button mat-stroked-button (click)="onPageChange(9)">9</button>
             </div>
+
         </div>
     </mat-card>
 

@@ -29,6 +29,11 @@ import { ScanDetailXuatHangComponent } from './xuat-hang-theo-don-ban-hang/scanD
 import { XuatHangDetailComponent } from './xuat-hang-theo-don-ban-hang/detail/xuat-hang-detail.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { AddXuatHangTheoDonBanHangComponent } from './xuat-hang-theo-don-ban-hang/add-new/add-xuat-hang-theo-don-ban-hang.component';
+import { ConfirmDialogComponent } from './chuyen-kho/dialog/confirm-dialog.component';
+import { ConfirmDialogXuatHangComponent } from './xuat-hang-theo-don-ban-hang/dialog/confirm-dialog.component';
+
+
 @NgModule({
   declarations: [
     ChuyenKhoComponent,
@@ -44,6 +49,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     ScanDetailComponent,
     ScanDetailXuatHangComponent,
     XuatHangDetailComponent,
+    AddXuatHangTheoDonBanHangComponent,
   ],
   imports: [
     CommonModule,
@@ -63,8 +69,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatTableModule,
     MatAutocompleteModule,
     MatSnackBarModule,
+    ConfirmDialogComponent,
     MatTooltipModule,
+    ConfirmDialogXuatHangComponent,
   ],
-  exports: [MatIconModule,MatTableModule,],
+  exports: [MatIconModule,MatTableModule, MatDialogModule, ConfirmDialogComponent, ConfirmDialogXuatHangComponent],
 })
 export class KhoThanhPhamModule {}

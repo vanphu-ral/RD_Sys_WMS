@@ -270,6 +270,7 @@
 
     .sub-location-table {
         width: 100%;
+        table-layout: fixed;
 
         th.mat-header-cell {
             font-weight: 600;
@@ -282,6 +283,13 @@
 
         .text-center {
             text-align: center;
+        }
+
+        ::ng-deep .mat-mdc-column-actions,
+        ::ng-deep .cdk-column-actions {
+            width: 10rem !important;
+            max-width: 10rem !important;
+            min-width: 10rem !important;
         }
     }
 }
