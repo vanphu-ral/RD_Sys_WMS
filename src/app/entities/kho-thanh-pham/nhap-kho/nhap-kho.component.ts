@@ -1,18 +1,26 @@
 import { Component } from '@angular/core';
 import { KhoThanhPhamModule } from '../kho-thanh-pham.module';
 import { Router } from '@angular/router';
-export interface NhapKho {
+import { NhapKhoService } from './service/nhap-kho.service';
+export interface NhapKhoItem {
   id: number;
-  maSanPham: string;
-  maKhachHang: string;
-  tenSanPham: string;
-  palletQuantity: number;
-  boxQuantity: number;
-  productQuantity: number;
-  woId: number;
-  lotNumber: string;
+  po_code: string | null;
+  client_id: number;
+  inventory_name: string;
+  number_of_pallet: number;
+  number_of_box: number;
+  quantity: number;
+  wo_code: string;
+  lot_number: string;
+  import_date: string;
   status: string;
+  note: string;
+  approved_by: string | null;
+  is_check_all: boolean;
+  updated_by: string;
+  updated_date: string;
 }
+
 @Component({
   selector: 'app-nhap-kho-component',
   standalone: false,
@@ -20,116 +28,61 @@ export interface NhapKho {
   styleUrl: './nhap-kho.component.scss',
 })
 export class NhapKhoComponent {
-
   showMobileFilters: boolean = false;
   displayedColumns: string[] = [
     'id',
-    'maSanPham',
-    'maKhachHang',
-    'tenSanPham',
-    'lotNumber',
-    'palletQuantity',
-    'boxQuantity',
-    'productQuantity',
-    'woId',
+    'inventory_name',
+    'lot_number',
+    'number_of_pallet',
+    'number_of_box',
+    'quantity',
+    'wo_code',
+    'import_date',
     'status',
     'actions',
   ];
 
   filterValues = {
-    maSanPham: '',
-    maKhachHang: '',
-    tenSanPham: '',
-    lotNumber: '',
+    inventory_name: '',
+    lot_number: '',
+    wo_code: '',
     status: '',
   };
+
   filterColumns: string[] = [
-    'maSanPham',
-    'maKhachHang',
-    'tenSanPham',
-    'lotNumber',
+    'inventory_name',
+    'lot_number',
+    'wo_code',
     'status',
   ];
-  nhapKhoList: NhapKho[] = [
-    {
-      id: 1,
-      maSanPham: 'KHHTTK-202510WS',
-      maKhachHang: 'KHTT',
-      tenSanPham: 'Đèn LED chiếu pha 6500k 8W',
-      lotNumber: '20252075640A',
-      palletQuantity: 10,
-      boxQuantity: 10,
-      productQuantity: 20,
-      woId: 112345,
-      status: 'Chờ nhập',
-    },
-    {
-      id: 2,
-      maSanPham: 'KHHTTK-202510WS',
-      maKhachHang: 'KHTT',
-      tenSanPham: 'Đèn LED chiếu pha 6500k 8W',
-      lotNumber: '20252075640A',
-      palletQuantity: 10,
-      boxQuantity: 10,
-      productQuantity: 20,
-      woId: 112345,
-      status: 'Đã nhập',
-    },
-    {
-      id: 3,
-      maSanPham: 'KHHTTK-202510WS',
-      maKhachHang: 'KHTT',
-      tenSanPham: 'Đèn LED chiếu pha 6500k 8W',
-      lotNumber: '20252075640A',
-      palletQuantity: 10,
-      boxQuantity: 10,
-      productQuantity: 20,
-      woId: 112345,
-      status: 'Đã nhập',
-    },
-    {
-      id: 4,
-      maSanPham: 'KHHTTK-202510WS',
-      maKhachHang: 'KHTT',
-      tenSanPham: 'Đèn LED chiếu pha 6500k 8W',
-      lotNumber: '20252075640A',
-      palletQuantity: 10,
-      boxQuantity: 10,
-      productQuantity: 20,
-      woId: 112345,
-      status: 'Đã nhập',
-    },
-    {
-      id: 5,
-      maSanPham: 'KHHTTK-202510WS',
-      maKhachHang: 'KHTT',
-      tenSanPham: 'Đèn LED chiếu pha 6500k 8W',
-      lotNumber: '20252075640A',
-      palletQuantity: 10,
-      boxQuantity: 10,
-      productQuantity: 20,
-      woId: 112345,
-      status: 'Đã nhập',
-    },
-    {
-      id: 6,
-      maSanPham: 'KHHTTK-202510WS',
-      maKhachHang: 'KHTT',
-      tenSanPham: 'Đèn LED chiếu pha 6500k 8W',
-      lotNumber: '20252075640A',
-      palletQuantity: 10,
-      boxQuantity: 10,
-      productQuantity: 20,
-      woId: 112345,
-      status: 'Đã nhập',
-    },
-  ];
+
+  nhapKhoList: NhapKhoItem[] = [];
+  originalList: NhapKhoItem[] = [];
   searchTerm: string = '';
+  totalItems: number = 0;
   pageSize: number = 10;
   currentPage: number = 1;
-  totalItems: number = 1200;
-  constructor(private router: Router) { }
-  ngOnInit(): void { }
+  totalPages: number = 1;
+  constructor(private router: Router, private nhapKhoService: NhapKhoService) {}
+  ngOnInit(): void {
+    this.loadDanhSachNhapKho();
+  }
+  formatDate(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString('vi-VN');
+  }
+  loadDanhSachNhapKho(): void {
+    this.nhapKhoService.getDanhSachNhapKho().subscribe({
+      next: (res) => {
+        this.originalList = res;
+        this.nhapKhoList = res.slice(0, this.pageSize);
+        this.totalItems = res.length;
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy danh sách nhập kho:', err);
+      },
+    });
+  }
+
   getStatusClass(status: string): string {
     const statusClasses: { [key: string]: string } = {
       'Chờ nhập': 'status-warn-label',
@@ -139,9 +92,9 @@ export class NhapKhoComponent {
   }
 
   //naviagte
-  onApprove(nhapkho: NhapKho): void {
+  onApprove(nhapkho: NhapKhoItem): void {
     this.router.navigate(
-      ['/kho-thanh-pham/nhap-kho-sx/phe-duyet', nhapkho.id],
+      ['/kho-thanh-pham/nhap-kho-sx/phe-duyet', nhapkho.id]
       // {
       //   queryParams: {
       //     maSanPham: nhapkho.maSanPham,
@@ -152,9 +105,9 @@ export class NhapKhoComponent {
   }
 
   // Navigate đến trang chi tiết
-  onViewDetail(nhapkho: NhapKho): void {
+  onViewDetail(nhapkho: NhapKhoItem): void {
     this.router.navigate(
-      ['/kho-thanh-pham/nhap-kho-sx/detail', nhapkho.id],
+      ['/kho-thanh-pham/nhap-kho-sx/detail', nhapkho.id]
       // {
       //   queryParams: {
       //     maSanPham: nhapkho.maSanPham,
@@ -165,9 +118,9 @@ export class NhapKhoComponent {
   }
 
   // Navigate đến trang scan
-  onScan(nhapkho: NhapKho): void {
+  onScan(nhapkho: NhapKhoItem): void {
     this.router.navigate(
-      ['/kho-thanh-pham/nhap-kho-sx/scan', nhapkho.id],
+      ['/kho-thanh-pham/nhap-kho-sx/scan', nhapkho.id]
       // {
       //   queryParams: {
       //     maSanPham: nhapkho.maSanPham,
@@ -192,50 +145,60 @@ export class NhapKhoComponent {
   onDelete(location: Location): void {
     console.log('Delete location:', location);
   }
+  slicePage(): void {
+    const start = (this.currentPage - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.nhapKhoList = this.originalList.slice(start, end);
+  }
 
   onPageChange(page: number): void {
     this.currentPage = page;
-    console.log('Page changed to:', page);
+    this.slicePage();
   }
 
-  applyFilter() {
-    const filtered = this.nhapKhoList.filter((loc) => {
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    this.slicePage();
+  }
+
+  applyFilter(): void {
+    const filtered = this.originalList.filter((item) => {
       return (
-        loc.maSanPham
-          .toLowerCase()
-          .includes(this.filterValues.maSanPham.toLowerCase()) &&
-        loc.maKhachHang
-          .toLowerCase()
-          .includes(this.filterValues.maKhachHang.toLowerCase()) &&
-        loc.tenSanPham
-          .toLowerCase()
-          .includes(this.filterValues.tenSanPham.toLowerCase()) &&
-        loc.status
-          .toLowerCase()
-          .includes(this.filterValues.status.toLowerCase()) &&
-        loc.lotNumber
-          .toLowerCase()
-          .includes(this.filterValues.lotNumber.toLowerCase())
+        item.inventory_name
+          ?.toLowerCase()
+          .includes(this.filterValues.inventory_name.toLowerCase()) &&
+        item.lot_number
+          ?.toLowerCase()
+          .includes(this.filterValues.lot_number.toLowerCase()) &&
+        item.wo_code
+          ?.toLowerCase()
+          .includes(this.filterValues.wo_code.toLowerCase()) &&
+        item.status
+          ?.toLowerCase()
+          .includes(this.filterValues.status.toLowerCase())
       );
     });
 
     this.nhapKhoList = filtered;
+    this.totalItems = filtered.length;
   }
+
   toggleMobileFilters(): void {
     this.showMobileFilters = !this.showMobileFilters;
   }
 
   clearFilters(): void {
     this.filterValues = {
-      maSanPham: '',
-      maKhachHang: '',
-      tenSanPham: '',
-      lotNumber: '',
-      status: ''
+      inventory_name: '',
+      lot_number: '',
+      wo_code: '',
+      status: '',
     };
     this.searchTerm = '';
     this.applyFilter();
   }
+
   // getStatusClass(status: string): string {
   //   const statusMap: { [key: string]: string } = {
   //     'Chờ nhập': 'cho-nhap',

@@ -20,40 +20,54 @@ import { AddYeuCauChuyenKhoComponent } from './entities/kho-thanh-pham/chuyen-kh
 import { ChuyenKhoDetailComponent } from './entities/kho-thanh-pham/chuyen-kho/detail/chuyen-kho-detail.component';
 import { ScanDetailComponent } from './entities/kho-thanh-pham/chuyen-kho/scanDetail/scan-detail.component';
 import { ScanDetailXuatHangComponent } from './entities/kho-thanh-pham/xuat-hang-theo-don-ban-hang/scanDetail/xuat-hang-scan-detail.component';
-import { XuatHangDetailComponent } from './entities/kho-thanh-pham/xuat-hang-theo-don-ban-hang/detail/xuat-hang-detail.component'; 
-import { BaoCaoThongKeComponent } from './entities/bao-cao-thong-ke/bao-cao-thong-ke.component';
+import { XuatHangDetailComponent } from './entities/kho-thanh-pham/xuat-hang-theo-don-ban-hang/detail/xuat-hang-detail.component';
+import { TongHopXuatNhapTonComponent } from './entities/bao-cao-thong-ke/tong-hop-xuat-nhap-ton/tong-hop-xuat-nhap-ton.component';
 import { AddXuatHangTheoDonBanHangComponent } from './entities/kho-thanh-pham/xuat-hang-theo-don-ban-hang/add-new/add-xuat-hang-theo-don-ban-hang.component';
+import { AuthGuard } from './homepage/auth.guard';
+import { ThongKeTonKhoComponent } from './entities/bao-cao-thong-ke/thong-ke-ton-kho/thong-ke-ton-kho.component';
+import { EncodedRedirectComponent } from './entities/encoded-redirect/encoded-redirect.component';
 
 export const routes: Routes = [
+  {
+    path: 'home',
+    component: HomepageComponent,
+    data: { tabLabel: 'Home', isClosable: false },
+  },
   {
     path: 'areas',
     component: AreaManagementComponent,
     data: { tabLabel: 'Quản lý Area', isClosable: false },
+    canActivate: [AuthGuard],
   },
   {
     path: 'areas/add-new',
     component: AddNewAreaComponentComponent,
     data: { tabLabel: 'Thêm mới Areas', isClosable: false },
+    canActivate: [AuthGuard],
   },
   {
-    path: 'areas/add-new:id',
+    path: 'areas/add-new/:id',
     component: AddNewAreaComponentComponent,
     data: { tabLabel: 'Chỉnh sửa Area', isClosable: true },
+    canActivate: [AuthGuard],
   },
   {
     path: 'location',
     component: LocationManagementComponent,
     data: { tabLabel: 'Quản lý Locations', isClosable: false },
+    canActivate: [AuthGuard],
   },
   {
     path: 'location/add-new',
     component: AddNewLocationComponentComponent,
     data: { tabLabel: 'Thêm mới Locations', isClosable: false },
+    canActivate: [AuthGuard],
   },
   {
     path: 'location/add-new/:id',
     component: AddNewLocationComponentComponent,
     data: { tabLabel: 'Chỉnh sửa mới Locations', isClosable: false },
+    canActivate: [AuthGuard],
   },
 
   {
@@ -121,10 +135,21 @@ export const routes: Routes = [
 
       { path: '', redirectTo: 'nhap-kho-sx', pathMatch: 'full' },
     ],
+    canActivate: [AuthGuard],
   },
   {
     path: 'bao-cao-thong-ke',
-    component: BaoCaoThongKeComponent,
-    data: { tabLabel: 'Báo cáo', isClosable: false },
+    children: [
+      {
+        path: 'tong-hop-xuat-nhap-ton',
+        component: TongHopXuatNhapTonComponent,
+      },
+      { path: 'thong-ke-ton-kho', component: ThongKeTonKhoComponent },
+    ],
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'encoded/:encodedUrl',
+    component: EncodedRedirectComponent, 
   },
 ];

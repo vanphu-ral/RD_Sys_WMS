@@ -1,1 +1,19 @@
+<div class="welcome-container">
+  <img src="assets/logo-rang-dong-icon.svg" alt="Logo" class="logo" />
 
+  <h1>Chào mừng đến với hệ thống quản lý kho</h1>
+  
+  <div *ngIf="!isLoggedIn">
+    <p>Vui lòng đăng nhập để sử dụng các chức năng của hệ thống.</p>
+    <button mat-raised-button color="primary" (click)="redirectToLogin()">
+      Đăng nhập
+    </button>
+  </div>
+
+  <div *ngIf="isLoggedIn">
+    <p>Bạn đã đăng nhập thành công!</p>
+    <button mat-raised-button color="accent" routerLink="/areas">
+      Vào hệ thống
+    </button>
+  </div>
+</div>

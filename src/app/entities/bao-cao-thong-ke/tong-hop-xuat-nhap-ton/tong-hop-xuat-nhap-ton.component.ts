@@ -47,10 +47,10 @@ import { Chart, ChartConfiguration, registerables } from 'chart.js';
     MatSnackBarModule,
     MatTooltipModule,
   ],
-  templateUrl: './bao-cao-thong-ke.component.html',
-  styleUrl: './bao-cao-thong-ke.component.scss',
+  templateUrl: './tong-hop-xuat-nhap-ton.component.html',
+  styleUrl: './tong-hop-xuat-nhap-ton.component.scss',
 })
-export class BaoCaoThongKeComponent implements OnInit, AfterViewInit {
+export class TongHopXuatNhapTonComponent implements OnInit, AfterViewInit {
   @ViewChild('inventoryTrendChart')
   inventoryChartCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('warehouseStatusChart')

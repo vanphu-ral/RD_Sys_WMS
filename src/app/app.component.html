@@ -8,27 +8,61 @@
       </a>
     </div>
   </div>
-  
+
   <div>
     <div class="topnav" style="display: flex;">
-      <div class="user">
-        <button class="btn user-option">
+      <div class="user" *ngIf="isLoggedIn">
+        <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
           <mat-icon>person_outline</mat-icon>
+          <span class="username">{{ username }}</span>
+          <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+        </button>
+
+        <mat-menu #userMenu="matMenu" class="user-menu">
+          <div class="user-menu-header">
+            <mat-icon>account_circle</mat-icon>
+            <div class="user-info">
+              <p class="user-name">{{ username }}</p>
+              <p class="user-role">Quản lý kho</p>
+            </div>
+          </div>
+          <mat-divider></mat-divider>
+          <button mat-menu-item>
+            <mat-icon>person</mat-icon>
+            <span>Thông tin cá nhân</span>
+          </button>
+          <button mat-menu-item>
+            <mat-icon>settings</mat-icon>
+            <span>Cài đặt</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="logout()">
+            <mat-icon color="warn">logout</mat-icon>
+            <span>Đăng xuất</span>
+          </button>
+        </mat-menu>
+      </div>
+
+      <!-- Nếu chưa đăng nhập -->
+      <div class="user" *ngIf="!isLoggedIn">
+        <button mat-button routerLink="/" class="login-button">
+          <mat-icon>login</mat-icon>
+          <span>Đăng nhập</span>
         </button>
       </div>
     </div>
-  </div>
-  
-  <div class="main-container">
-    <div class="main-content-container">
-      <div class="main-content">
-        <mat-tab-nav-panel #tabPanel></mat-tab-nav-panel>
-        <main class="main-content-area">
-          <div>
-            <router-outlet></router-outlet>
-          </div>
-        </main>
-      </div>
+</div>
+
+<div class="main-container">
+  <div class="main-content-container">
+    <div class="main-content">
+      <mat-tab-nav-panel #tabPanel></mat-tab-nav-panel>
+      <main class="main-content-area">
+        <div>
+          <router-outlet></router-outlet>
+        </div>
+      </main>
     </div>
   </div>
+</div>
 </div>

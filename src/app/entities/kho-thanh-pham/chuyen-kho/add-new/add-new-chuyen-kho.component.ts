@@ -235,8 +235,8 @@ export class AddYeuCauChuyenKhoComponent implements OnInit {
       so_chung_tu: this.mainInfo.maChungTu, 
       ngay_chung_tu: this.mainInfo.ngayNhap,
       note: this.mainInfo.ghiChu,
-      series_PGH: 's',
-      status: 'Mới tạo',
+      series_pgh: 's',
+      status: false,
       updated_by: 'admin',
     };
 

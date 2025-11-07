@@ -4,7 +4,7 @@
         <div class="header-title">
             <mat-icon class="title-icon">map</mat-icon>
             <div>
-                <h1>Thêm mới Area</h1>
+                <h1>{{ pageTitle }}</h1>
                 <p class="subtitle">Area Management</p>
             </div>
         </div>
@@ -86,7 +86,7 @@
         <mat-card class="area-card">
             <div class="action-buttons">
                 <button mat-button [routerLink]="'/areas'">Cancel</button>
-                <button mat-flat-button color="primary" type="submit">Lưu</button>
+                <button mat-flat-button color="primary" type="submit">{{ submitLabel }}</button>
             </div>
         </mat-card>
     </form>

@@ -7,6 +7,7 @@ export interface TransferItemDetail {
   productCode: string;
   productName: string;
   quantity: number;
+  originalQuantity: number;
   unit: string;
   updatedBy: string;
   updatedDate: string;
@@ -33,6 +34,7 @@ export class ChuyenKhoDetailComponent implements OnInit {
   pageSizeOptions = [5, 10, 20];
   pageSize = 10;
   currentPage = 1;
+  globalQuantity: number | null = null;
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -50,6 +52,7 @@ export class ChuyenKhoDetailComponent implements OnInit {
           productCode: item.product_code,
           productName: item.product_name,
           quantity: item.total_quantity,
+          originalQuantity: item.total_quantity,
           unit: item.DVT,
           updatedBy: item.updated_by,
           updatedDate: item.updated_date,
@@ -82,6 +85,14 @@ export class ChuyenKhoDetailComponent implements OnInit {
       this.currentPage++;
       this.onPageChange(this.currentPage);
     }
+  }
+
+  applyGlobalQuantity(): void {
+    if (this.globalQuantity == null || this.globalQuantity < 0) return;
+
+    this.detailList.forEach((item) => {
+      item.quantity = this.globalQuantity!;
+    });
   }
   onScan(item: TransferItemDetail): void {
     const requestId = this.route.snapshot.paramMap.get('id');

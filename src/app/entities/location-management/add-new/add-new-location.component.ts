@@ -338,6 +338,7 @@ export class AddNewLocationComponentComponent implements OnInit {
       barcode: this.location.barcode,
       humidity: +(this.location?.humidity ?? 0),
       temperature: +(this.location?.temperature ?? 0),
+      updated_by: 'admin',
     };
 
     if (isMulti) {
@@ -362,7 +363,7 @@ export class AddNewLocationComponentComponent implements OnInit {
       next: (res) => {
         const parentId = res.id || this.location.id;
         this.snackBar.open(
-          `${this.isEditMode ? 'Cập nhật' : 'Tạo'} location thành công!`,
+          `${this.isEditMode ? 'Cập nhật' : 'Tạo'} vị trí thành công!`,
           'Đóng',
           {
             duration: 3000,
@@ -419,9 +420,9 @@ export class AddNewLocationComponentComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Lỗi khi lưu location:', err);
+        console.error('Lỗi khi lưu vị trí:', err);
         this.snackBar.open(
-          `${this.isEditMode ? 'Cập nhật' : 'Tạo'} location thất bại!`,
+          `${this.isEditMode ? 'Cập nhật' : 'Tạo'} vị trí thất bại!`,
           'Đóng',
           {
             duration: 3000,

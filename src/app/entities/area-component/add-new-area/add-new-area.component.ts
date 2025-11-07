@@ -14,16 +14,14 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AreaService } from '../service/area-service.component';
 
-export interface Location {
+export interface Area {
   id: number;
   code: string;
   name: string;
-  type: string;
-  area: string;
-  racks: number;
-  multi: boolean;
-  emptyRacks: number;
-  restrictMulti: false;
+  thu_kho: string;
+  description: string;
+  address: string;
+  is_active: boolean;
 }
 @Component({
   selector: 'app-location-component',
@@ -48,13 +46,16 @@ export interface Location {
 export class AddNewAreaComponentComponent implements OnInit {
   isSaveArea = false;
   isEditMode = false;
+  pageTitle = 'Thêm mới Area';
+  submitLabel = 'Lưu';
   area = {
+    id: 0,
     code: '',
     name: '',
     description: '',
     address: '',
     thu_kho: '',
-    updated_by: 'test',
+    is_active: false,
   };
 
   constructor(
@@ -67,11 +68,31 @@ export class AddNewAreaComponentComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEditMode = true;
+      this.pageTitle = 'Chỉnh sửa Area';
+      this.submitLabel = 'Cập nhật';
       this.loadAreaById(+id);
     }
   }
   loadAreaById(id: number): void {
-    console.log('Loading area with ID:', id);
+    this.areaService.getAreas().subscribe({
+      next: (res) => {
+        const found = res.data.find((item) => item.id === +id);
+        if (found) {
+          this.area = {
+            id: found.id,
+            code: found.code,
+            name: found.name,
+            thu_kho: found.storekeeper,
+            description: found.description,
+            address: found.address,
+            is_active: !!found.is_active,
+          };
+        }
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy danh sách Area:', err);
+      },
+    });
   }
   onSearch(): void {
     console.log('Searching for:');
@@ -117,26 +138,69 @@ export class AddNewAreaComponentComponent implements OnInit {
       return;
     }
 
-    this.areaService.createArea(this.area).subscribe({
-      next: () => {
-        this.isSaveArea = true;
-        this.snackBar.open('Lưu thành công!', 'Đóng', {
-          duration: 3000,
-          horizontalPosition: 'right',
-          verticalPosition: 'bottom',
-          panelClass: ['snackbar-success', 'snackbar-position'],
-        });
-        // this.router.navigate(['/areas']);
-      },
-      error: (err) => {
-        console.error('Lỗi khi lưu area:', err);
-        this.snackBar.open('Lưu thất bại!', 'Đóng', {
-          duration: 3000,
-          horizontalPosition: 'right',
-          verticalPosition: 'bottom',
-          panelClass: ['snackbar-error', 'snackbar-position'],
-        });
-      },
-    });
+    if (this.isEditMode) {
+      // Trường hợp cập nhật
+      const payload = {
+        code: this.area.code,
+        name: this.area.name,
+        thu_kho: this.area.thu_kho,
+        description: this.area.description,
+        address: this.area.address,
+        is_active: this.area.is_active ? 1 : 0,
+      };
+
+      this.areaService.updateArea(this.area.id, payload).subscribe({
+        next: () => {
+          this.snackBar.open('Cập nhật thành công!', 'Đóng', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'bottom',
+            panelClass: ['snackbar-success', 'snackbar-position'],
+          });
+          this.router.navigate(['/areas']);
+        },
+        error: (err) => {
+          console.error('Lỗi khi cập nhật kho:', err);
+          this.snackBar.open('Cập nhật thất bại!', 'Đóng', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'bottom',
+            panelClass: ['snackbar-error', 'snackbar-position'],
+          });
+        },
+      });
+    } else {
+      // Trường hợp thêm mới
+      const payload = {
+        code: this.area.code,
+        name: this.area.name,
+        thu_kho: this.area.thu_kho,
+        description: this.area.description,
+        address: this.area.address,
+        is_active: this.area.is_active ? 1 : 0,
+      };
+
+      this.areaService.createArea(payload).subscribe({
+        next: () => {
+          this.isSaveArea = true;
+          this.snackBar.open('Lưu thành công!', 'Đóng', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'bottom',
+            panelClass: ['snackbar-success', 'snackbar-position'],
+          });
+          // this.router.navigate(['/areas']);
+        },
+        error: (err) => {
+          console.error('Lỗi khi lưu kho:', err);
+          this.snackBar.open('Lưu thất bại!', 'Đóng', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'bottom',
+            panelClass: ['snackbar-error', 'snackbar-position'],
+          });
+        },
+      });
+    }
   }
 }

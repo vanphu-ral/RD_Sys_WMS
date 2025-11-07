@@ -37,6 +37,10 @@ import { Location } from './models/location.model';
 })
 export class LocationManagementComponent implements OnInit {
   showMobileFilters: boolean = false;
+  //filter type
+  selectedTypeFilter: string = '';
+  originalData: any[] = [];
+  filteredData: any[] = [];
   displayedColumns: string[] = [
     'id',
     'code',
@@ -83,6 +87,7 @@ export class LocationManagementComponent implements OnInit {
           this.locations = res.data;
           this.originalLocations = [...res.data];
           this.locations = [...res.data];
+          this.filteredData = [...res.data];
           this.totalItems = res.meta.total_items;
           this.pageSize = res.meta.size;
           this.totalPages = Math.ceil(this.totalItems / this.pageSize);
@@ -141,6 +146,35 @@ export class LocationManagementComponent implements OnInit {
     this.pageSize = size;
     this.currentPage = 1;
     this.loadLocations();
+  }
+  //type
+  getLocationType(location: Location): 'Multi' | 'Single' | 'SubLocation' {
+    const isMulti = location.is_multi_location === true;
+    const hasParent = typeof location.parent_location_id === 'number';
+
+    let type: 'Multi' | 'Single' | 'SubLocation' = 'Single';
+
+    if (isMulti && !hasParent) type = 'Multi';
+    else if (!isMulti && hasParent) type = 'SubLocation';
+    else if (!isMulti && !hasParent) type = 'Single';
+
+    console.log(location.code, {
+      is_multi_location: location.is_multi_location,
+      parent_location_id: location.parent_location_id,
+      type: type,
+    });
+
+    return type;
+  }
+
+  applyTypeFilter(): void {
+    if (!this.selectedTypeFilter) {
+      this.filteredData = [...this.originalLocations];
+    } else {
+      this.filteredData = this.originalLocations.filter(
+        (loc) => this.getLocationType(loc) === this.selectedTypeFilter
+      );
+    }
   }
 
   //doi trang thai location

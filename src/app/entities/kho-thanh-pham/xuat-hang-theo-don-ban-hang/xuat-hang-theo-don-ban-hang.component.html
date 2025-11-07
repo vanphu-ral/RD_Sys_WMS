@@ -164,7 +164,7 @@
                 <ng-container matColumnDef="status">
                     <th mat-header-cell *matHeaderCellDef>
                         <div>Status</div>
-                        <mat-form-field class="search-field" appearance="outline">
+                        <mat-form-field class="search-field" appearance="outline" style="width: 5rem">
                             <mat-select [(ngModel)]="filterValues.status" (selectionChange)="applyFilter()"
                                 placeholder="Chọn loại">
                                 <mat-option value="">Tất cả</mat-option>
@@ -181,8 +181,8 @@
                 </ng-container>
                 <ng-container matColumnDef="scan_status">
                     <th mat-header-cell *matHeaderCellDef>
-                        <div>Status</div>
-                        <mat-form-field class="search-field" appearance="outline">
+                        <div>Scan status</div>
+                        <mat-form-field class="search-field" appearance="outline" style="width: 5rem">
                             <mat-select [(ngModel)]="filterValues.scan_status" (selectionChange)="applyFilter()"
                                 placeholder="Chọn loại">
                                 <mat-option value="">Tất cả</mat-option>

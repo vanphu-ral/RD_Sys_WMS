@@ -71,9 +71,84 @@ $transition-duration: 0.3s;
   .user {
     margin-left: auto;
     margin-right: 20px;
+    .user-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #f8fafc;
+      }
+
+      .username {
+        font-weight: 500;
+        color: #1e293b;
+        margin: 0 4px;
+      }
+
+      .dropdown-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    .login-button {
+      color: #667eea;
+      font-weight: 500;
+
+      mat-icon {
+        margin-right: 6px;
+      }
+    }
   }
 }
+::ng-deep .user-menu {
+  min-width: 250px;
+  margin-top: 8px;
 
+  .user-menu-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    gap: 12px;
+
+    mat-icon {
+      font-size: 40px;
+      width: 40px;
+      height: 40px;
+      color: #667eea;
+    }
+
+    .user-info {
+      .user-name {
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 4px 0;
+      }
+
+      .user-role {
+        font-size: 12px;
+        color: #64748b;
+        margin: 0;
+      }
+    }
+  }
+
+  .mat-mdc-menu-item {
+    mat-icon {
+      margin-right: 12px;
+      color: #64748b;
+    }
+
+    &:hover {
+      background-color: #f8fafc;
+    }
+  }
+}
 // Khi sidebar collapsed, topnav mở rộng
 .sidebar-container.collapsed ~ div .topnav {
   width: calc(100% - #{$sidebar-width-closed});

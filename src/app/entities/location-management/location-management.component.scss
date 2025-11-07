@@ -54,6 +54,38 @@
     }
 }
 
+.type-label {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 13px;
+    display: inline-block;
+}
+
+.type-label {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 13px;
+    display: inline-block;
+}
+
+.multi-type {
+    background-color: #e0f7fa;
+    color: #00796b;
+}
+
+.single-type {
+    background-color: #fce4ec;
+    color: #c2185b;
+}
+
+.sublocation-type {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+
+
 .status-active-label {
     background-color: #14AE5C;
     color: white;
@@ -120,6 +152,7 @@
     background-color: #dc2626 !important;
     color: white !important;
 }
+
 .mobile-location-list,
 .mobile-filter-toggle,
 .mobile-filters {

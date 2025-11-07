@@ -24,7 +24,8 @@
                                     <span class="sidebar-menu-title">{{menu.title}}</span>
                                 </a>
                             </div>
-                            <div [routerLink]="menu.link" style="display: flex; align-items: center;" *ngIf="menu.type !== 'home'" (click)="onMenuClick(menu)">
+                            <div [routerLink]="menu.link" style="display: flex; align-items: center;"
+                                *ngIf="menu.type !== 'home'" (click)="onMenuClick(menu)">
                                 <mat-icon class="sidebar-menu-icon">{{menu.icon}}</mat-icon>
                                 <a>
                                     <span class="sidebar-menu-title">{{menu.title}}</span>
@@ -34,12 +35,9 @@
                         </div>
                         <div *ngIf="menu.type === 'dropdown'" class="sidebar-submenu" [@slide]="getState(menu)">
                             <ul>
-                                <li class="sidebar-submenu-item" *ngFor="let submenu of menu.submenus"  [routerLink]="submenu.link" >
-                                    <div class="sidebar-submenu-link" (click)="onSubmenuClick()">
-                                        <a class="sidebar-submenu-title"
-                                            style="display: flex; align-items: center; height: 100%;"> {{submenu.title}}
-
-                                        </a>
+                                <li class="sidebar-submenu-item" *ngFor="let submenu of menu.submenus">
+                                    <div class="sidebar-submenu-link" (click)="onSubmenuClick(submenu)">
+                                        <a class="sidebar-submenu-title">{{ submenu.title }}</a>
                                     </div>
                                 </li>
                             </ul>

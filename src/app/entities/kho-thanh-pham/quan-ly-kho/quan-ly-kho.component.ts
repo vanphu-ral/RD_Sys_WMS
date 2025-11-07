@@ -3,7 +3,13 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ScanCheckDialogComponent } from './dialog/scan-check-dialog.component';
-import { trigger, state, style, transition, animate } from '@angular/animations';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  animate,
+} from '@angular/animations';
 
 interface WarehouseItem {
   maSanPham: string;
@@ -145,33 +151,167 @@ interface CustomerChild {
   standalone: false,
   animations: [
     trigger('detailExpand', [
-      state('collapsed', style({ height: '0px', minHeight: '0', overflow: 'hidden' })),
+      state(
+        'collapsed',
+        style({ height: '0px', minHeight: '0', overflow: 'hidden' })
+      ),
       state('expanded', style({ height: '*', overflow: 'hidden' })),
-      transition('expanded <=> collapsed', animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)'))
-    ])
-  ]
+      transition(
+        'expanded <=> collapsed',
+        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)')
+      ),
+    ]),
+  ],
 })
 export class QuanLyKhoComponent implements OnInit {
   pageSize = 10;
   currentPage = 1;
-
+  filterValues: { [key: string]: string } = {};
+  filterMode: string = 'constraint';
   displayedColumns: string[] = [];
   //view mode:
   selectedViewMode: 'area' | 'po' | 'customer' | 'product' | null = null;
-  currentViewMode: 'default' | 'po' | 'product' | 'area' | 'customer' = 'default';
+  currentViewMode: 'default' | 'po' | 'product' | 'area' | 'customer' =
+    'default';
 
   // Columns cho các ViewMode
-  poParentColumns: string[] = ['expand', 'po', 'soLuongSP', 'tongSLTon', 'tongSLGoc', 'soPallet', 'soThung', 'soKH', 'ngayNhapSomNhat', 'ngayCapNhat'];
-  poChildColumns: string[] = ['maSanPham', 'tenSP', 'maKH', 'tenKH', 'slTon', 'slGoc', 'soPallet', 'soThung', 'khuVuc', 'status'];
+  poParentColumns: string[] = [
+    'expand',
+    'po',
+    'soLuongSP',
+    'tongSLTon',
+    'tongSLGoc',
+    'soPallet',
+    'soThung',
+    'soKH',
+    'ngayNhapSomNhat',
+    'ngayCapNhat',
+  ];
+  poChildColumns: string[] = [
+    'maSanPham',
+    'tenSP',
+    'maKH',
+    'tenKH',
+    'slTon',
+    'slGoc',
+    'soPallet',
+    'soThung',
+    'khuVuc',
+    'status',
+  ];
 
-  productParentColumns: string[] = ['expand', 'maSanPham', 'tenSP', 'tongSLTon', 'tongSLGoc', 'soPO', 'soKH', 'soKhuVuc', 'soPallet', 'soThung', 'ngayNhapSomNhat'];
-  productChildColumns: string[] = ['po', 'maKH', 'tenKH', 'slTon', 'slGoc', 'khuVuc', 'location', 'maPallet', 'maThung', 'status', 'ngayNhap'];
+  productParentColumns: string[] = [
+    'expand',
+    'maSanPham',
+    'tenSP',
+    'tongSLTon',
+    'tongSLGoc',
+    'soPO',
+    'soKH',
+    'soKhuVuc',
+    'soPallet',
+    'soThung',
+    'ngayNhapSomNhat',
+  ];
+  productChildColumns: string[] = [
+    'po',
+    'maKH',
+    'tenKH',
+    'slTon',
+    'slGoc',
+    'khuVuc',
+    'location',
+    'maPallet',
+    'maThung',
+    'status',
+    'ngayNhap',
+  ];
 
-  areaParentColumns: string[] = ['expand', 'khuVuc', 'tongSLTon', 'tongSLGoc', 'soSP', 'soKH', 'soPO', 'soPallet', 'soThung', 'soLocation', 'ngayCapNhat'];
-  areaChildColumns: string[] = ['location', 'maSanPham', 'tenSP', 'maKH', 'tenKH', 'po', 'slTon', 'slGoc', 'maPallet', 'maThung', 'status', 'ngayNhap'];
+  areaParentColumns: string[] = [
+    'expand',
+    'khuVuc',
+    'tongSLTon',
+    'tongSLGoc',
+    'soSP',
+    'soKH',
+    'soPO',
+    'soPallet',
+    'soThung',
+    'soLocation',
+    'ngayCapNhat',
+  ];
+  areaChildColumns: string[] = [
+    'location',
+    'maSanPham',
+    'tenSP',
+    'maKH',
+    'tenKH',
+    'po',
+    'slTon',
+    'slGoc',
+    'maPallet',
+    'maThung',
+    'status',
+    'ngayNhap',
+  ];
 
-  customerParentColumns: string[] = ['expand', 'maKH', 'tenKH', 'tongSLTon', 'tongSLGoc', 'soSP', 'soPO', 'soKhuVuc', 'soPallet', 'soThung', 'ngayNhapSomNhat'];
-  customerChildColumns: string[] = ['maSanPham', 'tenSP', 'po', 'slTon', 'slGoc', 'khuVuc', 'location', 'maPallet', 'maThung', 'status', 'ngayNhap', 'ngayCapNhat'];
+  customerParentColumns: string[] = [
+    'expand',
+    'maKH',
+    'tenKH',
+    'tongSLTon',
+    'tongSLGoc',
+    'soSP',
+    'soPO',
+    'soKhuVuc',
+    'soPallet',
+    'soThung',
+    'ngayNhapSomNhat',
+  ];
+  customerChildColumns: string[] = [
+    'maSanPham',
+    'tenSP',
+    'po',
+    'slTon',
+    'slGoc',
+    'khuVuc',
+    'location',
+    'maPallet',
+    'maThung',
+    'status',
+    'ngayNhap',
+    'ngayCapNhat',
+  ];
+
+  //mobile
+  mobileDefaultFields = [
+    { key: 'tenSP', label: 'Tên SP' },
+    { key: 'tenKH', label: 'Khách hàng' },
+    { key: 'po', label: 'PO' },
+    { key: 'area', label: 'Kho', badge: true },
+    { key: 'maPallet', label: 'Mã pallet', badge: true },
+    { key: 'maThung', label: 'Mã thùng', badge: true },
+  ];
+
+  mobileQuantityFields = [
+    { key: 'soLuongTon', label: 'SL Tồn', class: 'stock' },
+    { key: 'soLuongGoc', label: 'SL Gốc' },
+  ];
+  mobilePOStats = [
+    { key: 'tongSLTon', label: 'SL Tồn' },
+    { key: 'soPallet', label: 'Pallet' },
+    { key: 'soThung', label: 'Thùng' },
+  ];
+
+  mobilePOChildFields = [
+    { key: 'maSanPham', label: 'Mã SP', bold: true },
+    { key: 'tenSP', label: 'Tên SP' },
+    { key: 'tenKH', label: 'Khách hàng' },
+    { key: 'slTon', label: 'SL Tồn' },
+    { key: 'khuVuc', label: 'Khu vực' },
+    { key: 'status', label: 'Status', badge: true },
+  ];
+
   allColumns = [
     { key: 'stt', label: 'STT', visible: true },
     { key: 'maSanPham', label: 'Mã sản phẩm', visible: true },
@@ -196,7 +336,8 @@ export class QuanLyKhoComponent implements OnInit {
   productDataSource: ProductParent[] = [];
   areaDataSource: AreaParent[] = [];
   customerDataSource: CustomerParent[] = [];
-  constructor(private dialog: MatDialog) { }
+  filteredList: WarehouseItem[] | undefined;
+  constructor(private dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.loadMockData();
@@ -216,7 +357,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongGoc: 10,
         khuVuc: 'RD-Warehouse',
         area: 'RD',
-        status: 'Available',
+        status: 'Có sẵn',
         updatedBy: 'Nguyen Van A',
         createdDate: '01/11/2025 08:30',
         updatedDate: '01/11/2025 09:00',
@@ -233,7 +374,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongGoc: 100,
         khuVuc: 'RD-Warehouse',
         area: 'RD',
-        status: 'Available',
+        status: 'Có sẵn',
         updatedBy: 'Nguyen Van B',
         createdDate: '01/11/2025 08:30',
         updatedDate: '01/11/2025 09:00',
@@ -250,7 +391,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongGoc: 128,
         khuVuc: 'RD-Warehouse',
         area: 'RD',
-        status: 'Available',
+        status: 'Có sẵn',
         updatedBy: 'Tran Thi C',
         createdDate: '01/11/2025 08:30',
         updatedDate: '01/11/2025 09:00',
@@ -267,7 +408,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongGoc: 32,
         khuVuc: 'RD-Warehouse',
         area: 'RD',
-        status: 'Available',
+        status: 'Có sẵn',
         updatedBy: 'Le Van D',
         createdDate: '01/11/2025 08:30',
         updatedDate: '01/11/2025 09:00',
@@ -284,7 +425,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongGoc: 30,
         khuVuc: 'RD-Warehouse',
         area: 'RD',
-        status: 'Available',
+        status: 'Có sẵn',
         updatedBy: 'Pham Thi E',
         createdDate: '01/11/2025 08:30',
         updatedDate: '01/11/2025 09:00',
@@ -301,7 +442,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongGoc: 0,
         khuVuc: 'RD-Warehouse',
         area: 'RD',
-        status: 'Unavailable',
+        status: 'Không có sẵn',
         updatedBy: 'Hoang Van F',
         createdDate: '01/11/2025 08:30',
         updatedDate: '01/11/2025 09:00',
@@ -318,7 +459,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongGoc: 100,
         khuVuc: 'RD-Warehouse',
         area: 'RD',
-        status: 'Available',
+        status: 'Có sẵn',
         updatedBy: 'Nguyen Thi G',
         createdDate: '01/11/2025 08:30',
         updatedDate: '01/11/2025 09:00',
@@ -335,7 +476,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongGoc: 200,
         khuVuc: 'RD-Warehouse',
         area: 'RD',
-        status: 'Available',
+        status: 'Có sẵn',
         updatedBy: 'Dang Van H',
         createdDate: '01/11/2025 08:30',
         updatedDate: '01/11/2025 09:00',
@@ -352,7 +493,7 @@ export class QuanLyKhoComponent implements OnInit {
         soLuongGoc: 25,
         khuVuc: 'RD-Warehouse',
         area: 'RD',
-        status: 'Available',
+        status: 'Có sẵn',
         updatedBy: 'Bui Thi I',
         createdDate: '01/11/2025 08:30',
         updatedDate: '01/11/2025 09:00',
@@ -383,11 +524,11 @@ export class QuanLyKhoComponent implements OnInit {
             location: '01-A01-01-001',
             maPallet: 'P001',
             maThung: 'B001',
-            status: 'Available',
-            ngayNhap: '01/10/2024'
-          }
-        ]
-      }
+            status: 'Có sẵn',
+            ngayNhap: '01/10/2024',
+          },
+        ],
+      },
     ];
     // Mock data cho Area View
     this.areaDataSource = [
@@ -415,11 +556,11 @@ export class QuanLyKhoComponent implements OnInit {
             slGoc: 500,
             maPallet: 'P001',
             maThung: 'B001',
-            status: 'Available',
-            ngayNhap: '01/10/2024'
-          }
-        ]
-      }
+            status: 'Có sẵn',
+            ngayNhap: '01/10/2024',
+          },
+        ],
+      },
     ];
     // Mock data cho Customer View
     this.customerDataSource = [
@@ -446,12 +587,12 @@ export class QuanLyKhoComponent implements OnInit {
             location: '01-A01-01-001',
             maPallet: 'P001',
             maThung: 'B001',
-            status: 'Available',
+            status: 'Có sẵn',
             ngayNhap: '01/10/2024',
-            ngayCapNhat: '02/11/2024'
-          }
-        ]
-      }
+            ngayCapNhat: '02/11/2024',
+          },
+        ],
+      },
     ];
   }
   //chon view mode
@@ -464,17 +605,35 @@ export class QuanLyKhoComponent implements OnInit {
   }
   isParentRow = (index: number, item: any) => {
     return true;
-  }
+  };
 
   isChildRow = (index: number, item: any) => {
     return true;
-  }
+  };
   updateDisplayedColumns(): void {
     this.displayedColumns = this.allColumns
       .filter((col) => col.visible)
       .map((col) => col.key);
   }
+  //chọn mode search
+  setFilterMode(mode: string): void {
+    this.filterMode = mode;
+    this.applyFilter();
+  }
+  applyFilter(): void {
+    const { maSanPham, filterMode } = this.filterValues;
 
+    this.filteredList = this.warehouseList.filter((item) => {
+      const match = item.maSanPham
+        .toLowerCase()
+        .includes(maSanPham.toLowerCase());
+      if (filterMode === 'constraint') {
+        return match; // lọc bình thường
+      } else {
+        return !match; // loại bỏ kết quả khớp
+      }
+    });
+  }
   //dialog
   openScanDialog(mode: 'check' | 'update' | 'transfer'): void {
     const dialogRef = this.dialog.open(ScanCheckDialogComponent, {
@@ -504,7 +663,6 @@ export class QuanLyKhoComponent implements OnInit {
     this.openScanDialog('transfer');
   }
 
-
   handleDialogResult(result: any): void {
     // TODO: Xử lý dữ liệu trả về từ dialog
     console.log('Mode:', result.mode);
@@ -517,7 +675,7 @@ export class QuanLyKhoComponent implements OnInit {
   }
 
   getStatusClass(status: string): string {
-    return status === 'Available' ? 'status-available' : 'status-unavailable';
+    return status === 'Có sẵn' ? 'status-available' : 'status-unavailable';
   }
 
   onPageChange(page: number): void {

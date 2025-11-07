@@ -9,9 +9,10 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
-import { RouterLinkWithHref } from '@angular/router';
+import { Router, RouterLinkWithHref } from '@angular/router';
 import { AreaService } from './service/area-service.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { UrlEncoderService } from '../encoded-redirect/services/url-encoder.service';
 export interface Area {
   id: number;
   code: string;
@@ -79,13 +80,15 @@ export class AreaManagementComponent {
   searchTerm: string = '';
 
   //phan trang
-  pageSize: number = 20;
+  pageSize: number = 10;
   currentPage: number = 1;
   totalPages: number = 1;
 
   constructor(
     private areaService: AreaService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private encoder: UrlEncoderService,
+    private router: Router
   ) {}
   ngOnInit(): void {
     this.loadData();
@@ -96,7 +99,9 @@ export class AreaManagementComponent {
         this.areas = res.data;
         this.originalAreas = [...res.data];
         this.totalItems = res.meta.total_items;
-        this.pageSize = res.meta.size;
+        this.pageSize = [10, 25, 50, 100].includes(res.meta.size)
+          ? res.meta.size
+          : 10;
         this.totalPages = Math.ceil(this.totalItems / this.pageSize);
       },
       error: (err) => {
@@ -175,7 +180,10 @@ export class AreaManagementComponent {
     this.currentPage = page;
     console.log('Page changed to:', page);
   }
-
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.totalPages = Math.ceil(this.areas.length / this.pageSize);
+  }
   applyFilter(): void {
     const { code, name, storekeeper, description, address, is_active } =
       this.filterValues;

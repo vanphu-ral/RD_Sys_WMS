@@ -20,19 +20,7 @@ export class LocationService {
     const url = `${this.apiUrl}?page=${page}&size=${size}`;
     return this.http.get<any>(url).pipe(
       map((res) => ({
-        data: res.data.map((item: any) => ({
-          id: item.id,
-          code: item.code,
-          name: item.name,
-          area_id: item.area_id,
-          address: item.address,
-          description: item.description,
-          is_multi_location: item.is_multi_location,
-          number_of_rack: item.number_of_rack,
-          number_of_rack_empty: item.number_of_rack_empty,
-          barcode: item.barcode,
-          is_active: item.is_active,
-        })),
+        data: res.data, 
         meta: res.meta,
       }))
     );

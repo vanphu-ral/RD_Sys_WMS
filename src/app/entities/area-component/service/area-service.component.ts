@@ -43,4 +43,21 @@ export class AreaService {
   createArea(area: any): Observable<any> {
     return this.http.post(this.apiUrl, [area]);
   }
+
+  //cap nhat area
+  //cap nhat area
+  updateArea(
+    id: number,
+    area: {
+      code: string;
+      name: string;
+      thu_kho: string;
+      description: string;
+      address: string;
+      is_active: number;
+    }
+  ): Observable<any> {
+    const url = `http://192.168.20.101:8050/api/areas/${id}`;
+    return this.http.patch(url, area);
+  }
 }

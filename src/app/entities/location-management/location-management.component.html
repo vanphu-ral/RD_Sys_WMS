@@ -4,13 +4,13 @@
         <div class="header-title">
             <mat-icon class="title-icon">location_on</mat-icon>
             <div>
-                <h1>Quản lý Khu vực</h1>
+                <h1>Quản Lý Vị Trí</h1>
                 <p class="subtitle">Locations Management</p>
             </div>
         </div>
         <button mat-raised-button color="primary" class="add-btn" [routerLink]="'/location/add-new'">
             <mat-icon>add_circle</mat-icon>
-            Thêm mới khu vực
+            Thêm mới vị trí
         </button>
     </div>
 
@@ -20,7 +20,7 @@
         <div class="table-header">
             <div class="table-title">
                 <mat-icon>list</mat-icon>
-                <span>Danh sách khu vực ({{totalItems}} )</span>
+                <span>Danh sách vị trí ({{totalItems}} )</span>
             </div>
             <div class="table-actions">
                 <button mat-raised-button (click)="onRefresh()" class="refresh-btn icon-only">
@@ -31,7 +31,7 @@
 
         <!-- Table -->
         <div class="table-container">
-            <table mat-table [dataSource]="locations" class="location-table">
+            <table mat-table [dataSource]="filteredData" class="location-table">
 
                 <!-- ID Column -->
                 <ng-container matColumnDef="id">
@@ -42,7 +42,7 @@
                 <!-- Code Column -->
                 <ng-container matColumnDef="code">
                     <th mat-header-cell *matHeaderCellDef>
-                        <div>Mã khu vực</div>
+                        <div>Mã vị trí</div>
                         <mat-form-field class="search-field" appearance="outline">
                             <input matInput [(ngModel)]="filterValues.code" (keyup.enter)="applyFilter()" />
                         </mat-form-field>
@@ -53,7 +53,7 @@
                 <!-- Name Column -->
                 <ng-container matColumnDef="name">
                     <th mat-header-cell *matHeaderCellDef>
-                        <div>Tên khu vực</div>
+                        <div>Tên vị trí</div>
                         <mat-form-field class="search-field" appearance="outline">
                             <input matInput [(ngModel)]="filterValues.name" (keyup.enter)="applyFilter()" />
                         </mat-form-field>
@@ -80,23 +80,36 @@
 
                 <!-- Racks Column -->
                 <ng-container matColumnDef="number_of_rack">
-                    <th mat-header-cell *matHeaderCellDef>Số lượng Rack</th>
+                    <th mat-header-cell *matHeaderCellDef>Số lượng slot</th>
                     <td mat-cell *matCellDef="let location">{{ location.number_of_rack }}</td>
                 </ng-container>
 
                 <!-- Empty Racks Column -->
                 <ng-container matColumnDef="number_of_rack_empty">
-                    <th mat-header-cell *matHeaderCellDef>Số Rack trống</th>
+                    <th mat-header-cell *matHeaderCellDef>Số slot trống</th>
                     <td mat-cell *matCellDef="let location">{{ location.number_of_rack_empty }}</td>
                 </ng-container>
 
                 <!-- Multi Location Column -->
                 <ng-container matColumnDef="is_multi_location">
-                    <th mat-header-cell *matHeaderCellDef class="text-center">Multi</th>
+                    <th mat-header-cell *matHeaderCellDef class="text-center">
+                        <div>Kiểu kho</div>
+                        <mat-form-field appearance="outline" style="width: 120px;" class="search-field">
+                            <mat-select [(value)]="selectedTypeFilter" (selectionChange)="applyTypeFilter()">
+                                <mat-option value="">Tất cả</mat-option>
+                                <mat-option value="Multi">Multi</mat-option>
+                                <mat-option value="Single">Single</mat-option>
+                                <mat-option value="SubLocation">SubLocation</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </th>
                     <td mat-cell *matCellDef="let location" class="text-center">
-                        <span class="multi-icon" [class.multi-true]="location.is_multi_location"
-                            [class.multi-false]="!location.is_multi_location">
-                            <mat-icon>{{ location.is_multi_location ? 'check' : 'close' }}</mat-icon>
+                        <span class="type-label" [ngClass]="{
+                                'multi-type': getLocationType(location) === 'Multi',
+                                'single-type': getLocationType(location) === 'Single',
+                                'sublocation-type': getLocationType(location) === 'SubLocation'
+                            }">
+                            {{ getLocationType(location) }}
                         </span>
                     </td>
                 </ng-container>
@@ -286,7 +299,7 @@
         <!-- Pagination -->
         <div class="pagination">
             <mat-form-field class="page-size-select" appearance="outline">
-               <mat-select [(ngModel)]="pageSize" (selectionChange)="onPageSizeChange($event.value)">
+                <mat-select [(ngModel)]="pageSize" (selectionChange)="onPageSizeChange($event.value)">
                     <mat-option [value]="10">10</mat-option>
                     <mat-option [value]="25">25</mat-option>
                     <mat-option [value]="50">50</mat-option>

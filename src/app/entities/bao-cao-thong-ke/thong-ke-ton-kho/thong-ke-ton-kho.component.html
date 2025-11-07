@@ -1,0 +1,295 @@
+<div class="inventory-stats-container">
+  <!-- Header -->
+  <div class="stats-header">
+    <div class="header-title">
+      <mat-icon class="title-icon">inventory</mat-icon>
+      <div>
+        <h1>Thống kê tồn kho</h1>
+        <p class="subtitle">Inventory Statistics & Analysis</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Kho</mat-label>
+        <mat-select [(ngModel)]="selectedWarehouse" (selectionChange)="onFilterChange()">
+          <mat-option *ngFor="let wh of warehouses" [value]="wh.value">
+            {{wh.label}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Danh mục</mat-label>
+        <mat-select [(ngModel)]="selectedCategory" (selectionChange)="onFilterChange()">
+          <mat-option *ngFor="let cat of categories" [value]="cat.value">
+            {{cat.label}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Thời gian</mat-label>
+        <mat-select [(ngModel)]="selectedTimeRange" (selectionChange)="onFilterChange()">
+          <mat-option *ngFor="let range of timeRanges" [value]="range.value">
+            {{range.label}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" class="export-btn" (click)="onExportReport()">
+        <mat-icon>file_download</mat-icon>
+        Xuất báo cáo
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+    <mat-card class="summary-card card-primary">
+      <div class="card-icon">
+        <mat-icon>inventory_2</mat-icon>
+      </div>
+      <div class="card-content">
+        <h3>Tổng tồn kho</h3>
+        <p class="card-value">{{totalStock | number}}</p>
+        <span class="card-label">sản phẩm</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="summary-card card-success">
+      <div class="card-icon">
+        <mat-icon>payments</mat-icon>
+      </div>
+      <div class="card-content">
+        <h3>Giá trị tồn kho</h3>
+        <p class="card-value">{{totalValue | number}}</p>
+        <span class="card-label">VNĐ</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="summary-card card-warning">
+      <div class="card-icon">
+        <mat-icon>warning</mat-icon>
+      </div>
+      <div class="card-content">
+        <h3>Hàng sắp hết</h3>
+        <p class="card-value">{{lowStockItems}}</p>
+        <span class="card-label">sản phẩm</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="summary-card card-danger">
+      <div class="card-icon">
+        <mat-icon>trending_up</mat-icon>
+      </div>
+      <div class="card-content">
+        <h3>Hàng tồn quá mức</h3>
+        <p class="card-value">{{overStockItems}}</p>
+        <span class="card-label">sản phẩm</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="summary-card card-info">
+      <div class="card-icon">
+        <mat-icon>sync_alt</mat-icon>
+      </div>
+      <div class="card-content">
+        <h3>Tỷ lệ luân chuyển TB</h3>
+        <p class="card-value">{{avgTurnoverRate}}</p>
+        <span class="card-label">lần/tháng</span>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <div class="charts-row">
+    <mat-card class="chart-card">
+      <div class="card-header">
+        <div class="card-title">
+          <mat-icon>location_on</mat-icon>
+          <span>Tồn kho theo khu vực</span>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas #inventoryByAreaChart></canvas>
+      </div>
+    </mat-card>
+
+    <mat-card class="chart-card">
+      <div class="card-header">
+        <div class="card-title">
+          <mat-icon>show_chart</mat-icon>
+          <span>Xu hướng tồn kho</span>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas #inventoryTrendChart></canvas>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="charts-row">
+    <mat-card class="chart-card">
+      <div class="card-header">
+        <div class="card-title">
+          <mat-icon>schedule</mat-icon>
+          <span>Tuổi tồn kho</span>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas #stockAgeChart></canvas>
+      </div>
+    </mat-card>
+
+    <mat-card class="chart-card">
+      <div class="card-header">
+        <div class="card-title">
+          <mat-icon>sync</mat-icon>
+          <span>Tỷ lệ luân chuyển</span>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas #turnoverRateChart></canvas>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Inventory by Location Table -->
+  <mat-card class="data-card">
+    <div class="card-header">
+      <div class="card-title">
+        <mat-icon>warehouse</mat-icon>
+        <span>Tồn kho theo địa điểm</span>
+      </div>
+    </div>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Địa điểm</th>
+            <th>Số lượng</th>
+            <th>Giá trị (VNĐ)</th>
+            <th>Tỷ lệ sử dụng</th>
+            <th>Số mặt hàng</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of inventoryByLocation">
+            <td><strong>{{item.location}}</strong></td>
+            <td>{{item.quantity | number}}</td>
+            <td>{{item.value | number}}</td>
+            <td>
+              <div class="usage-indicator">
+                <div class="usage-bar">
+                  <div class="usage-fill" [style.width.%]="item.usage" 
+                       [ngClass]="getStockStatusClass(item.usage)"></div>
+                </div>
+                <span class="usage-text">{{item.usage}}%</span>
+              </div>
+            </td>
+            <td>{{item.items}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+
+  <!-- Alerts and Top Products -->
+  <div class="info-row">
+    <!-- Stock Alerts -->
+    <mat-card class="info-card">
+      <div class="card-header">
+        <div class="card-title">
+          <mat-icon>notifications</mat-icon>
+          <span>Cảnh báo tồn kho</span>
+        </div>
+      </div>
+      <div class="alerts-list">
+        <div class="alert-item" *ngFor="let alert of stockAlerts" [ngClass]="getAlertClass(alert.type)">
+          <mat-icon class="alert-icon">
+            {{alert.type === 'low' ? 'arrow_downward' : 'arrow_upward'}}
+          </mat-icon>
+          <div class="alert-content">
+            <p class="alert-title">{{alert.product}}</p>
+            <p class="alert-detail">
+              <span class="code">{{alert.code}}</span>
+              <span *ngIf="alert.type === 'low'">
+                Tồn: {{alert.currentStock}} / Min: {{alert.minStock}}
+              </span>
+              <span *ngIf="alert.type === 'overstock'">
+                Tồn: {{alert.currentStock}} / Max: {{alert.maxStock}}
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Top Turnover Products -->
+    <mat-card class="info-card">
+      <div class="card-header">
+        <div class="card-title">
+          <mat-icon>star</mat-icon>
+          <span>Top sản phẩm luân chuyển nhanh</span>
+        </div>
+      </div>
+      <div class="top-products-list">
+        <div class="product-item" *ngFor="let product of topTurnoverProducts; let i = index">
+          <div class="product-rank">{{i + 1}}</div>
+          <div class="product-info">
+            <p class="product-name">{{product.name}}</p>
+            <p class="product-detail">
+              <span class="code">{{product.code}}</span>
+              <span class="turnover">{{product.turnover}} lần/tháng</span>
+            </p>
+          </div>
+          <div class="product-value">{{product.value | number}}</div>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Slow Moving Items -->
+  <mat-card class="data-card">
+    <div class="card-header">
+      <div class="card-title">
+        <mat-icon>schedule</mat-icon>
+        <span>Hàng tồn kho lâu</span>
+      </div>
+    </div>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Tên sản phẩm</th>
+            <th>Mã SP</th>
+            <th>Số ngày tồn</th>
+            <th>Số lượng</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of slowMovingItems">
+            <td>{{item.name}}</td>
+            <td><span class="code-badge">{{item.code}}</span></td>
+            <td>
+              <mat-chip class="days-chip danger">
+                {{item.daysInStock}} ngày
+              </mat-chip>
+            </td>
+            <td>{{item.quantity | number}}</td>
+            <td>
+              <button mat-icon-button color="primary">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button color="warn">
+                <mat-icon>local_offer</mat-icon>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+</div>

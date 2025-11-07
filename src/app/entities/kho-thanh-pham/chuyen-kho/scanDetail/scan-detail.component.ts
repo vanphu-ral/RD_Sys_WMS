@@ -169,7 +169,7 @@ export class ScanDetailComponent implements OnInit {
           duration: 3000,
           panelClass: ['snackbar-success'],
         });
-        this.router.navigate(['/kho-thanh-pham/chuyen-kho-noi-bo']);
+        // this.router.navigate(['/kho-thanh-pham/chuyen-kho-noi-bo']);
       },
       error: (err) => {
         console.error('Lỗi khi gửi scan:', err);

@@ -8,19 +8,19 @@ toggled = false;
   
   menus = [
       {
-      title: 'Quản lý Area',
+      title: 'Quản Lý Kho',
       type: 'home',
       link: '/areas',
     },
     {
-      title: 'Quản lý Locations',
+      title: 'Quản Lý Vị Trí',
       active: false,
       icon: 'location_on',
       type: 'location',
       link: '/location',
     },
     {
-      title: 'Quản lý kho thành phẩm',
+      title: 'Quản Lý Kho Thành Phẩm',
       icon: 'home_work',
       active: false,
       type: 'dropdown',
@@ -51,10 +51,11 @@ toggled = false;
       submenus: [
         {
           title: 'Tổng hợp xuất/nhập tồn',
-          link: '/bao-cao-thong-ke'
+          link: '/bao-cao-thong-ke/tong-hop-xuat-nhap-ton'
         },
         {
-          title: 'Thống kê tồn kho'
+          title: 'Thống kê tồn kho',
+          link: '/bao-cao-thong-ke/thong-ke-ton-kho'
         }
       ]
     },
