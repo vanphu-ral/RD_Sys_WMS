@@ -42,7 +42,11 @@
         }
     }
 }
-
+.header-quantity-input {
+    width: 100px;
+    margin: 0;
+    @include mat.form-field-density(-5);
+}
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-success .mdc-snackbar__surface {
     background-color: #14AE5C !important;
     color: white !important;

@@ -14,9 +14,9 @@ export interface SalesExportRequest {
   so_phieu_xuat: string;
   so_chung_tu: string;
   series_PGH: string;
-  status: string;
+  status: boolean;
   note: string;
-  scan_status: string;
+  scan_status: boolean;
   updated_by: string;
   updated_date: string;
 }
@@ -83,6 +83,7 @@ export class XuatHangTheoDonBanHangComponent {
   currentPage: number = 1;
   totalItems: number = 0;
   areas: any[] = [];
+  filteredData: SalesExportRequest[] = [];
   constructor(
     private router: Router,
     private xuatDonBanService: XuatHangTheoDonBanService
@@ -101,13 +102,17 @@ export class XuatHangTheoDonBanHangComponent {
   loadSalesRequests(): void {
     this.xuatDonBanService.getSalesExportRequests().subscribe({
       next: (res) => {
-        this.salesRequests = res.map((item) => ({
+        const mapped = res.map((item) => ({
           ...item,
           ten_kho_xuat: this.getAreaName(item.kho_xuat),
           ten_kho_nhan: this.getAreaName(item.xuat_toi),
         }));
+
+        // Sắp xếp theo id giảm dần
+        this.salesRequests = mapped.sort((a, b) => b.id - a.id);
+        this.filteredData = [...this.salesRequests];
         this.totalItems = this.salesRequests.length;
-        this.applyPagination();
+        this.updatePagedSalesRequests();
       },
       error: (err) => console.error('Lỗi khi lấy đơn xuất:', err),
     });
@@ -154,12 +159,25 @@ export class XuatHangTheoDonBanHangComponent {
     };
     return typeClasses[type] || '';
   }
-  getStatusClass(status: string): string {
-    const statusClasses: { [key: string]: string } = {
-      'Đã scan': 'status-active-scan',
-      'Đã duyệt': 'status-active-approve',
-    };
-    return statusClasses[status] || '';
+  convertLabelToBoolean(label: string): boolean | null {
+    switch (label) {
+      case 'Đã duyệt':
+      case 'Đã scan':
+        return true;
+      case 'Chưa duyệt':
+      case 'Chưa scan':
+        return false;
+      default:
+        return null;
+    }
+  }
+
+  getStatusClass(value: boolean): string {
+    return value ? 'approved' : 'pending';
+  }
+
+  getScanClass(value: boolean): string {
+    return value ? 'scanned' : 'not-scanned';
   }
 
   getTypeLabel(status: number): string {
@@ -187,8 +205,54 @@ export class XuatHangTheoDonBanHangComponent {
   onDelete(location: Location): void {
     console.log('Delete location:', location);
   }
-  
-  applyFilter() {
-    //code
+
+  applyFilter(): void {
+    // Chuyển đổi label sang boolean cho status và scan_status
+    const statusFilter: boolean | null = this.convertLabelToBoolean(
+      this.filterValues.status
+    );
+    const scanFilter: boolean | null = this.convertLabelToBoolean(
+      this.filterValues.scan_status
+    );
+
+    // Lọc dữ liệu gốc theo tất cả điều kiện
+    this.filteredData = this.salesRequests.filter((item) => {
+      // Lọc các trường text (ngoại trừ status và scan_status)
+      const matchTextFields = this.filterColumns
+        .filter((key) => key !== 'status' && key !== 'scan_status')
+        .every((key) => {
+          const filterValue = this.filterValues[
+            key as keyof typeof this.filterValues
+          ]
+            ?.toString()
+            .toLowerCase()
+            .trim();
+
+          const itemValue = item[key as keyof SalesExportRequest]
+            ?.toString()
+            .toLowerCase()
+            .trim();
+
+          return !filterValue || itemValue.includes(filterValue);
+        });
+
+      // Lọc theo status và scan_status
+      const matchStatus = statusFilter === null || item.status === statusFilter;
+      const matchScan = scanFilter === null || item.scan_status === scanFilter;
+
+      return matchTextFields && matchStatus && matchScan;
+    });
+
+    // Cập nhật dữ liệu hiển thị theo trang
+    this.updatePagedSalesRequests();
+  }
+
+  updatePagedSalesRequests(): void {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.pagedSalesRequests = (this.filteredData || []).slice(
+      startIndex,
+      endIndex
+    );
   }
 }

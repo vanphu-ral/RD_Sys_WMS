@@ -32,6 +32,10 @@ export class XuatHangTheoDonBanService {
       )
     );
   }
+  //lay thong tin detail
+  getSalesItemsById(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/osr/requests/${id}/items`);
+  }
 
   //them moi don xuat kho
   saveSalesExportRequest(

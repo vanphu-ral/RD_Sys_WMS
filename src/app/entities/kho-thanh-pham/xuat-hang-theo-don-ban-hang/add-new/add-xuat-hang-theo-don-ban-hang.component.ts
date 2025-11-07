@@ -260,8 +260,8 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
       ngay_chung_tu:
         this.mainInfo.ngayGiaoHang || new Date().toISOString().slice(0, 10),
       note: this.mainInfo.ghiChu || '',
-      series_PGH: 's',
-      status: 'Mới tạo',
+      series_pgh: 's',
+      status: "false",
       updated_by: 'admin',
     };
 
@@ -269,7 +269,7 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
       next: (res) => {
         if (res.success && res.osr_id) {
           const itemsPayload = this.detailList.map((item) => ({
-            DVT: item.donViTinh,
+            dvt: item.donViTinh,
             product_code: item.maHangHoa,
             product_name: item.tenHangHoa,
             total_quantity: item.soLuong,

@@ -150,7 +150,7 @@ export class LocationManagementComponent implements OnInit {
   //type
   getLocationType(location: Location): 'Multi' | 'Single' | 'SubLocation' {
     const isMulti = location.is_multi_location === true;
-    const hasParent = typeof location.parent_location_id === 'number';
+    const hasParent = location.parent_location_id != null;
 
     let type: 'Multi' | 'Single' | 'SubLocation' = 'Single';
 
@@ -158,16 +158,19 @@ export class LocationManagementComponent implements OnInit {
     else if (!isMulti && hasParent) type = 'SubLocation';
     else if (!isMulti && !hasParent) type = 'Single';
 
-    console.log(location.code, {
-      is_multi_location: location.is_multi_location,
-      parent_location_id: location.parent_location_id,
-      type: type,
-    });
+    // console.log('🧭', location.code, {
+    //   is_multi_location: location.is_multi_location,
+    //   parent_location_id: location.parent_location_id,
+    //   isMulti,
+    //   hasParent,
+    //   resultType: type,
+    // });
 
     return type;
   }
 
   applyTypeFilter(): void {
+    // console.log('🔍 selectedTypeFilter:', this.selectedTypeFilter);
     if (!this.selectedTypeFilter) {
       this.filteredData = [...this.originalLocations];
     } else {
@@ -175,6 +178,7 @@ export class LocationManagementComponent implements OnInit {
         (loc) => this.getLocationType(loc) === this.selectedTypeFilter
       );
     }
+    this.filteredData = [...this.filteredData];
   }
 
   //doi trang thai location

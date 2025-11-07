@@ -26,7 +26,7 @@ export class ChuyenKhoDetailComponent implements OnInit {
     'productName',
     'quantity',
     'unit',
-    'updated_by',
+    'updatedBy',
     'updatedDate',
   ];
   totalPages = 0;
@@ -53,7 +53,7 @@ export class ChuyenKhoDetailComponent implements OnInit {
           productName: item.product_name,
           quantity: item.total_quantity,
           originalQuantity: item.total_quantity,
-          unit: item.DVT,
+          unit: item.dvt,
           updatedBy: item.updated_by,
           updatedDate: item.updated_date,
         }));

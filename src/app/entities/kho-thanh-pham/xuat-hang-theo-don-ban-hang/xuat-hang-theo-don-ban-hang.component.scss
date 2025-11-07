@@ -54,6 +54,33 @@
     }
 }
 
+.status-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 13px;
+    display: inline-block;
+}
+
+.approved {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.pending {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+
+.scanned {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.not-scanned {
+    background-color: #fbe9e7;
+    color: #d84315;
+}
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-success .mdc-snackbar__surface {
     background-color: #14AE5C !important;

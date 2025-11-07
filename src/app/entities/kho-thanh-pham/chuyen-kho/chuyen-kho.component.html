@@ -164,10 +164,11 @@
                     </th>
                     <td mat-cell *matCellDef="let chuyenkho">
                         <span class="status-badge" [ngClass]="getStatusClass(chuyenkho.status)">
-                            {{chuyenkho.status}}
+                            {{ chuyenkho.status ? 'Đã duyệt' : 'Chưa duyệt' }}
                         </span>
                     </td>
                 </ng-container>
+
                 <ng-container matColumnDef="scan_status">
                     <th mat-header-cell *matHeaderCellDef>
                         <div>Scan Status</div>
@@ -181,11 +182,12 @@
                         </mat-form-field>
                     </th>
                     <td mat-cell *matCellDef="let chuyenkho">
-                        <span class="status-badge" [ngClass]="getStatusClass(chuyenkho.scan_status)">
-                            {{chuyenkho.scan_status}}
+                        <span class="status-badge" [ngClass]="getScanClass(chuyenkho.scan_status)">
+                            {{ chuyenkho.scan_status ? 'Đã scan' : 'Chưa scan' }}
                         </span>
                     </td>
                 </ng-container>
+
 
                 <!-- Actions Column -->
                 <ng-container matColumnDef="actions">

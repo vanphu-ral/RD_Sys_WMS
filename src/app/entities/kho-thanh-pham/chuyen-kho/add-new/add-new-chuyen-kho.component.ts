@@ -245,7 +245,7 @@ export class AddYeuCauChuyenKhoComponent implements OnInit {
         const requestId = res.id;
 
         const itemsPayload = this.detailList.map((item) => ({
-          DVT: item.donViTinh,
+          dvt: item.donViTinh,
           product_code: item.maHangHoa,
           product_name: item.tenHangHoa,
           total_quantity: item.soLuongSP,

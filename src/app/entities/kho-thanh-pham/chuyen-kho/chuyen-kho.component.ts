@@ -13,9 +13,9 @@ export interface InternalTransferRequest {
   so_phieu_xuat: string;
   so_chung_tu: string;
   series_PGH: string;
-  status: string;
+  status: boolean;
   note: string;
-  scan_status: string;
+  scan_status: boolean;
   updated_by: string;
   updated_date: string;
 }
@@ -79,6 +79,8 @@ export class ChuyenKhoComponent {
   totalItems: number = 0;
   pageSize: number = 10;
   currentPage: number = 1;
+  filteredData: any;
+  originalData: any;
   constructor(
     private router: Router,
     private chuyenKhoService: ChuyenKhoService
@@ -103,9 +105,12 @@ export class ChuyenKhoComponent {
   loadDataChuyenKho(): void {
     this.chuyenKhoService.getInternalTransfers().subscribe({
       next: (res) => {
-        this.internalTransfers = res;
-        this.totalItems = res.length;
-        this.applyPagination(); // cập nhật trang hiện tại
+        const sorted = [...res].sort((a, b) => b.id - a.id);
+
+        this.internalTransfers = sorted;
+        this.filteredData = [...sorted];
+        this.totalItems = sorted.length;
+        this.updatePagedTransfers();
       },
       error: (err) => {
         console.error('Lỗi khi lấy danh sách chuyển kho:', err);
@@ -156,12 +161,25 @@ export class ChuyenKhoComponent {
     };
     return typeClasses[type] || '';
   }
-  getStatusClass(status: string): string {
-    const statusClasses: { [key: string]: string } = {
-      'Đã scan': 'status-active-scan',
-      'Đã duyệt': 'status-active-approve',
-    };
-    return statusClasses[status] || '';
+  convertLabelToBoolean(label: string): boolean | null {
+    switch (label) {
+      case 'Đã duyệt':
+      case 'Đã scan':
+        return true;
+      case 'Chưa duyệt':
+      case 'Chưa scan':
+        return false;
+      default:
+        return null;
+    }
+  }
+
+  getStatusClass(value: boolean): string {
+    return value ? 'approved' : 'pending';
+  }
+
+  getScanClass(value: boolean): string {
+    return value ? 'scanned' : 'not-scanned';
   }
 
   getTypeLabel(status: number): string {
@@ -190,7 +208,50 @@ export class ChuyenKhoComponent {
     console.log('Delete location:', location);
   }
 
-  applyFilter() {
-    //code
+  applyFilter(): void {
+    // Chuyển đổi label sang boolean cho status và scan_status
+    const statusFilter: boolean | null = this.convertLabelToBoolean(
+      this.filterValues.status
+    );
+    const scanFilter: boolean | null = this.convertLabelToBoolean(
+      this.filterValues.scan_status
+    );
+
+    // Lọc dữ liệu gốc theo tất cả điều kiện
+    this.filteredData = this.internalTransfers.filter((item) => {
+      // Lọc các trường text (ngoại trừ status và scan_status)
+      const matchTextFields = this.filterColumns
+        .filter((key) => key !== 'status' && key !== 'scan_status')
+        .every((key) => {
+          const filterValue = this.filterValues[
+            key as keyof typeof this.filterValues
+          ]
+            ?.toString()
+            .toLowerCase()
+            .trim();
+
+          const itemValue = item[key as keyof InternalTransferRequest]
+            ?.toString()
+            .toLowerCase()
+            .trim();
+
+          return !filterValue || itemValue.includes(filterValue);
+        });
+
+      // Lọc theo status và scan_status
+      const matchStatus = statusFilter === null || item.status === statusFilter;
+      const matchScan = scanFilter === null || item.scan_status === scanFilter;
+
+      return matchTextFields && matchStatus && matchScan;
+    });
+
+    // Cập nhật dữ liệu hiển thị theo trang
+    this.updatePagedTransfers();
+  }
+
+  updatePagedTransfers(): void {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.pagedTransfers = this.filteredData.slice(startIndex, endIndex);
   }
 }

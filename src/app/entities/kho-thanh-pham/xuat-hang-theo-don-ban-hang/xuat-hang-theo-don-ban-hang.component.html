@@ -164,36 +164,37 @@
                 <ng-container matColumnDef="status">
                     <th mat-header-cell *matHeaderCellDef>
                         <div>Status</div>
-                        <mat-form-field class="search-field" appearance="outline" style="width: 5rem">
+                        <mat-form-field class="search-field" appearance="outline">
                             <mat-select [(ngModel)]="filterValues.status" (selectionChange)="applyFilter()"
                                 placeholder="Chọn loại">
                                 <mat-option value="">Tất cả</mat-option>
                                 <mat-option value="Đã duyệt">Đã duyệt</mat-option>
-                                <mat-option value="Đang xử lý">Đang xử lý</mat-option>
+                                <mat-option value="Chưa duyệt">Chưa duyệt</mat-option>
                             </mat-select>
                         </mat-form-field>
                     </th>
                     <td mat-cell *matCellDef="let chuyenkho">
                         <span class="status-badge" [ngClass]="getStatusClass(chuyenkho.status)">
-                            {{chuyenkho.status}}
+                            {{ chuyenkho.status ? 'Đã duyệt' : 'Chưa duyệt' }}
                         </span>
                     </td>
                 </ng-container>
+
                 <ng-container matColumnDef="scan_status">
                     <th mat-header-cell *matHeaderCellDef>
-                        <div>Scan status</div>
-                        <mat-form-field class="search-field" appearance="outline" style="width: 5rem">
+                        <div>Scan Status</div>
+                        <mat-form-field class="search-field" appearance="outline">
                             <mat-select [(ngModel)]="filterValues.scan_status" (selectionChange)="applyFilter()"
                                 placeholder="Chọn loại">
                                 <mat-option value="">Tất cả</mat-option>
                                 <mat-option value="Đã scan">Đã scan</mat-option>
-                                <mat-option value="Đang xử lý">Đang xử lý</mat-option>
+                                <mat-option value="Chưa scan">Chưa scan</mat-option>
                             </mat-select>
                         </mat-form-field>
                     </th>
                     <td mat-cell *matCellDef="let chuyenkho">
-                        <span class="status-badge" [ngClass]="getStatusClass(chuyenkho.scan_status)">
-                            {{chuyenkho.scan_status}}
+                        <span class="status-badge" [ngClass]="getScanClass(chuyenkho.scan_status)">
+                            {{ chuyenkho.scan_status ? 'Đã scan' : 'Chưa scan' }}
                         </span>
                     </td>
                 </ng-container>
