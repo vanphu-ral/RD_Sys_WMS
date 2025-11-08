@@ -16,6 +16,7 @@ import { LocationService } from '../service/location-management.service.componen
 import { Location } from '../models/location.model';
 import { ActivatedRoute } from '@angular/router';
 import { AreaService } from '../../area-component/service/area-service.component';
+import { MatTooltip } from '@angular/material/tooltip';
 import * as XLSX from 'xlsx';
 import * as FileSaver from 'file-saver';
 
@@ -35,6 +36,7 @@ import * as FileSaver from 'file-saver';
     CommonModule,
     RouterLinkWithHref,
     MatSlideToggleModule,
+    MatTooltip,
   ],
   templateUrl: './add-new-location.component.html',
   styleUrl: './add-new-location.component.scss',

@@ -42,7 +42,7 @@ export class LocationService {
 
   //cap nhat location
   updateLocation(id: number, payload: Location): Observable<any> {
-    const url = `http://192.168.20.101:8050/api/locations/${id}`;
+    const url = `http://192.168.20.101:8050/api/locations/update-full/${id}`;
     return this.http.put(url, payload);
   }
 

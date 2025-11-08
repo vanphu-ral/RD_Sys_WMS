@@ -232,3 +232,479 @@
         }
     }
 }
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+
+    mat-icon {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    p {
+        font-size: 16px;
+        margin: 0;
+    }
+}
+
+.mobile-detail-list,
+.mobile-summary {
+    display: none;
+}
+
+@media (max-width: 768px) {
+
+    .mobile-detail-list,
+    .mobile-summary {
+        display: block;
+    }
+}
+
+@media (max-width: 768px) {
+
+    // Container
+    .chuyen-kho-detail-container {
+        padding: 8px;
+        padding-top: 64px;
+        padding-bottom: 80px; // Space for fixed footer
+    }
+
+    // Header
+    .chuyen-kho-detail-header {
+        padding: 12px 16px;
+        margin-bottom: 12px;
+
+        .header-title {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+
+            .title-icon {
+                font-size: 28px;
+                width: 28px;
+                height: 28px;
+            }
+
+            h1 {
+                font-size: 18px;
+                line-height: 1.3;
+            }
+
+            .subtitle {
+                font-size: 12px;
+            }
+        }
+    }
+
+    // Card
+    .chuyen-kho-detail-card {
+        margin: 8px;
+        padding: 0;
+    }
+
+    // Table Header
+    .table-header {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .table-title {
+            font-size: 14px;
+
+            mat-icon {
+                font-size: 18px;
+                width: 18px;
+                height: 18px;
+            }
+        }
+    }
+
+    // Hide desktop table
+    .table-container {
+        padding: 0;
+
+        .detail-table {
+            display: none;
+        }
+    }
+
+    // Mobile Detail List
+    .mobile-detail-list {
+        display: block;
+        padding: 12px;
+    }
+
+    .mobile-detail-item {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        transition: box-shadow 0.2s;
+
+        &:active {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        // Item Header
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 12px;
+
+            .item-number {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 16px;
+                font-weight: 700;
+                color: #1e293b;
+
+                mat-icon {
+                    font-size: 20px;
+                    width: 20px;
+                    height: 20px;
+                    color: #3b82f6;
+                }
+            }
+
+            .quantity-badge {
+                padding: 6px 14px;
+                border-radius: 16px;
+                background: linear-gradient(135deg, #14AE5C 0%, #0f8b49 100%);
+                color: white;
+                font-size: 14px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+
+                mat-icon {
+                    font-size: 18px;
+                    width: 18px;
+                    height: 18px;
+                }
+            }
+        }
+
+        // Product Info
+        .product-info {
+            margin-bottom: 12px;
+
+            .product-code {
+                font-size: 14px;
+                color: #3b82f6;
+                font-weight: 700;
+                font-family: 'Courier New', monospace;
+                margin-bottom: 4px;
+            }
+
+            .product-name {
+                font-size: 15px;
+                color: #1e293b;
+                font-weight: 600;
+                line-height: 1.4;
+            }
+        }
+
+        // Item Details
+        .item-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .detail-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 10px;
+                background: #f8fafc;
+                border-radius: 6px;
+
+                .label {
+                    font-size: 11px;
+                    color: #64748b;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3px;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+
+                    mat-icon {
+                        font-size: 16px;
+                        width: 16px;
+                        height: 16px;
+                        color: #94a3b8;
+                    }
+                }
+
+                .value {
+                    font-size: 13px;
+                    color: #1e293b;
+                    font-weight: 600;
+                    text-align: right;
+                }
+            }
+        }
+    }
+
+    // Pagination
+    .pagination {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px 16px;
+        align-items: stretch;
+
+        .pagination-controls {
+            width: 100%;
+
+            .page-size-select {
+                width: 100%;
+                margin: 0;
+            }
+        }
+
+        .pagination-numbers {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 6px;
+
+            button {
+                min-width: 36px;
+                height: 36px;
+                font-size: 13px;
+                border-radius: 8px;
+
+                &.active {
+                    background-color: #1e293b;
+                    color: white;
+                    font-weight: 600;
+                }
+            }
+        }
+    }
+
+    // Action Footer - Fixed at bottom
+    .action-footer {
+        position: fixed;
+        bottom: 0;
+        left: 50px;
+        right: 0;
+        background: white;
+        padding: 12px 16px;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        button {
+            width: 100%;
+            height: 44px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 8px;
+
+            mat-icon {
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        .cancel-btn {
+            order: 3;
+            background: white;
+            color: #64748b;
+            border: 1.5px solid #e2e8f0;
+
+            &:active {
+                background: #f8fafc;
+            }
+        }
+
+        .warehouse-btn {
+            order: 2;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+
+            &:active {
+                background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            }
+        }
+
+        .confirm-btn {
+            order: 1;
+            background: linear-gradient(135deg, #14AE5C 0%, #0f8b49 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(20, 174, 92, 0.3);
+
+            &:active {
+                background: linear-gradient(135deg, #0f8b49 0%, #0a6b36 100%);
+            }
+        }
+    }
+
+    // Summary Info (Optional - add if needed)
+    .mobile-summary {
+        display: block;
+        padding: 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        margin: 12px;
+        color: white;
+
+        .summary-title {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+
+            .summary-item {
+                text-align: center;
+
+                .summary-label {
+                    font-size: 11px;
+                    opacity: 0.9;
+                    margin-bottom: 4px;
+                }
+
+                .summary-value {
+                    font-size: 20px;
+                    font-weight: 700;
+                }
+            }
+        }
+    }
+}
+
+// Very small screens
+@media (max-width: 480px) {
+    .chuyen-kho-detail-container {
+        padding: 6px;
+        padding-bottom: 140px; // More space for stacked buttons
+    }
+
+    .chuyen-kho-detail-header {
+        padding: 10px 12px;
+
+        .header-title {
+            h1 {
+                font-size: 16px;
+            }
+
+            .subtitle {
+                font-size: 11px;
+            }
+        }
+    }
+
+    .mobile-detail-item {
+        padding: 12px;
+
+        .item-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+
+            .quantity-badge {
+                align-self: flex-start;
+            }
+        }
+
+        .item-details .detail-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+
+            .value {
+                text-align: left;
+                width: 100%;
+                padding-left: 22px;
+            }
+        }
+    }
+
+    .mobile-summary .summary-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .pagination-numbers button {
+        min-width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+}
+
+// Landscape mobile
+@media (max-height: 500px) and (max-width: 768px) {
+    .chuyen-kho-detail-container {
+        padding-top: 56px;
+        padding-bottom: 60px;
+    }
+
+    .mobile-detail-item {
+        padding: 10px;
+        margin-bottom: 8px;
+
+        .item-header {
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+        }
+
+        .item-details {
+            gap: 6px;
+
+            .detail-row {
+                padding: 6px 8px;
+            }
+        }
+    }
+
+    .action-footer {
+        flex-direction: row;
+        padding: 8px 12px;
+
+        button {
+            height: 40px;
+            font-size: 13px;
+        }
+
+        .cancel-btn {
+            order: 1;
+            flex: 0.8;
+        }
+
+        .warehouse-btn,
+        .confirm-btn {
+            order: 2;
+            flex: 1;
+        }
+    }
+}

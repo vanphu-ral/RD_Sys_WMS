@@ -81,6 +81,8 @@ export class ChuyenKhoComponent {
   currentPage: number = 1;
   filteredData: any;
   originalData: any;
+  //mobile
+  showMobileFilters: boolean = false;
   constructor(
     private router: Router,
     private chuyenKhoService: ChuyenKhoService
@@ -99,6 +101,28 @@ export class ChuyenKhoComponent {
         console.error('Lỗi khi lấy danh sách kho:', err);
       },
     });
+  }
+  //mobile
+  toggleMobileFilters(): void {
+    this.showMobileFilters = !this.showMobileFilters;
+  }
+
+  clearFilters(): void {
+    this.filterValues = {
+      ma_yc_cknb: '',
+      tu_kho: '',
+      den_kho: '',
+      don_vi_linh: '',
+      ly_do_xuat_nhap: '',
+      ngay_chung_tu: '',
+      so_chung_tu: '',
+      so_phieu_xuat: '',
+      series_PGH: '',
+      status: '',
+      scan_status: '',
+    };
+    this.searchTerm = '';
+    this.applyFilter();
   }
 
   //load danh sach chuyen kho

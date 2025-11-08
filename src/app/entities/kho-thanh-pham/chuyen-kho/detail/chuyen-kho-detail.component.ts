@@ -106,6 +106,10 @@ export class ChuyenKhoDetailComponent implements OnInit {
       }
     );
   }
+  getTotalQuantity(): number {
+    return this.detailList.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  }
+
   onPageSizeChange(size: number): void {
     this.pageSize = size;
     this.currentPage = 1;

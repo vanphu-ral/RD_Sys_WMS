@@ -190,6 +190,16 @@
             Tổng Locations: {{getTotalLocations()}} locations — phân bố: {{grid.rows}} hàng, {{grid.columns}} cột
         </mat-card>
 
+        <mat-card class="location-card">
+            <div class="action-buttons">
+                <button mat-stroked-button color="warn" (click)="onClear()"
+                    matTooltip="Xoá tất cả sub-location">Clear</button>
+                <button mat-raised-button color="primary" (click)="onGenerate()">
+                    <mat-icon>play_arrow</mat-icon>
+                    Generate</button>
+            </div>
+        </mat-card>
+
         <mat-card class="config-card shadow-card">
             <div class="card-header">
                 <div class="table-title">
@@ -247,14 +257,14 @@
                         <th mat-header-cell *matHeaderCellDef class="text-center" style="width: 10rem">Options</th>
                         <td mat-cell *matCellDef="let element; let i = index" class="text-center">
                             <button mat-icon-button color="accent" *ngIf="!element.isEditing"
-                                (click)="onEditSubLocation(i)">
+                                (click)="onEditSubLocation(i)" matTooltip="Chỉnh sửa">
                                 <mat-icon>edit</mat-icon>
                             </button>
                             <button mat-icon-button color="primary" *ngIf="element.isEditing"
-                                (click)="onConfirmEdit(i)">
+                                (click)="onConfirmEdit(i)"  matTooltip="Hoàn thành">
                                 <mat-icon>check</mat-icon>
                             </button>
-                            <button mat-icon-button color="warn" (click)="onDeleteSubLocation(i)">
+                            <button mat-icon-button color="warn" (click)="onDeleteSubLocation(i)"  matTooltip="Xoá">
                                 <mat-icon>delete</mat-icon>
                             </button>
                         </td>
@@ -272,10 +282,8 @@
     <mat-card class="location-card">
         <div class="action-buttons" *ngIf="location.is_multi_location">
             <button mat-button [routerLink]="'/location'">Cancel</button>
-            <button mat-stroked-button color="warn" (click)="onClear()"
-                matTooltip="Xoá tất cả sub-location">Clear</button>
+
             <button mat-flat-button color="primary" (click)="onSave()">Lưu</button>
-            <button mat-raised-button color="primary" (click)="onGenerate()">Generate</button>
         </div>
         <div class="action-buttons" *ngIf="!location.is_multi_location">
             <button mat-button [routerLink]="'/location'">Cancel</button>

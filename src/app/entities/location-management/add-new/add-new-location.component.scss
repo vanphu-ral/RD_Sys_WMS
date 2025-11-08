@@ -199,7 +199,9 @@
         padding: 8px 16px;
     }
 }
-
+.d-flex {
+    display: flex;
+}
 .action-buttons {
     display: flex;
     justify-content: flex-end;

@@ -152,10 +152,10 @@
                         </button>
 
                         <!-- Nút xóa -->
-                        <button mat-mini-fab class="action-btn delete-btn" (click)="onDelete(location)"
+                        <!-- <button mat-mini-fab class="action-btn delete-btn" (click)="onDelete(location)"
                             matTooltip="Xóa Location">
                             <mat-icon>delete</mat-icon>
-                        </button>
+                        </button> -->
                     </td>
 
                 </ng-container>
@@ -287,10 +287,15 @@
                         <mat-icon>edit</mat-icon>
                         Chỉnh sửa
                     </button>
-                    <button mat-stroked-button class="delete-btn" (click)="onDelete(location)">
+                    <button mat-mini-fab class="action-btn"
+                        [ngClass]="location.is_active ? 'delete-btn' : 'approve-btn'" (click)="onChangeStatus(location)"
+                        [matTooltip]="location.is_active ? 'Vô hiệu hóa Location' : 'Kích hoạt Location'">
+                        <mat-icon>{{ location.is_active ? 'block' : 'check_circle' }}</mat-icon>
+                    </button>
+                    <!-- <button mat-stroked-button class="delete-btn" (click)="onDelete(location)">
                         <mat-icon>delete</mat-icon>
                         Xóa
-                    </button>
+                    </button> -->
                 </div>
             </div>
         </div>
