@@ -54,6 +54,77 @@
                 </table>
             </div>
         </div>
+        <div class="mobile-main-info">
+            <!-- Summary Header -->
+            <div class="summary-header">
+                <div class="header-row">
+                    <span class="header-label">Thông tin nhập kho</span>
+                    <mat-icon>info</mat-icon>
+                </div>
+
+                <div class="main-codes">
+                    <div class="code-box">
+                        <div class="code-label">Mã PO</div>
+                        <div class="code-value">{{mainInfo.maPO}}</div>
+                    </div>
+                    <div class="code-box">
+                        <div class="code-label">Mã SP</div>
+                        <div class="code-value">{{mainInfo.maSanPham}}</div>
+                    </div>
+                    <div class="code-box">
+                        <div class="code-label">Mã KH</div>
+                        <div class="code-value">{{mainInfo.maKhachHang}}</div>
+                    </div>
+                    <div class="code-box">
+                        <div class="code-label">Mã WO</div>
+                        <div class="code-value">{{mainInfo.maWO}}</div>
+                    </div>
+                </div>
+
+                <div class="product-name">{{mainInfo.tenSanPham}}</div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-icon pallet">
+                        <mat-icon>inventory_2</mat-icon>
+                    </div>
+                    <div class="stat-label">Pallet</div>
+                    <div class="stat-value">{{mainInfo.soPallet}}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon box">
+                        <mat-icon>widgets</mat-icon>
+                    </div>
+                    <div class="stat-label">Thùng</div>
+                    <div class="stat-value">{{mainInfo.soThung}}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon product">
+                        <mat-icon>category</mat-icon>
+                    </div>
+                    <div class="stat-label">Sản phẩm</div>
+                    <div class="stat-value">{{mainInfo.soLuongSP}}</div>
+                </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="additional-info">
+                <div class="info-row">
+                    <span class="label">Số LOT</span>
+                    <span class="value">{{mainInfo.soLOT}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Ngày nhập</span>
+                    <span class="value">{{mainInfo.ngayNhap}}</span>
+                </div>
+                <div class="info-row" *ngIf="mainInfo.ghiChu">
+                    <span class="label">Ghi chú</span>
+                    <span class="value">{{mainInfo.ghiChu}}</span>
+                </div>
+            </div>
+        </div>
     </mat-card>
 
     <!-- Thông tin chi tiết Card -->
@@ -106,6 +177,54 @@
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
             </table>
+        </div>
+        <div class="mobile-scan-list">
+            <div class="mobile-scan-card" *ngFor="let item of detailList; let i = index"
+                [class.scanned]="item.scanStatus === 'Đã scan'" [class.unscanned]="item.scanStatus === 'Chưa scan'">
+
+                <div class="scan-header">
+                    <div class="scan-number">
+                        <mat-icon>{{item.scanStatus === 'Đã scan' ? 'check_circle' :
+                            'radio_button_unchecked'}}</mat-icon>
+                        <span>#{{i + 1}}</span>
+                    </div>
+                    <div class="scan-status-badge" [class.scanned]="item.scanStatus === 'Đã scan'"
+                        [class.unscanned]="item.scanStatus === 'Chưa scan'">
+                        <mat-icon>{{item.scanStatus === 'Đã scan' ? 'verified' : 'pending'}}</mat-icon>
+                        {{item.scanStatus}}
+                    </div>
+                </div>
+
+                <div class="scan-codes">
+                    <div class="code-section">
+                        <div class="code-label">
+                            <mat-icon>qr_code</mat-icon>
+                            Pallet Code
+                        </div>
+                        <div class="code-value">{{item.palletCode}}</div>
+                    </div>
+
+                    <div class="code-section">
+                        <div class="code-label">
+                            <mat-icon>qr_code_2</mat-icon>
+                            Box Code
+                        </div>
+                        <div class="code-value">{{item.boxCode}}</div>
+                    </div>
+                </div>
+
+                <div class="pallet-count">
+                    <mat-icon>inventory</mat-icon>
+                    <span class="count-label">Số pallet:</span>
+                    <span class="count-value">{{item.soPallet}}</span>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" *ngIf="detailList.length === 0">
+                <mat-icon>inbox</mat-icon>
+                <p>Chưa có dữ liệu scan</p>
+            </div>
         </div>
 
         <!-- Pagination -->

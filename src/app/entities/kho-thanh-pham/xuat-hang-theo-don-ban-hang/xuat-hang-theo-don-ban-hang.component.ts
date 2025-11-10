@@ -84,6 +84,10 @@ export class XuatHangTheoDonBanHangComponent {
   totalItems: number = 0;
   areas: any[] = [];
   filteredData: SalesExportRequest[] = [];
+    warehouses: { id: number; name: string }[] = [];
+  //mobile
+  pagedTransfers: SalesExportRequest[] = [];
+  showMobileFilters: boolean = false;
   constructor(
     private router: Router,
     private xuatDonBanService: XuatHangTheoDonBanService
@@ -97,7 +101,33 @@ export class XuatHangTheoDonBanHangComponent {
       error: (err) => console.error('Lỗi khi lấy kho:', err),
     });
   }
+  //mobile
+  toggleMobileFilters(): void {
+    this.showMobileFilters = !this.showMobileFilters;
+  }
 
+  clearFilters(): void {
+    this.filterValues = {
+      ma_yc_xk: '',
+      kho_xuat: '',
+      xuat_toi: '',
+      don_vi_linh: '',
+      don_vi_nhan: '',
+      ly_do_xuat_nhap: '',
+      ngay_chung_tu: '',
+      so_chung_tu: '',
+      so_phieu_xuat: '',
+      series_PGH: '',
+      status: '',
+      scan_status: '',
+    };
+    this.searchTerm = '';
+    this.applyFilter();
+  }
+  getWarehouseName(id: number): string {
+    const warehouse = this.areas.find((w) => w.id === id);
+    return warehouse?.name || `#${id}`;
+  }
   //load data
   loadSalesRequests(): void {
     this.xuatDonBanService.getSalesExportRequests().subscribe({

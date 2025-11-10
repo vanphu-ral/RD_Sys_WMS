@@ -45,7 +45,7 @@ export class HomepageComponent implements OnInit {
 
       if (this.isLoggedIn && !code) {
         console.log('[HomePage] Already logged in, redirecting to areas...');
-        this.router.navigate(['/areas']);
+        this.router.navigate(['/home']);
       }
     });
   }
@@ -137,5 +137,8 @@ export class HomepageComponent implements OnInit {
 
     console.log('[HomePage] Redirecting to login:', loginUrl);
     window.location.href = loginUrl;
+  }
+  redirectToArea(): void{
+    this.router.navigate(['/areas']);
   }
 }

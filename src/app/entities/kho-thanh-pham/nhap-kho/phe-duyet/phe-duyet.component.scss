@@ -316,44 +316,40 @@
     }
 }
 
-// Responsive
-@media (max-width: 1200px) {
-    .info-table {
-        font-size: 12px;
 
-        th,
-        td {
-            padding: 10px 12px;
-        }
-    }
-}
-
+.mobile-main-info,
 .mobile-scan-list {
-    display: none; // Ẩn trên desktop
+    display: none;
 }
 
+// ==========================================
+// MOBILE RESPONSIVE - Kiểm Duyệt Nhập Kho
+// Thêm vào CUỐI FILE SCSS hiện tại
+// ==========================================
 
 @media (max-width: 768px) {
 
     // Container
     .nhapkho-container {
         padding: 8px;
-        padding-top: 64px; // Space cho mobile header của sidebar
+        padding-top: 64px;
+        padding-bottom: 80px; // Space for fixed footer
+    }
+
+    .mobile-main-info,
+    .mobile-scan-list {
+        display: block;
     }
 
     // Header
     .nhapkho-header {
         padding: 12px 16px;
         margin-bottom: 12px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
 
         .header-title {
             flex-direction: column;
             align-items: flex-start;
             gap: 8px;
-            width: 100%;
 
             .title-icon {
                 font-size: 28px;
@@ -368,29 +364,25 @@
 
             .subtitle {
                 font-size: 12px;
-                margin-top: 2px;
             }
         }
     }
 
-    // Card
+    // Cards
     .nhapkho-card {
-        margin-bottom: 12px;
-        border-radius: 8px;
-
-        .card-content {
-            padding: 16px;
-        }
+        // margin: 8px;
+        padding: 0;
+        margin-bottom: 16px;
     }
 
     // Table Header
     .table-header {
         padding: 12px 16px;
-        flex-wrap: wrap;
-        gap: 8px;
+        border-bottom: 1px solid #e2e8f0;
 
         .table-title {
             font-size: 14px;
+            font-weight: 600;
 
             mat-icon {
                 font-size: 18px;
@@ -400,68 +392,230 @@
         }
     }
 
-    // Mode Buttons - Stack vertically
-    .mode-buttons {
-        flex-direction: column;
-        gap: 8px;
-        margin-bottom: 16px;
+    // ==========================================
+    // MAIN INFO - Mobile Card View
+    // ==========================================
 
-        .mode-btn {
-            width: 100%;
-            height: 44px;
-            justify-content: center;
-            font-size: 14px;
+    .info-content {
+        padding: 0;
 
-            mat-icon {
-                font-size: 20px;
-                width: 20px;
-                height: 20px;
-            }
+        .info-table-wrapper {
+            display: none; // Hide desktop table
         }
     }
 
-    // Scan Inputs - Stack vertically
-    .scan-inputs {
-        grid-template-columns: 1fr;
-        gap: 12px;
+    // Mobile Main Info
+    .mobile-main-info {
+        display: block;
+        padding: 16px;
 
-        .scan-field {
-            width: 100%;
+        // Summary Header
+        .summary-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 16px;
+            color: white;
+            margin-bottom: 16px;
 
-            ::ng-deep .mat-mdc-form-field {
+            .header-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 16px;
+
+                .header-label {
+                    font-size: 12px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    opacity: 0.9;
+                }
+
+                mat-icon {
+                    font-size: 24px;
+                    width: 24px;
+                    height: 24px;
+                }
+            }
+
+            .main-codes {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                margin-bottom: 12px;
+
+                .code-box {
+                    background: rgba(255, 255, 255, 0.15);
+                    border-radius: 8px;
+                    padding: 10px;
+                    backdrop-filter: blur(10px);
+
+                    .code-label {
+                        font-size: 10px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.3px;
+                        opacity: 0.9;
+                        margin-bottom: 4px;
+                    }
+
+                    .code-value {
+                        font-size: 14px;
+                        font-weight: 700;
+                        font-family: 'Courier New', monospace;
+                    }
+                }
+            }
+
+            .product-name {
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                padding: 10px;
                 font-size: 14px;
+                font-weight: 600;
+                text-align: center;
             }
+        }
 
-            ::ng-deep .mdc-text-field {
-                min-height: 48px; // Better touch target
+        // Stats Grid
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 12px;
+
+            .stat-box {
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 12px;
+                text-align: center;
+
+                .stat-icon {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto 8px;
+
+                    mat-icon {
+                        font-size: 20px;
+                        width: 20px;
+                        height: 20px;
+                        color: white;
+                    }
+
+                    &.pallet {
+                        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                    }
+
+                    &.box {
+                        background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+                    }
+
+                    &.product {
+                        background: linear-gradient(135deg, #14AE5C 0%, #0f8b49 100%);
+                    }
+                }
+
+                .stat-label {
+                    font-size: 10px;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    margin-bottom: 4px;
+                }
+
+                .stat-value {
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: #1e293b;
+                }
+            }
+        }
+
+        // Additional Info
+        .additional-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .info-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 12px;
+                background: #f8fafc;
+                border-radius: 8px;
+                border-left: 3px solid #667eea;
+
+                .label {
+                    font-size: 11px;
+                    color: #64748b;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.3px;
+                }
+
+                .value {
+                    font-size: 13px;
+                    color: #1e293b;
+                    font-weight: 600;
+                    text-align: right;
+                    font-family: 'Courier New', monospace;
+                }
             }
         }
     }
 
-    // Table - Hide on mobile, show card view instead
+    // ==========================================
+    // DETAIL TABLE - Mobile Card View
+    // ==========================================
+
     .table-container {
-        padding: 12px;
+        padding: 0;
 
-        // Hide table on mobile
-        .scan-table {
-            display: none;
+        .detail-table {
+            display: none; // Hide desktop table
         }
     }
 
-    // Mobile Card List View
+    // Mobile Scan List
     .mobile-scan-list {
         display: block;
+        padding: 12px;
     }
 
     .mobile-scan-card {
+        width: 89%;
         background: white;
         border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 16px;
+        border-radius: 12px;
+        padding: 14px;
         margin-bottom: 12px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        position: relative;
+        overflow: hidden;
 
-        .scan-card-header {
+        // Status indicator bar
+        &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+        }
+
+        &.scanned::before {
+            background: linear-gradient(to bottom, #14AE5C, #0f8b49);
+        }
+
+        &.unscanned::before {
+            background: linear-gradient(to bottom, #ef4444, #dc2626);
+        }
+
+        .scan-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -469,145 +623,253 @@
             border-bottom: 1px solid #e2e8f0;
             margin-bottom: 12px;
 
-            .card-stt {
+            .scan-number {
                 display: flex;
                 align-items: center;
-                gap: 6px;
-                font-weight: 600;
+                gap: 8px;
+                font-size: 16px;
+                font-weight: 700;
                 color: #1e293b;
-                font-size: 14px;
 
                 mat-icon {
-                    font-size: 18px;
-                    width: 18px;
-                    height: 18px;
-                    color: #14AE5C;
+                    font-size: 20px;
+                    width: 20px;
+                    height: 20px;
+                    color: #667eea;
                 }
             }
 
-            .card-time {
+            .scan-status-badge {
+                padding: 6px 12px;
+                border-radius: 16px;
                 font-size: 11px;
-                color: #64748b;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+
+                mat-icon {
+                    font-size: 16px;
+                    width: 16px;
+                    height: 16px;
+                }
+
+                &.scanned {
+                    background: #d1fae5;
+                    color: #065f46;
+                }
+
+                &.unscanned {
+                    background: #fee2e2;
+                    color: #991b1b;
+                }
             }
         }
 
-        .scan-card-content {
+        .scan-codes {
             display: flex;
             flex-direction: column;
             gap: 10px;
+            margin-bottom: 12px;
 
-            .info-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                gap: 8px;
+            .code-section {
+                background: #f8fafc;
+                border-radius: 8px;
+                padding: 10px 12px;
 
-                .info-label {
-                    font-size: 12px;
+                .code-label {
+                    font-size: 10px;
                     color: #64748b;
-                    font-weight: 500;
-                    min-width: 110px;
-                    flex-shrink: 0;
-                }
-
-                .info-value {
-                    font-size: 13px;
-                    color: #1e293b;
-                    font-weight: 500;
-                    text-align: right;
-                    word-break: break-word;
-                }
-            }
-
-            // Highlight important fields
-            .info-row.highlight {
-                .info-value {
-                    color: #14AE5C;
                     font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    margin-bottom: 4px;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+
+                    mat-icon {
+                        font-size: 14px;
+                        width: 14px;
+                        height: 14px;
+                    }
+                }
+
+                .code-value {
+                    font-size: 14px;
+                    color: #1e293b;
+                    font-weight: 700;
+                    font-family: 'Courier New', monospace;
                 }
             }
         }
 
-        // Badge styles
-        .serial-badge {
-            display: inline-block;
-            background: #e0f2fe;
-            color: #0369a1;
-            padding: 4px 4px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .location-badge {
-            display: inline-block;
-            background: #fef3c7;
-            color: #92400e;
-            padding: 4px 4px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .quantity-badge {
-            display: inline-block;
-            background: #f3e8ff;
-            color: #6b21a8;
-            padding: 4px 4px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-    }
-
-    // Pagination - Mobile friendly
-    .pagination {
-        flex-direction: column;
-        gap: 12px;
-        padding: 12px 16px;
-
-        .pagination-btn {
-            width: 100%;
+        .pallet-count {
+            display: flex;
+            align-items: center;
             justify-content: center;
-            height: 44px;
-            font-size: 14px;
+            padding: 10px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 8px;
 
             mat-icon {
                 font-size: 20px;
+                width: 20px;
+                height: 20px;
+                color: #0369a1;
+                margin-right: 8px;
+            }
+
+            .count-label {
+                font-size: 11px;
+                color: #0369a1;
+                font-weight: 600;
+                margin-right: 6px;
+            }
+
+            .count-value {
+                font-size: 16px;
+                color: #0369a1;
+                font-weight: 700;
             }
         }
+    }
+
+    // Pagination
+    .pagination {
+        padding: 12px 16px;
+        justify-content: center;
 
         .pagination-numbers {
-            justify-content: center;
-            flex-wrap: wrap;
+            display: flex;
             gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
 
             button {
                 min-width: 36px;
                 height: 36px;
                 font-size: 13px;
+                border-radius: 8px;
+
+                &.active {
+                    background-color: #1e293b;
+                    color: white;
+                    font-weight: 600;
+                }
             }
 
             .dots {
-                padding: 0 4px;
+                display: flex;
+                align-items: center;
+                padding: 0 8px;
+                color: #64748b;
             }
         }
     }
 
-    // Nested card
-    .nhapkho-card {
-        margin-top: 16px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    // ==========================================
+    // ACTION FOOTER - Fixed Bottom
+    // ==========================================
+
+    .action-footer {
+        position: fixed;
+        bottom: 0;
+        left: 50px;
+        right: 0;
+        background: white;
+        padding: 12px 16px;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        button {
+            width: 100%;
+            height: 44px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 8px;
+
+            mat-icon {
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        .confirm-btn {
+            order: 1;
+            background: linear-gradient(135deg, #14AE5C 0%, #0f8b49 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(20, 174, 92, 0.3);
+
+            &:active {
+                background: linear-gradient(135deg, #0f8b49 0%, #0a6b36 100%);
+            }
+        }
+
+        .warehouse-btn {
+            order: 2;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+
+            &:active {
+                background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            }
+        }
+
+        .cancel-btn {
+            order: 3;
+            background: white;
+            color: #64748b;
+            border: 1.5px solid #e2e8f0;
+
+            &:active {
+                background: #f8fafc;
+            }
+        }
+    }
+
+    // Empty State
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        color: #94a3b8;
+
+        mat-icon {
+            font-size: 64px;
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        p {
+            font-size: 16px;
+            margin: 0;
+        }
     }
 }
 
 // Very small screens
 @media (max-width: 480px) {
-    .chuyen-kho-detail-container {
+    .nhapkho-container {
         padding: 6px;
+        padding-bottom: 140px;
     }
 
-    .chuyen-kho-detail-header {
+    .nhapkho-header {
         padding: 10px 12px;
 
         .header-title {
@@ -621,36 +883,38 @@
         }
     }
 
-    .card-content {
-        padding: 12px !important;
-    }
+    .mobile-main-info {
+        .summary-header .main-codes {
+            grid-template-columns: 1fr;
+        }
 
-    .mode-buttons {
-        .mode-btn {
-            height: 40px;
-            font-size: 13px;
-            padding: 0 16px;
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+
+            .stat-box:last-child {
+                grid-column: 1 / -1;
+            }
+        }
+
+        .additional-info .info-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+
+            .value {
+                text-align: left;
+                width: 100%;
+            }
         }
     }
 
     .mobile-scan-card {
         padding: 12px;
 
-        .scan-card-content {
-            .info-row {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 4px;
-
-                .info-label {
-                    min-width: auto;
-                }
-
-                .info-value {
-                    text-align: left;
-                    width: 100%;
-                }
-            }
+        .scan-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
         }
     }
 
@@ -659,40 +923,89 @@
         height: 32px;
         font-size: 12px;
     }
+
+    .action-footer button {
+        height: 40px;
+        font-size: 13px;
+    }
 }
 
 // Landscape mobile
 @media (max-height: 500px) and (max-width: 768px) {
-    .chuyen-kho-detail-container {
+    .nhapkho-container {
         padding-top: 56px;
+        padding-bottom: 60px;
     }
 
-    .chuyen-kho-detail-header {
-        padding: 8px 12px;
-        margin-bottom: 8px;
-    }
+    .mobile-main-info {
+        .summary-header {
+            padding: 12px;
+            margin-bottom: 12px;
 
-    .card-content {
-        padding: 12px !important;
-    }
-
-    .mode-buttons {
-        flex-direction: row;
-        margin-bottom: 12px;
-
-        .mode-btn {
-            flex: 1;
-            height: 40px;
+            .main-codes {
+                gap: 8px;
+            }
         }
-    }
 
-    .scan-inputs {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        .stats-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+
+            .stat-box {
+                padding: 8px;
+
+                .stat-icon {
+                    width: 28px;
+                    height: 28px;
+                    margin-bottom: 6px;
+
+                    mat-icon {
+                        font-size: 18px;
+                        width: 18px;
+                        height: 18px;
+                    }
+                }
+            }
+        }
     }
 
     .mobile-scan-card {
         padding: 10px;
         margin-bottom: 8px;
+
+        .scan-header {
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+        }
+
+        .scan-codes {
+            gap: 8px;
+        }
+    }
+
+    .action-footer {
+        flex-direction: row;
+        padding: 8px 12px;
+        gap: 8px;
+
+        .cancel-btn {
+            order: 1;
+            flex: 0.8;
+        }
+
+        .warehouse-btn {
+            order: 2;
+            flex: 1;
+        }
+
+        .confirm-btn {
+            order: 3;
+            flex: 1;
+        }
+
+        button {
+            height: 40px;
+            font-size: 13px;
+        }
     }
 }

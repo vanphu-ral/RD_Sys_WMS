@@ -53,4 +53,11 @@ export class XuatHangTheoDonBanService {
       { inventories }
     );
   }
+  //lưu thông tin scan
+  submitScan(requestId: number, payload: any): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/osr/requests/${requestId}/scan`,
+      payload
+    );
+  }
 }

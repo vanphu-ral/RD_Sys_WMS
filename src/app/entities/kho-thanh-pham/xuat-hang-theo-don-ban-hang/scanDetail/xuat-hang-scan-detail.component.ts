@@ -1,138 +1,185 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
+import { XuatHangTheoDonBanService } from '../service/xuat-hang-theo-don-ban.service.component';
 export interface ScannedItem {
-    xuatKhoId: number;
-    maHangHoa: string;
-    tenHangHoa: string;
-    serialPallet: string;
-    serialBox: string;
-    soLuong: number;
-    area: string;
-    location: string;
-    thoiDiemScan: string;
+  productId: number;
+  inventoryCode: string;
+  serialPallet: string;
+  quantity: number;
+  originalQuantity: number;
+  productName?: string;
+  scanTime?: string;
+  warehouse: string;
 }
+
 @Component({
-    selector: 'app-nhap-kho-component',
-    standalone: false,
-    templateUrl: './xuat-hang-scan-detail.component.html',
-    styleUrl: './xuat-hang-scan-detail.component.scss',
+  selector: 'app-nhap-kho-component',
+  standalone: false,
+  templateUrl: './xuat-hang-scan-detail.component.html',
+  styleUrl: './xuat-hang-scan-detail.component.scss',
 })
 export class ScanDetailXuatHangComponent implements OnInit {
-    id: number | undefined;
-    currentPage = 1;
-    totalPages = 9;
-    //bien scan
-    scanPallet: string = '';
-    scanLocation: string = '';
+  id: number | undefined;
+  currentPage = 1;
+  totalPages = 9;
+  //bien scan
+  scanPallet: string = '';
+  scanLocation: string = '';
 
-    displayedColumns: string[] = [
-        'stt',
-        'maHangHoa',
-        'tenHangHoa',
-        'serialPallet',
-        'serialBox',
-        'soLuong',
-        'area',
-        'location',
-        'thoiDiemScan',
-    ];
-    scannedList: ScannedItem[] = [
-        {
-            xuatKhoId: 1,
-            maHangHoa: 'LED000035',
-            tenHangHoa: 'Đèn LED cắm ứng 8W',
-            serialPallet: 'P202500191',
-            serialBox: 'B202500191',
-            soLuong: 10,
-            area: 'RD-01',
-            location: '01-B01-01-001',
-            thoiDiemScan: '31/10/2025 08:35',
-        },
-    ];
-    selectedMode: 'pallet' | 'thung' | null = null;
-  chuyenKhoId:number | undefined;
-    @ViewChild('palletInput') palletInput!: ElementRef;
-    @ViewChild('locationInput') locationInput!: ElementRef;
-    constructor(private route: ActivatedRoute, private router: Router) { }
-    ngOnInit(): void {
-        const idParam = this.route.snapshot.paramMap.get('id');
-    this.chuyenKhoId = idParam !== null ? Number(idParam) : undefined;
-        const scanId = this.route.snapshot.paramMap.get('scanId');
+  displayedColumns: string[] = [
+    'stt',
+    'productId',
+    'productName',
+    // 'inventoryCode',
+    'serialPallet',
+    'quantity',
+    'scanTime',
+    'warehouse',
+  ];
+  scannedList: ScannedItem[] = [];
+  selectedMode: 'pallet' | 'thung' | null = null;
+  chuyenKhoId: number | undefined;
+  requestId: any;
+  detailList: any;
+  @ViewChild('palletInput') palletInput!: ElementRef;
+  @ViewChild('locationInput') locationInput!: ElementRef;
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private snackBar: MatSnackBar,
+    private xuatKhoService: XuatHangTheoDonBanService
+  ) {}
+  ngOnInit(): void {
+    const state = history.state;
+    this.requestId = state.requestId;
+    this.detailList = state.detailList || [];
+  }
+  onSelectMode(mode: 'pallet' | 'thung') {
+    this.selectedMode = mode;
+    setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
+  }
+
+  onPalletScanEnter() {
+    // chuyển focus sang input location
+    this.locationInput?.nativeElement?.focus();
+  }
+
+  onLocationScanEnter() {
+    if (!this.scanPallet || !this.scanLocation) return;
+
+    const matched = this.detailList.find(
+      (item: { productCode: string }) =>
+        item.productCode === this.scanPallet ||
+        item.productCode === this.scanLocation
+    );
+    if (!matched) {
+      this.snackBar.open('Không tìm thấy mã hàng trong danh sách!', 'Đóng', {
+        duration: 3000,
+        panelClass: ['snackbar-error'],
+      });
+      return;
     }
-    onSelectMode(mode: 'pallet' | 'thung') {
-        if (this.selectedMode === mode) {
-            this.selectedMode = null;
-        } else {
-            this.selectedMode = mode;
 
-            // focus vào input pallet sau khi chọn mode
-            setTimeout(() => {
-                this.palletInput?.nativeElement?.focus();
-            }, 100);
-        }
+    const now = new Date();
+    const formattedTime = now.toLocaleString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+
+    const newItem: ScannedItem = {
+      productId: matched?.id || 0,
+      // productName: matched?.productName || 'Không xác định',
+      inventoryCode: this.scanLocation,
+      serialPallet: this.scanPallet,
+      quantity: matched.quantity,
+      originalQuantity: matched.quantity,
+      productName: matched.productName,
+      scanTime: formattedTime,
+      warehouse: this.scanLocation,
+    };
+    console.log('Matched:', matched);
+
+    this.scannedList = [...this.scannedList, newItem];
+
+    this.scanPallet = '';
+    this.scanLocation = '';
+
+    setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
+  }
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    // Load data for specific page
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.onPageChange(this.currentPage);
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.onPageChange(this.currentPage);
+    }
+  }
+  //lưu thông tin scan
+  submitScan(): void {
+    if (this.scannedList.length === 0) {
+      this.snackBar.open('Chưa có dữ liệu scan để gửi!', 'Đóng', {
+        duration: 3000,
+        panelClass: ['snackbar-error'],
+      });
+      return;
     }
 
-    onPalletScanEnter() {
-        // chuyển focus sang input location
-        this.locationInput?.nativeElement?.focus();
-    }
+    const payload = {
+      scan_details: this.scannedList.map((item) => {
+        const dispatched = item.originalQuantity - item.quantity;
 
-    onLocationScanEnter() {
-        if (!this.scanPallet || !this.scanLocation) return;
-
-        const now = new Date();
-        const formattedTime = now.toLocaleString('vi-VN', {
-            hour: '2-digit',
-            minute: '2-digit',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-        });
-
-        const newItem: ScannedItem = {
-            xuatKhoId: 1,
-            maHangHoa: 'LED000035',
-            tenHangHoa: 'Đèn LED cắm ứng 8W',
-            serialPallet: this.scanPallet,
-            serialBox: this.selectedMode === 'thung' ? this.scanPallet : '',
-            soLuong: 1,
-            area: 'RD-01',
-            location: this.scanLocation,
-            thoiDiemScan: formattedTime,
+        return {
+          products_in_osr_id: item.productId,
+          inventory_identifier: item.inventoryCode,
+          serial_pallet: item.serialPallet,
+          quantity_dispatched: dispatched >= 0 ? dispatched : 0, // ✅ không âm
+          scan_time: new Date().toISOString().slice(0, 19), // "2025-11-08T03:28:01"
+          scan_by: 'admin',
         };
+      }),
+    };
 
-        this.scannedList.unshift(newItem);
-
-        // reset input
-        this.scanPallet = '';
-        this.scanLocation = '';
-        this.selectedMode = null;
-
-        // focus lại vào pallet để scan tiếp
-        setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
-    }
-    onPageChange(page: number): void {
-        this.currentPage = page;
-        // Load data for specific page
-    }
-
-    previousPage(): void {
-        if (this.currentPage > 1) {
-            this.currentPage--;
-            this.onPageChange(this.currentPage);
-        }
-    }
-
-    nextPage(): void {
-        if (this.currentPage < this.totalPages) {
-            this.currentPage++;
-            this.onPageChange(this.currentPage);
-        }
-    }
-    back(): void {
+    this.xuatKhoService.submitScan(this.requestId, payload).subscribe({
+      next: () => {
+        this.snackBar.open('Lưu thông tin scan thành công!', 'Đóng', {
+          duration: 3000,
+          panelClass: ['snackbar-success'],
+        });
+        setTimeout(() => {
+          this.router.navigate([
+            '/kho-thanh-pham/xuat-don-ban-hang/detail/',
+            this.requestId,
+          ]);
+        }, 3000);
+        // this.router.navigate(['/kho-thanh-pham/chuyen-kho-noi-bo']);
+      },
+      error: (err) => {
+        console.error('Lỗi khi gửi scan:', err);
+        this.snackBar.open('Lỗi khi gửi dữ liệu scan!', 'Đóng', {
+          duration: 3000,
+          panelClass: ['snackbar-error'],
+        });
+      },
+    });
+  }
+  back(): void {
     this.router.navigate([
       '/kho-thanh-pham/xuat-don-ban-hang/detail/',
-      this.chuyenKhoId,
+      this.requestId,
     ]);
   }
 }

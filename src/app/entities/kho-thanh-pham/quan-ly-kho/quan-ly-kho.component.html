@@ -542,6 +542,204 @@
                     [class.expanded]="row.expanded" (click)="toggleRow(row)"></tr>
                 <tr mat-row *matRowDef="let row; columns: ['expandedDetail']; when: isChildRow" class="child-row"></tr>
             </table>
+            <div class="mobile-expandable-list" *ngIf="currentViewMode === 'customer'">
+                <!-- Mobile Filter Toggle -->
+                <div class="mobile-filter-section">
+                    <button mat-stroked-button (click)="toggleMobileFilter()" class="filter-toggle-btn">
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <mat-icon>filter_list</mat-icon>
+                            Bộ lọc
+                        </span>
+                        <mat-icon>{{showMobileFilter ? 'expand_less' : 'expand_more'}}</mat-icon>
+                    </button>
+
+                    <!-- Filters Panel -->
+                    <div class="mobile-filters" [class.show]="showMobileFilter">
+                        <mat-form-field appearance="outline" class="filter-field">
+                            <mat-label>Mã KH</mat-label>
+                            <input matInput [(ngModel)]="filterValues['maKH']" (keyup.enter)="applyFilter()">
+                            <button mat-icon-button matSuffix >
+                                <mat-icon>keyboard_arrow_down</mat-icon>
+                            </button>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="filter-field"
+                            *ngFor="let col of getFilterColumn()">
+                            <mat-label>{{getColumnLabel(col)}}</mat-label>
+                            <input matInput [(ngModel)]="filterValues[col]" (keyup.enter)="applyFilter()">
+                        </mat-form-field>
+
+                        <div class="filter-actions">
+                            <button mat-button (click)="clearFilters()">
+                                <mat-icon>clear</mat-icon>
+                                Xóa
+                            </button>
+                            <button mat-raised-button color="primary" (click)="applyFilter(); toggleMobileFilter()">
+                                <mat-icon>check</mat-icon>
+                                Áp dụng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expandable Cards -->
+                <div class="expandable-cards">
+                    <div class="expandable-card" *ngFor="let item of customerDataSource"
+                        [class.expanded]="item.expanded">
+
+                        <!-- Parent Card -->
+                        <div class="parent-card" (click)="toggleRow(item)">
+                            <!-- Card Header -->
+                            <div class="card-header">
+                                <div class="header-left">
+                                    <div class="customer-code">{{item.maKH}}</div>
+                                    <div class="customer-name">{{item.tenKH}}</div>
+                                </div>
+                                <div class="header-right">
+                                    <button mat-icon-button class="expand-btn"
+                                        (click)="$event.stopPropagation(); toggleRow(item)">
+                                        <mat-icon>{{item.expanded ? 'expand_less' : 'expand_more'}}</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Stats Grid -->
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-icon inventory">
+                                        <mat-icon>inventory</mat-icon>
+                                    </div>
+                                    <div class="stat-info">
+                                        <div class="stat-label">SL Tồn</div>
+                                        <div class="stat-value">{{item.tongSLTon}}</div>
+                                    </div>
+                                </div>
+
+                                <div class="stat-item">
+                                    <div class="stat-icon product">
+                                        <mat-icon>category</mat-icon>
+                                    </div>
+                                    <div class="stat-info">
+                                        <div class="stat-label">Sản phẩm</div>
+                                        <div class="stat-value">{{item.soSP}}</div>
+                                    </div>
+                                </div>
+
+                                <div class="stat-item">
+                                    <div class="stat-icon po">
+                                        <mat-icon>description</mat-icon>
+                                    </div>
+                                    <div class="stat-info">
+                                        <div class="stat-label">PO</div>
+                                        <div class="stat-value">{{item.soPO}}</div>
+                                    </div>
+                                </div>
+
+                                <div class="stat-item">
+                                    <div class="stat-icon area">
+                                        <mat-icon>place</mat-icon>
+                                    </div>
+                                    <div class="stat-info">
+                                        <div class="stat-label">Khu vực</div>
+                                        <div class="stat-value">{{item.soKhuVuc}}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Additional Info -->
+                            <div class="additional-info">
+                                <div class="info-row">
+                                    <mat-icon>inventory_2</mat-icon>
+                                    <span class="label">Pallet:</span>
+                                    <span class="value">{{item.soPallet}}</span>
+                                </div>
+                                <div class="info-row">
+                                    <mat-icon>widgets</mat-icon>
+                                    <span class="label">Thùng:</span>
+                                    <span class="value">{{item.soThung}}</span>
+                                </div>
+                                <div class="info-row">
+                                    <mat-icon>schedule</mat-icon>
+                                    <span class="label">Ngày nhập:</span>
+                                    <span class="value">{{item.ngayNhapSomNhat}}</span>
+                                </div>
+                            </div>
+
+                            <!-- Expand Indicator -->
+                            <div class="expand-indicator" *ngIf="(item.children?.length || 0) > 0">
+                                <span>{{ item.children?.length || 0 }} sản phẩm</span>
+                                <mat-icon>{{item.expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
+                            </div>
+                        </div>
+
+                        <!-- Children Cards (Expanded Content) -->
+                        <div class="children-container" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
+                            <div class="children-header">
+                                <mat-icon>inventory</mat-icon>
+                                <span>Chi tiết sản phẩm của {{item.tenKH}}</span>
+                            </div>
+
+                            <div class="child-cards">
+                                <div class="child-card" *ngFor="let child of item.children; let i = index">
+                                    <div class="child-number">#{{i + 1}}</div>
+
+                                    <div class="child-main">
+                                        <div class="product-code">{{child.maSanPham}}</div>
+                                        <div class="product-name">{{child.tenSP}}</div>
+                                    </div>
+
+                                    <div class="child-details">
+                                        <div class="detail-row">
+                                            <span class="label">PO:</span>
+                                            <span class="value po-badge">{{child.po}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">SL Tồn:</span>
+                                            <span class="value quantity">{{child.slTon}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">SL Gốc:</span>
+                                            <span class="value">{{child.slGoc}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Khu vực:</span>
+                                            <span class="value area-badge">{{child.khuVuc}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Location:</span>
+                                            <span class="value location-badge">{{child.location}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Pallet:</span>
+                                            <span class="value">{{child.maPallet}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Thùng:</span>
+                                            <span class="value">{{child.maThung}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Status:</span>
+                                            <span class="value">
+                                                <span class="status-badge" [ngClass]="getStatusClass(child.status)">
+                                                    {{child.status}}
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Ngày nhập:</span>
+                                            <span class="value">{{child.ngayNhap}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Ngày cập nhật:</span>
+                                            <span class="value">{{child.ngayCapNhat}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>  
 
         </div>
         <div class="mobile-warehouse-list" *ngIf="currentViewMode === 'default'">

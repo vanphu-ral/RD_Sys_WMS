@@ -213,7 +213,161 @@
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
             </table>
         </div>
+        <!-- Mobile Filter Toggle -->
+        <div class="mobile-filter-toggle">
+            <button mat-stroked-button (click)="toggleMobileFilters()" class="filter-toggle-btn">
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    <mat-icon>filter_list</mat-icon>
+                    Bộ lọc
+                </span>
+                <mat-icon>{{showMobileFilters ? 'expand_less' : 'expand_more'}}</mat-icon>
+            </button>
+        </div>
 
+        <!-- Mobile Filters Panel -->
+        <div class="mobile-filters" [class.show]="showMobileFilters">
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Mã yêu cầu</mat-label>
+                <input matInput [(ngModel)]="filterValues.ma_yc_xk" (keyup.enter)="applyFilter()">
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Từ kho</mat-label>
+                <input matInput [(ngModel)]="filterValues.kho_xuat" (keyup.enter)="applyFilter()">
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Đến kho</mat-label>
+                <input matInput [(ngModel)]="filterValues.xuat_toi" (keyup.enter)="applyFilter()">
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Đơn vị lĩnh</mat-label>
+                <input matInput [(ngModel)]="filterValues.don_vi_linh" (keyup.enter)="applyFilter()">
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+             <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Đơn vị nhận</mat-label>
+                <input matInput [(ngModel)]="filterValues.don_vi_nhan" (keyup.enter)="applyFilter()">
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Status</mat-label>
+                <mat-select [(ngModel)]="filterValues.status" (selectionChange)="applyFilter()">
+                    <mat-option value="">Tất cả</mat-option>
+                    <mat-option value="Đã duyệt">Đã duyệt</mat-option>
+                    <mat-option value="Chưa duyệt">Chưa duyệt</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Scan Status</mat-label>
+                <mat-select [(ngModel)]="filterValues.scan_status" (selectionChange)="applyFilter()">
+                    <mat-option value="">Tất cả</mat-option>
+                    <mat-option value="Đã scan">Đã scan</mat-option>
+                    <mat-option value="Chưa scan">Chưa scan</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <div class="filter-actions">
+                <button mat-button (click)="clearFilters()">
+                    <mat-icon>clear</mat-icon>
+                    Xóa
+                </button>
+                <button mat-raised-button color="primary" (click)="applyFilter(); toggleMobileFilters()">
+                    <mat-icon>check</mat-icon>
+                    Áp dụng
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Card List -->
+        <div class="mobile-chuyenkho-list">
+            <div class="mobile-chuyenkho-card" *ngFor="let item of filteredData">
+                <!-- Card Header -->
+                <div class="card-header">
+                    <div class="card-main-info">
+                        <div class="card-id">
+                            <mat-icon>tag</mat-icon>
+                            <span class="id-text">ID:</span>
+                            <span class="id-value">#{{item.id}}</span>
+                        </div>
+                        <div class="card-code">{{item.ma_yc_xk}}</div>
+                    </div>
+                    <div class="card-badges">
+                        <span class="status-badge" [ngClass]="getStatusClass(item.status)">
+                            {{item.status ? 'Đã duyệt' : 'Chưa duyệt'}}
+                        </span>
+                        <span class="status-badge" [ngClass]="getScanClass(item.scan_status)">
+                            {{item.scan_status ? 'Đã scan' : 'Chưa scan'}}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Transfer Route -->
+                <div class="transfer-route">
+                    <div class="warehouse-box">
+                        <div class="warehouse-label">Từ kho</div>
+                        <div class="warehouse-name">{{getWarehouseName(item.kho_xuat)}}</div>
+                    </div>
+                    <div class="arrow-icon">
+                        <mat-icon>arrow_forward</mat-icon>
+                    </div>
+                    <div class="warehouse-box">
+                        <div class="warehouse-label">Đến kho</div>
+                        <div class="warehouse-name">{{getWarehouseName(item.xuat_toi)}}</div>
+                    </div>
+                </div>
+
+                <!-- Card Content -->
+                <div class="card-content">
+                    <div class="info-row">
+                        <span class="label">Đơn vị lĩnh</span>
+                        <span class="value">{{item.don_vi_linh}}</span>
+                    </div><div class="info-row">
+                        <span class="label">Đơn vị nhận</span>
+                        <span class="value">{{item.don_vi_nhan}}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="label">Lý do</span>
+                        <span class="value">{{item.ly_do_xuat_nhap}}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="label">Ngày chứng từ</span>
+                        <span class="value">{{item.ngay_chung_tu}}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="label">Số chứng từ</span>
+                        <span class="value">{{item.so_chung_tu}}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="label">Số phiếu xuất</span>
+                        <span class="value">{{item.so_phieu_xuat}}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="label">Serial PGH</span>
+                        <span class="value">{{item.series_PGH}}</span>
+                    </div>
+                </div>
+
+                <!-- Card Actions -->
+                <div class="card-actions">
+                    <button mat-raised-button color="primary" (click)="onDetail(item)">
+                        <mat-icon>playlist_add_check</mat-icon>
+                        Xem chi tiết
+                    </button>
+                </div>
+            </div>
+        </div>
         <!-- Pagination -->
         <div class="pagination">
             <mat-form-field class="page-size-select" appearance="outline">

@@ -169,6 +169,9 @@ export class QuanLyKhoComponent implements OnInit {
   filterValues: { [key: string]: string } = {};
   filterMode: string = 'constraint';
   displayedColumns: string[] = [];
+  //mobile
+  showMobileFilter: boolean = false;
+
   //view mode:
   selectedViewMode: 'area' | 'po' | 'customer' | 'product' | null = null;
   currentViewMode: 'default' | 'po' | 'product' | 'area' | 'customer' =
@@ -615,6 +618,36 @@ export class QuanLyKhoComponent implements OnInit {
       .filter((col) => col.visible)
       .map((col) => col.key);
   }
+
+  //mobile
+  toggleMobileFilter():void{
+    this.showMobileFilter = !this.showMobileFilter;
+  }
+  getFilterColumn():string[]{
+    return this.customerParentColumns.filter(col =>
+      col !== 'expand' && col !== 'maKH'
+    );
+  }
+
+  getColumnLabel(col:string):string {
+    const labels: {[key: string]: string} ={
+      'tenKH': 'Tên KH',
+      'tongSLTon': 'Tổng SL Tồn',
+      'tongSLGoc': 'Tổng SL Gốc',
+      'soSP': 'Tên SP',
+      'soPO': 'Tên PO',
+      'soKhuVuc': 'Số Khu Vực',
+      'soPallet': 'Số Pallet',
+      'soThung': 'Số thùng',
+      'ngayCapNhatSomNhat': 'Ngày Nhập',
+    };
+    return labels[col] || col;
+  }
+  clearFilters():void{
+    this.filterValues = {};
+    this.applyFilter();
+  }
+
   //chọn mode search
   setFilterMode(mode: string): void {
     this.filterMode = mode;

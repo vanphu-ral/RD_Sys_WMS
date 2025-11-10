@@ -31,7 +31,7 @@ export class ScanDetailComponent implements OnInit {
     'stt',
     'productId',
     'productName',
-    'inventoryCode',
+    // 'inventoryCode',
     'serialPallet',
     'quantity',
     'scanTime',
@@ -153,11 +153,11 @@ export class ScanDetailComponent implements OnInit {
         const dispatched = item.originalQuantity - item.quantity;
 
         return {
-          products_in_IWTR_id: item.productId,
+          products_in_iwtr_id: item.productId,
           inventory_identifier: item.inventoryCode,
           serial_pallet: item.serialPallet,
           quantity_dispatched: dispatched >= 0 ? dispatched : 0, // ✅ không âm
-          scan_time: new Date().toISOString(),
+          scan_time: new Date().toISOString().slice(0, 19), // "2025-11-08T03:28:01"
           scan_by: 'admin',
         };
       }),
@@ -169,6 +169,12 @@ export class ScanDetailComponent implements OnInit {
           duration: 3000,
           panelClass: ['snackbar-success'],
         });
+        setTimeout(() => {
+          this.router.navigate([
+            '/kho-thanh-pham/chuyen-kho-noi-bo/detail/',
+            this.requestId,
+          ]);
+        }, 3000);
         // this.router.navigate(['/kho-thanh-pham/chuyen-kho-noi-bo']);
       },
       error: (err) => {

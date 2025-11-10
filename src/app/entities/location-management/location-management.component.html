@@ -70,13 +70,21 @@
                 <!-- Area ID Column -->
                 <ng-container matColumnDef="area_id">
                     <th mat-header-cell *matHeaderCellDef>
-                        <div>Kho ID</div>
+                        <div>Kho</div>
                         <mat-form-field class="search-field" appearance="outline">
-                            <input matInput [(ngModel)]="filterValues.area" (keyup.enter)="applyFilter()" />
+                            <mat-select [(ngModel)]="filterValues.area" (selectionChange)="applyFilter()">
+                                <mat-option value="">Tất cả</mat-option>
+                                <mat-option *ngFor="let area of areas" [value]="area.id">
+                                    {{ area.name }}
+                                </mat-option>
+                            </mat-select>
                         </mat-form-field>
                     </th>
-                    <td mat-cell *matCellDef="let location">{{ location.area_id }}</td>
+                    <td mat-cell *matCellDef="let location">
+                        {{ getAreaName(location.area_id) }}
+                    </td>
                 </ng-container>
+
 
                 <!-- Racks Column -->
                 <ng-container matColumnDef="number_of_rack">

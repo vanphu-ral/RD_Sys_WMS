@@ -66,7 +66,9 @@ export class XuatHangDetailComponent implements OnInit {
       },
     });
   }
-
+  getTotalQuantity(): number {
+    return this.detailList.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  }
   onPageChange(page: number): void {
     this.currentPage = page;
     // Load data for specific page
@@ -92,15 +94,18 @@ export class XuatHangDetailComponent implements OnInit {
     this.detailList.forEach((item) => {
       item.quantity = this.globalQuantity!;
     });
-  }
-  onScan(scan: SalesItemDetail): void {
-    const chuyenKhoId = this.route.snapshot.paramMap.get('id');
-    this.router.navigate([
-      '/kho-thanh-pham/xuat-don-ban-hang/detail',
-      chuyenKhoId,
-      'scan',
-      scan.id,
-    ]);
+  } 
+  onScan(item: SalesItemDetail): void {
+    const requestId = this.route.snapshot.paramMap.get('id');
+    this.router.navigate(
+      ['/kho-thanh-pham/xuat-don-ban-hang/detail', requestId, 'scan'],
+      {
+        state: {
+          requestId: requestId,
+          detailList: this.detailList,
+        },
+      }
+    );
   }
   onPageSizeChange(size: number): void {
     this.pageSize = size;

@@ -124,7 +124,7 @@ export class AreaManagementComponent {
   }
 
   getStatusLabel(isActive: boolean): string {
-    return isActive ? 'Active' : 'Inactive';
+    return isActive ? 'Hoạt động' : 'Không hoạt động';
   }
 
   onSearch(): void {

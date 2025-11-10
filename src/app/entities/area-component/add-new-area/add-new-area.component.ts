@@ -46,7 +46,7 @@ export interface Area {
 export class AddNewAreaComponentComponent implements OnInit {
   isSaveArea = false;
   isEditMode = false;
-  pageTitle = 'Thêm mới Area';
+  pageTitle = 'Thêm mới kho';
   submitLabel = 'Lưu';
   area = {
     id: 0,
@@ -68,7 +68,7 @@ export class AddNewAreaComponentComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEditMode = true;
-      this.pageTitle = 'Chỉnh sửa Area';
+      this.pageTitle = 'Chỉnh sửa thông tin kho';
       this.submitLabel = 'Cập nhật';
       this.loadAreaById(+id);
     }

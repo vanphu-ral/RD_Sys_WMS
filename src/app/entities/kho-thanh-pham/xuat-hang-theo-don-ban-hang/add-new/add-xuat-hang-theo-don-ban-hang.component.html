@@ -61,6 +61,67 @@
                 </table>
             </div>
         </div>
+        <div class="mobile-main-info">
+            <!-- Info Card -->
+            <div class="info-card">
+                <div class="card-header">
+                    <span class="header-label">Thông tin chuyển kho</span>
+                    <div class="header-icon">
+                        <mat-icon>info</mat-icon>
+                    </div>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">Số phiếu</span>
+                        <span class="value">{{mainInfo.soPhieuGiaoHang}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Mã khách hàng</span>
+                        <span class="value">{{mainInfo.maKhachHang}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Số chứng từ</span>
+                        <span class="value">{{mainInfo.soChungTu}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Ngày giao hàng</span>
+                        <span class="value">{{mainInfo.ngayGiaoHang}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Khách hàng</span>
+                        <span class="value">{{mainInfo.tenKhachHang}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Đơn vị lĩnh</span>
+                        <span class="value">{{mainInfo.donViLinh}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Lý do</span>
+                        <span class="value">{{mainInfo.lyDoNhapXuat}}</span>
+                    </div>
+                    <div class="info-item" *ngIf="mainInfo.ghiChu">
+                        <span class="label">Ghi chú</span>
+                        <span class="value">{{mainInfo.ghiChu}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-box pallet">
+                    <div class="stat-label">Pallet</div>
+                    <div class="stat-value">{{mainInfo.soPallet}}</div>
+                </div>
+                <div class="stat-box box">
+                    <div class="stat-label">Thùng</div>
+                    <div class="stat-value">{{mainInfo.soBox}}</div>
+                </div>
+                <div class="stat-box product">
+                    <div class="stat-label">Tổng số lượng</div>
+                    <div class="stat-value">{{mainInfo.tongSoLuong}}</div>
+                </div>
+            </div>
+        </div>
     </mat-card>
 
     <!-- Thông tin chi tiết Card -->
@@ -114,6 +175,43 @@
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
             </table>
+        </div>
+        <div class="mobile-detail-list">
+            <div class="mobile-detail-card" *ngFor="let item of detailList; let i = index">
+                <div class="detail-header">
+                    <div class="detail-number">
+                        <mat-icon>inventory_2</mat-icon>
+                        <span>#{{((currentPage - 1) * pageSize) + i + 1}}</span>
+                    </div>
+                    <div class="po-badge">{{item.maPO}}</div>
+                </div>
+
+                <div class="product-info">
+                    <div class="product-code">{{item.maHangHoa}}</div>
+                    <div class="product-name">{{item.tenHangHoa}}</div>
+                </div>
+
+                <div class="detail-info">
+                    <div class="detail-row">
+                        <span class="label">Ngày giao hàng</span>
+                        <span class="value">{{item.ngayGiaoHang}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Kho xuất bán</span>
+                        <span class="value warehouse">{{item.donViTinh}}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Số lượng</span>
+                        <span class="value quantity">{{item.soLuong}} {{item.donViTinh}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" *ngIf="detailList.length === 0">
+                <mat-icon>inbox</mat-icon>
+                <p>Chưa có sản phẩm</p>
+            </div>
         </div>
 
         <!-- Pagination -->

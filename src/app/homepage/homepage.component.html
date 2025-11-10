@@ -12,7 +12,7 @@
 
   <div *ngIf="isLoggedIn">
     <p>Bạn đã đăng nhập thành công!</p>
-    <button mat-raised-button color="accent" routerLink="/areas">
+    <button mat-raised-button color="primary" (click)="redirectToArea()">
       Vào hệ thống
     </button>
   </div>

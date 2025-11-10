@@ -73,9 +73,12 @@ export class NhapKhoComponent {
   loadDanhSachNhapKho(): void {
     this.nhapKhoService.getDanhSachNhapKho().subscribe({
       next: (res) => {
-        this.originalList = res;
-        this.nhapKhoList = res.slice(0, this.pageSize);
-        this.totalItems = res.length;
+        // Sắp xếp theo id giảm dần
+        const sorted = [...res].sort((a, b) => b.id - a.id);
+
+        this.originalList = sorted;
+        this.nhapKhoList = sorted.slice(0, this.pageSize);
+        this.totalItems = sorted.length;
       },
       error: (err) => {
         console.error('Lỗi khi lấy danh sách nhập kho:', err);

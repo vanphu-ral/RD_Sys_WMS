@@ -14,6 +14,8 @@ import { LocationService } from './service/location-management.service.component
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Location } from './models/location.model';
+import { AreaService } from '../area-component/service/area-service.component';
+import { Area } from '../area-component/area-management.component';
 
 @Component({
   selector: 'app-location-component',
@@ -70,13 +72,16 @@ export class LocationManagementComponent implements OnInit {
   currentPage: number = 1;
   totalItems: number = 0;
   totalPages: number = 1;
+  areas: Area[] = [];
   constructor(
     private locationService: LocationService,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private areaService: AreaService
   ) {}
   ngOnInit(): void {
     this.loadLocations();
+    this.loadAreas();
   }
   //load data
   loadLocations(): void {
@@ -112,6 +117,20 @@ export class LocationManagementComponent implements OnInit {
 
   getStatusLabel(isActive: boolean | undefined): string {
     return isActive === true ? 'Active' : 'Inactive';
+  }
+  loadAreas(): void {
+    this.areaService.getAreas().subscribe({
+      next: (res) => {
+        this.areas = res.data; // danh sách kho chính
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy danh sách kho:', err);
+      },
+    });
+  }
+  getAreaName(id: number): string {
+    const area = this.areas.find((a) => a.id === id);
+    return area?.name || `#${id}`;
   }
 
   onSearch(): void {
@@ -227,37 +246,29 @@ export class LocationManagementComponent implements OnInit {
   applyFilter(): void {
     this.currentPage = 1;
 
-    const filtered = this.originalLocations.filter((loc) => {
-      const matchesCode = loc.code
-        ?.toLowerCase()
-        .includes(this.filterValues.code.trim().toLowerCase());
-      const matchesName = loc.name
-        ?.toLowerCase()
-        .includes(this.filterValues.name.trim().toLowerCase());
-      const matchesDescription = loc.description
-        ?.toLowerCase()
-        .includes(this.filterValues.description.trim().toLowerCase());
-      const matchesArea = String(loc.area_id).includes(
-        this.filterValues.area.trim()
-      );
+    const filters = {
+      code: this.filterValues.code?.trim(),
+      name: this.filterValues.name?.trim(),
+      description: this.filterValues.description?.trim(),
+      area_id: this.filterValues.area || '', // truyền id
+      is_active: this.filterValues.is_active,
+      is_multi_location: this.selectedTypeFilter,
+    };
 
-      const matchesStatus =
-        this.filterValues.is_active === ''
-          ? true
-          : String(loc.is_active) === this.filterValues.is_active;
-
-      return (
-        matchesCode &&
-        matchesName &&
-        matchesDescription &&
-        matchesArea &&
-        matchesStatus
-      );
-    });
-
-    this.totalItems = filtered.length;
-    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
-    this.locations = filtered;
+    this.locationService
+      .getLocations(this.currentPage, this.pageSize, filters)
+      .subscribe({
+        next: (res) => {
+          this.locations = res.data;
+          this.filteredData = [...res.data];
+          this.totalItems = res.meta.total_items;
+          this.pageSize = res.meta.size;
+          this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+        },
+        error: (err) => {
+          console.error('Lỗi khi lọc danh sách location:', err);
+        },
+      });
   }
 
   //mobile filter methods

@@ -37,37 +37,37 @@ export const routes: Routes = [
     path: 'areas',
     component: AreaManagementComponent,
     data: { tabLabel: 'Quản lý Area', isClosable: false },
-    canActivate: [AuthGuard],
+    // canActivate: [AuthGuard],
   },
   {
     path: 'areas/add-new',
     component: AddNewAreaComponentComponent,
     data: { tabLabel: 'Thêm mới Areas', isClosable: false },
-    canActivate: [AuthGuard],
+    // canActivate: [AuthGuard],
   },
   {
     path: 'areas/add-new/:id',
     component: AddNewAreaComponentComponent,
     data: { tabLabel: 'Chỉnh sửa Area', isClosable: true },
-    canActivate: [AuthGuard],
+    // canActivate: [AuthGuard],
   },
   {
     path: 'location',
     component: LocationManagementComponent,
     data: { tabLabel: 'Quản lý Locations', isClosable: false },
-    canActivate: [AuthGuard],
+    // canActivate: [AuthGuard],
   },
   {
     path: 'location/add-new',
     component: AddNewLocationComponentComponent,
     data: { tabLabel: 'Thêm mới Locations', isClosable: false },
-    canActivate: [AuthGuard],
+    // canActivate: [AuthGuard],
   },
   {
     path: 'location/add-new/:id',
     component: AddNewLocationComponentComponent,
     data: { tabLabel: 'Chỉnh sửa mới Locations', isClosable: false },
-    canActivate: [AuthGuard],
+    // canActivate: [AuthGuard],
   },
 
   {
@@ -128,6 +128,11 @@ export const routes: Routes = [
         data: { tabLabel: 'Thêm mới yêu cầu xuất kho', isClosable: true },
       },
       {
+        path: 'xuat-don-ban-hang/detail/:id/scan',
+        component: ScanDetailXuatHangComponent,
+        data: { tabLabel: 'Chi tiết yêu cầu chuyển kho', isClosable: true },
+      },
+      {
         path: 'xuat-don-ban-hang/detail/:id/scan/:id',
         component: ScanDetailXuatHangComponent,
         data: { tabLabel: 'Scan yêu cầu xuát kho', isClosable: true },
@@ -135,7 +140,7 @@ export const routes: Routes = [
 
       { path: '', redirectTo: 'nhap-kho-sx', pathMatch: 'full' },
     ],
-    canActivate: [AuthGuard],
+    // canActivate: [AuthGuard],
   },
   {
     path: 'bao-cao-thong-ke',
@@ -146,7 +151,7 @@ export const routes: Routes = [
       },
       { path: 'thong-ke-ton-kho', component: ThongKeTonKhoComponent },
     ],
-    canActivate: [AuthGuard],
+    // canActivate: [AuthGuard],
   },
   {
     path: 'encoded/:encodedUrl',

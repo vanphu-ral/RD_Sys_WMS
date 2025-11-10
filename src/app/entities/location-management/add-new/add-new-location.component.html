@@ -4,7 +4,7 @@
         <div class="header-title">
             <mat-icon class="title-icon">location_on</mat-icon>
             <div>
-                <h1>{{ isEditMode ? 'Chỉnh sửa khu vực' : 'Thêm mới khu vực' }}</h1>
+                <h1>{{ isEditMode ? 'Chỉnh sửa vị trí' : 'Thêm mới vị trí' }}</h1>
                 <p class="subtitle">Locations Management</p>
             </div>
         </div>
@@ -21,7 +21,7 @@
         <div class="card-header">
             <div class="table-title">
                 <mat-icon>add_circle_outline</mat-icon>
-                <span>Thông tin khu vực</span>
+                <span>Thông tin vị trí</span>
             </div>
             <!-- <div class="table-actions">
                 <button mat-raised-button (click)="onRefresh()" class="refresh-btn icon-only">
@@ -35,12 +35,12 @@
         <div class="location-form">
             <div class="form-row">
                 <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Mã khu vực</mat-label>
+                    <mat-label>Mã vị trí</mat-label>
                     <input matInput [(ngModel)]="location.code" placeholder="Nhập mã location" />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Tên khu vực</mat-label>
+                    <mat-label>Tên vị trí</mat-label>
                     <input matInput [(ngModel)]="location.name" placeholder="Nhập tên location"
                         (ngModelChange)="updateBarcode()" />
                 </mat-form-field>
@@ -114,7 +114,7 @@
                         <mat-label>Prefix Name</mat-label>
                         <input matInput [(ngModel)]="prefix.name" />
                     </mat-form-field>
-                    <span class="info-configuration">*Tiền tố cho tên location</span>
+                    <span class="info-configuration">*Tiền tố cho tên vị trí phụ</span>
                 </div>
 
                 <div style="display: flex; flex-direction: column;">
@@ -125,7 +125,7 @@
                     <span class="info-configuration">*Ký tự ngăn cách prefix</span>
                 </div>
                 <mat-slide-toggle [(ngModel)]="appendMode">
-                    Thêm tiếp sub location (Tính từ sub location đã có hiện tại)
+                    Thêm tiếp vị trí phụ (Tính từ vị trí phụ đã có hiện tại)
                 </mat-slide-toggle>
             </div>
         </mat-card>

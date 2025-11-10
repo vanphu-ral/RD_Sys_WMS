@@ -22,7 +22,7 @@
         <div class="card-header">
             <div class="table-title">
                 <mat-icon>add_circle_outline</mat-icon>
-                <span>Thông tin Area</span>
+                <span>Thông tin kho</span>
             </div>
         </div>
 
@@ -30,17 +30,17 @@
                 <!-- Row 1 -->
                 <div class="form-row">
                     <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>Mã Area</mat-label>
+                        <mat-label>Mã Kho</mat-label>
                         <input matInput name="code" [(ngModel)]="area.code" required placeholder="Nhập mã area"
                             #code="ngModel" />
-                        <mat-error *ngIf="code.invalid && code.touched">Mã area là bắt buộc</mat-error>
+                        <mat-error *ngIf="code.invalid && code.touched">Mã kho là bắt buộc</mat-error>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>Tên Area</mat-label>
+                        <mat-label>Tên Kho</mat-label>
                         <input matInput name="name" [(ngModel)]="area.name" required placeholder="Nhập tên area"
                             #name="ngModel" />
-                        <mat-error *ngIf="name.invalid && name.touched">Tên area là bắt buộc</mat-error>
+                        <mat-error *ngIf="name.invalid && name.touched">Tên kho là bắt buộc</mat-error>
                     </mat-form-field>
                 </div>
 
@@ -67,7 +67,7 @@
                         <mat-label>Description</mat-label>
                         <textarea matInput name="description" [(ngModel)]="area.description"
                             placeholder="Mô tả area" #description="ngModel"></textarea>
-                        <mat-error *ngIf="description.invalid && description.touched">Mô tả là bắt buộc</mat-error>
+                        <!-- <mat-error *ngIf="description.invalid && description.touched">Mô tả là bắt buộc</mat-error> -->
                     </mat-form-field>
                 </div>
 
@@ -76,7 +76,7 @@
                     <button *ngIf="isSaveArea" mat-raised-button color="primary" class="add-btn"
                         [routerLink]="'/location/add-new'">
                         <mat-icon>add_circle</mat-icon>
-                        Thêm mới location
+                        Thêm mới vị trí
                     </button>
                 </div>
             </div>
