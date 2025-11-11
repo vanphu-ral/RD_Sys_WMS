@@ -28,6 +28,7 @@ import { AuthCallbackComponent } from './entities/auth-callback/auth-callback.co
 import { ThongKeTonKhoComponent } from './entities/bao-cao-thong-ke/thong-ke-ton-kho/thong-ke-ton-kho.component';
 import { EncodedRedirectComponent } from './entities/encoded-redirect/encoded-redirect.component';
 import { UserInfoComponent } from './user/user-info.component';
+import { UnauthorizedComponent } from './entities/unauthorized/unauthorized.component';
 
 export const routes: Routes = [
   {
@@ -48,125 +49,206 @@ export const routes: Routes = [
   {
     path: 'areas',
     component: AreaManagementComponent,
-    data: { tabLabel: 'Quản lý Area', isClosable: false },
     canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Quản lý Area',
+      isClosable: false,
+      roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+    }
   },
   {
     path: 'areas/add-new',
     component: AddNewAreaComponentComponent,
-    data: { tabLabel: 'Thêm mới Areas', isClosable: false },
     canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Thêm mới Areas',
+      isClosable: false,
+      roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN']
+    }
   },
   {
     path: 'areas/add-new/:id',
     component: AddNewAreaComponentComponent,
-    data: { tabLabel: 'Chỉnh sửa Area', isClosable: true },
     canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Chỉnh sửa Area',
+      isClosable: true,
+      roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN']
+    }
   },
   {
     path: 'location',
     component: LocationManagementComponent,
-    data: { tabLabel: 'Quản lý Locations', isClosable: false },
     canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Quản lý Locations',
+      isClosable: false,
+      roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+    }
   },
   {
     path: 'location/add-new',
     component: AddNewLocationComponentComponent,
-    data: { tabLabel: 'Thêm mới Locations', isClosable: false },
     canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Thêm mới Locations',
+      isClosable: false,
+      roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN']
+    }
   },
   {
     path: 'location/add-new/:id',
     component: AddNewLocationComponentComponent,
-    data: { tabLabel: 'Chỉnh sửa mới Locations', isClosable: false },
     canActivate: [AuthGuard],
-  },
-
-  {
-    path: 'kho-thanh-pham',
-    children: [
-      { path: 'chuyen-kho-noi-bo', component: ChuyenKhoComponent },
-      {
-        path: 'chuyen-kho-noi-bo/add-new',
-        component: AddYeuCauChuyenKhoComponent,
-        data: { tabLabel: 'Thêm mới yêu cầu chuyển kho', isClosable: true },
-      },
-      {
-        path: 'chuyen-kho-noi-bo/detail/:id',
-        component: ChuyenKhoDetailComponent,
-        data: { tabLabel: 'Chi tiết yêu cầu chuyển kho', isClosable: true },
-      },
-      {
-        path: 'chuyen-kho-noi-bo/detail/:id/scan/:id',
-        component: ScanDetailComponent,
-        data: { tabLabel: 'Chi tiết yêu cầu chuyển kho', isClosable: true },
-      },
-      {
-        path: 'chuyen-kho-noi-bo/detail/:id/scan',
-        component: ScanDetailComponent,
-        data: { tabLabel: 'Chi tiết yêu cầu chuyển kho', isClosable: true },
-      },
-      { path: 'nhap-kho-sx', component: NhapKhoComponent },
-      {
-        path: 'nhap-kho-sx/phe-duyet/:id',
-        component: PheDuyetComponent,
-        data: { tabLabel: 'Phê duyệt nhập kho', isClosable: true },
-      },
-      {
-        path: 'nhap-kho-sx/detail/:id',
-        component: ChiTietNhapKhoComponent,
-        data: { tabLabel: 'Chi tiết nhập kho', isClosable: true },
-      },
-      {
-        path: 'nhap-kho-sx/scan',
-        component: ScanCheckComponent,
-        data: { tabLabel: 'Quét mã', isClosable: true },
-      },
-      {
-        path: 'nhap-kho-sx/scan/:id',
-        component: ScanCheckComponent,
-        data: { tabLabel: 'Quét mã', isClosable: true },
-      },
-      { path: 'quan-ly-kho', component: QuanLyKhoComponent },
-      { path: 'xuat-don-ban-hang', component: XuatHangTheoDonBanHangComponent },
-      {
-        path: 'xuat-don-ban-hang/detail/:id',
-        component: XuatHangDetailComponent,
-        data: { tabLabel: 'Chi tiết yêu cầu xuất kho', isClosable: true },
-      },
-      {
-        path: 'xuat-don-ban-hang/add-new',
-        component: AddXuatHangTheoDonBanHangComponent,
-        data: { tabLabel: 'Thêm mới yêu cầu xuất kho', isClosable: true },
-      },
-      {
-        path: 'xuat-don-ban-hang/detail/:id/scan',
-        component: ScanDetailXuatHangComponent,
-        data: { tabLabel: 'Chi tiết yêu cầu chuyển kho', isClosable: true },
-      },
-      {
-        path: 'xuat-don-ban-hang/detail/:id/scan/:id',
-        component: ScanDetailXuatHangComponent,
-        data: { tabLabel: 'Scan yêu cầu xuát kho', isClosable: true },
-      },
-
-      { path: '', redirectTo: 'nhap-kho-sx', pathMatch: 'full' },
-    ],
-    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Chỉnh sửa Locations',
+      isClosable: false,
+      roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN']
+    }
   },
   {
-    path: 'bao-cao-thong-ke',
-    children: [
-      {
-        path: 'tong-hop-xuat-nhap-ton',
-        component: TongHopXuatNhapTonComponent,
-      },
-      { path: 'thong-ke-ton-kho', component: ThongKeTonKhoComponent },
-    ],
+    path: 'kho-thanh-pham/chuyen-kho-noi-bo',
+    component: ChuyenKhoComponent,
     canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Chuyển kho nội bộ',
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+    }
   },
+  {
+    path: 'kho-thanh-pham/chuyen-kho-noi-bo/add-new',
+    component: AddYeuCauChuyenKhoComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Thêm mới yêu cầu chuyển kho',
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/chuyen-kho-noi-bo/detail/:id',
+    component: ChuyenKhoDetailComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Chi tiết yêu cầu chuyển kho',
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/chuyen-kho-noi-bo/detail/:id/scan',
+    component: ScanDetailComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Scan chuyển kho',
+      roles: ['WMS_RD_STOCKOPS', 'WMS_RD_ADMIN']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/nhap-kho-sx',
+    component: NhapKhoComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Nhập kho sản xuất',
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/nhap-kho-sx/phe-duyet/:id',
+    component: PheDuyetComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Phê duyệt nhập kho',
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/nhap-kho-sx/detail/:id',
+    component: ChiTietNhapKhoComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Chi tiết nhập kho',
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/nhap-kho-sx/scan',
+    component: ScanCheckComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Quét mã nhập kho',
+      roles: ['WMS_RD_PUTAWAY', 'WMS_RD_ADMIN']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/quan-ly-kho',
+    component: QuanLyKhoComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Quản lý kho',
+      roles: ['WMS_RD_STOCKOPS', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/xuat-don-ban-hang',
+    component: XuatHangTheoDonBanHangComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Xuất đơn bán hàng',
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/xuat-don-ban-hang/add-new',
+    component: AddXuatHangTheoDonBanHangComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Thêm mới yêu cầu xuất kho',
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/xuat-don-ban-hang/detail/:id',
+    component: XuatHangDetailComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Chi tiết yêu cầu xuất kho',
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/xuat-don-ban-hang/detail/:id/scan',
+    component: ScanDetailXuatHangComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Scan xuất kho',
+      roles: ['WMS_RD_STOCKOPS', 'WMS_RD_ADMIN']
+    }
+  },
+  {
+    path: 'bao-cao-thong-ke/tong-hop-xuat-nhap-ton',
+    component: TongHopXuatNhapTonComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Tổng hợp xuất nhập tồn',
+      roles: ['WMS_RD_VIEW', 'WMS_RD_ADMIN']
+    }
+  },
+  {
+    path: 'bao-cao-thong-ke/thong-ke-ton-kho',
+    component: ThongKeTonKhoComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Thống kê tồn kho',
+      roles: ['WMS_RD_VIEW', 'WMS_RD_ADMIN']
+    }
+  }
+  ,
   {
     path: 'encoded/:encodedUrl',
-    component: EncodedRedirectComponent, 
+    component: EncodedRedirectComponent,
   },
+  {
+    path: 'unauthorized',
+    component: UnauthorizedComponent,
+    data: { tabLabel: 'Không có quyền truy cập', isClosable: true }
+  }
 ];

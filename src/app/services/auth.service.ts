@@ -18,13 +18,24 @@ interface TokenPayload {
 })
 export class AuthService {
   hasAnyRole(arg0: string[]): any {
-      throw new Error('Method not implemented.');
+    throw new Error('Method not implemented.');
   }
   hasRole(arg0: string): any {
-      throw new Error('Method not implemented.');
+    throw new Error('Method not implemented.');
   }
   getUserRoles(): string[] {
-      throw new Error('Method not implemented.');
+    const token = this.getAccessToken();
+    if (!token) return [];
+
+    try {
+      const decoded = jwtDecode<any>(token);
+      const realmRoles = decoded.realm_access?.roles || [];
+      const clientRoles = Object.values(decoded.resource_access || {})
+        .flatMap((client: any) => client.roles || []);
+      return [...realmRoles, ...clientRoles];
+    } catch {
+      return [];
+    }
   }
   private isLoggedInSubject = new BehaviorSubject<boolean>(this.hasValidToken());
   private usernameSubject = new BehaviorSubject<string>(this.getStoredUsername());
@@ -35,7 +46,7 @@ export class AuthService {
   private readonly KEYCLOAK_URL = 'https://ssosys.rangdong.com.vn:9002';
   private readonly REALM = 'rangdong';
   private readonly CLIENT_ID = 'RD_KHO';
-  
+
   // Session timeout: 30 phút (1800000ms)
   private readonly SESSION_TIMEOUT = 30 * 60 * 1000;
   private sessionTimer?: Subscription;
@@ -71,7 +82,7 @@ export class AuthService {
   private generateState(): string {
     const array = new Uint8Array(16);
     crypto.getRandomValues(array);
-    return this.base64UrlEncode(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
   }
 
   // ============= TOKEN VALIDATION =============
@@ -82,7 +93,7 @@ export class AuthService {
     try {
       const decoded = jwtDecode<TokenPayload>(token);
       const now = Date.now() / 1000;
-      
+
       // Token còn hơn 30s mới coi là valid
       return decoded.exp > now + 30;
     } catch (error) {
@@ -98,39 +109,43 @@ export class AuthService {
   // ============= LOGIN FLOW =============
   async initiateLogin(returnUrl?: string): Promise<void> {
     try {
-      // Lưu return URL
       if (returnUrl) {
         sessionStorage.setItem('returnUrl', returnUrl);
       }
 
-      // Generate PKCE parameters
       const codeVerifier = this.generateCodeVerifier();
       const codeChallenge = await this.generateCodeChallenge(codeVerifier);
       const state = this.generateState();
 
-      // Lưu vào sessionStorage (bảo mật hơn localStorage)
+
       sessionStorage.setItem('code_verifier', codeVerifier);
       sessionStorage.setItem('auth_state', state);
 
-      const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
-      
-      const loginUrl = 
+      const redirectUri = `${window.location.origin}/auth/callback`;
+
+      const loginUrl =
         `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/auth?` +
         `client_id=${this.CLIENT_ID}&` +
         `response_type=code&` +
-        `redirect_uri=${redirectUri}&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
         `scope=openid profile email&` +
         `state=${state}&` +
         `code_challenge=${codeChallenge}&` +
         `code_challenge_method=S256`;
 
-      console.log('[AuthService] Redirecting to Keycloak login');
-      window.location.href = loginUrl;
+      console.log('[AuthService] Redirecting to Keycloak login:', loginUrl);
+
+
+      setTimeout(() => {
+        window.location.href = loginUrl;
+      }, 50);
+
     } catch (error) {
       console.error('[AuthService] Error initiating login:', error);
       throw error;
     }
   }
+
 
   // ============= HANDLE CALLBACK =============
   async handleCallback(code: string, state: string): Promise<string> {
@@ -148,10 +163,10 @@ export class AuthService {
 
       // Exchange code for tokens
       const tokens = await this.exchangeCodeForTokens(code, codeVerifier);
-      
+
       // Save tokens
       this.setToken(tokens.access_token, tokens.refresh_token);
-      
+
       // Decode and save user info
       const decoded = jwtDecode<TokenPayload>(tokens.access_token);
       this.setUsername(decoded.preferred_username || decoded.sub);
@@ -196,9 +211,9 @@ export class AuthService {
     localStorage.setItem('access_token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
     localStorage.setItem('login_time', Date.now().toString());
-    
+
     this.isLoggedInSubject.next(true);
-    
+
     // Bắt đầu quản lý session
     this.startSessionTimer();
     this.startTokenRefresh();
@@ -255,7 +270,7 @@ export class AuthService {
       const decoded = jwtDecode<TokenPayload>(token);
       const expiresAt = decoded.exp * 1000;
       const now = Date.now();
-      
+
       // Refresh 2 phút trước khi hết hạn
       const refreshAt = expiresAt - (2 * 60 * 1000);
       const delay = refreshAt - now;
@@ -380,4 +395,49 @@ export class AuthService {
   getAccessToken(): string | null {
     return localStorage.getItem('access_token');
   }
+  clearAuthData(): void {
+    console.log('[AuthService] Clearing auth data...');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('id_token');
+    localStorage.removeItem('user_info');
+    localStorage.removeItem('username');
+    localStorage.removeItem('oauth_state');
+    localStorage.removeItem('return_url');
+
+    this.isLoggedInSubject.next(false);
+    this.usernameSubject.next('');
+  }
+
+  /**
+   * Start login flow
+   */
+  login(returnUrl: string = '/'): void {
+    console.log('[AuthService] Starting login flow...');
+
+    // Save return URL
+    localStorage.setItem('return_url', returnUrl);
+
+    // Generate state
+    const state = this.generateState();
+    localStorage.setItem('oauth_state', state);
+
+    const redirectUri = `${window.location.origin}/auth/callback`;
+
+    // Build login URL with prompt=login to force re-authentication
+    const params = new URLSearchParams({
+      client_id: this.CLIENT_ID,
+      response_type: 'code',
+      redirect_uri: redirectUri,
+      scope: 'openid profile email',
+      state: state,
+      prompt: 'login', // Force login screen
+    });
+
+    const loginUrl = `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/auth?${params.toString()}`;
+
+    console.log('[AuthService] Redirecting to:', loginUrl);
+    window.location.href = loginUrl;
+  }
+
 }

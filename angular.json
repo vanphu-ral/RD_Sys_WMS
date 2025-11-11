@@ -69,13 +69,6 @@
               "buildTarget": "WMS-app:build:development"
             }
           },
-          "options": {
-            "ssl": true,
-            "sslKey": "certs/localhost-key.pem",
-            "sslCert": "certs/localhost.pem",
-            "host": "0.0.0.0",
-            "port": 4200
-          },
           "defaultConfiguration": "development"
         },
         "extract-i18n": {

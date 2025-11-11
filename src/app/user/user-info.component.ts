@@ -201,15 +201,15 @@ interface DecodedToken {
     }
 
     .role-badge.realm {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #46559cff 0%, #5e3b82ff 100%);
     }
 
     .role-badge.client {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      background: linear-gradient(135deg, #995d9fff 0%, #7e2a35ff 100%);
     }
 
     .role-badge.all {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      background: linear-gradient(135deg, #295d89ff 0%, #006f75ff 100%);
     }
 
     .no-roles {
