@@ -25,7 +25,7 @@ export class AuthGuard implements CanActivate {
         localStorage.setItem('returnUrl', state.url);
         
         const clientId = 'RD_KHO';
-        const realm = 'master';
+        const realm = 'rangdong';
         const redirectUri = encodeURIComponent(window.location.origin + '/home');
         const loginUrl = `https://ssosys.rangdong.com.vn:9002/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
 

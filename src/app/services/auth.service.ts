@@ -32,9 +32,8 @@ export class AuthService {
   isLoggedIn$: Observable<boolean> = this.isLoggedInSubject.asObservable();
   username$: Observable<string> = this.usernameSubject.asObservable();
 
-  // ⚠️ THAY ĐỔI URL NÀY THEO YÊU CẦU CỦA BẠN
   private readonly KEYCLOAK_URL = 'https://ssosys.rangdong.com.vn:9002';
-  private readonly REALM = 'master';
+  private readonly REALM = 'rangdong';
   private readonly CLIENT_ID = 'RD_KHO';
   
   // Session timeout: 30 phút (1800000ms)

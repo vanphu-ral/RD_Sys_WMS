@@ -63,7 +63,7 @@ export class HomepageComponent implements OnInit {
 
     this.http
       .post(
-        'https://ssosys.rangdong.com.vn:9002/realms/master/protocol/openid-connect/token',
+        'https://ssosys.rangdong.com.vn:9002/realms/rangdong/protocol/openid-connect/token',
         body.toString(),
         {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -106,7 +106,7 @@ export class HomepageComponent implements OnInit {
   getUserInfo(accessToken: string): void {
     this.http
       .get(
-        'https://ssosys.rangdong.com.vn:9002/realms/master/protocol/openid-connect/userinfo',
+        'https://ssosys.rangdong.com.vn:9002/realms/rangdong/protocol/openid-connect/userinfo',
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -133,7 +133,7 @@ export class HomepageComponent implements OnInit {
 
   redirectToLogin(): void {
     const clientId = 'RD_KHO';
-    const realm = 'master';
+    const realm = 'rangdong';
     const redirectUri = encodeURIComponent(window.location.origin + '/home');
     const loginUrl = `https://ssosys.rangdong.com.vn:9002/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
 

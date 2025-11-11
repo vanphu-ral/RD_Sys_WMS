@@ -381,29 +381,29 @@ export class UserInfoComponent implements OnInit {
         return `${secs} giây`;
     }
 
-    logToConsole() {
-        console.group('🔐 USER INFO & ROLES');
-        console.log('User Info:', this.userInfo);
-        console.log('Realm Roles:', this.realmRoles);
-        console.log('Client Roles:', this.clientRoles);
-        console.log('All Roles:', this.allRoles);
-        console.log('Token Info:', this.tokenInfo);
-        console.log('Raw Token:', this.rawToken);
-        console.groupEnd();
-    }
+    // logToConsole() {
+    //     console.group(' USER INFO & ROLES');
+    //     console.log('User Info:', this.userInfo);
+    //     console.log('Realm Roles:', this.realmRoles);
+    //     console.log('Client Roles:', this.clientRoles);
+    //     console.log('All Roles:', this.allRoles);
+    //     console.log('Token Info:', this.tokenInfo);
+    //     console.log('Raw Token:', this.rawToken);
+    //     console.groupEnd();
+    // }
 
-    testRoleCheck() {
-        console.group('🧪 ROLE CHECK TESTS');
+    // testRoleCheck() {
+    //     console.group(' ROLE CHECK TESTS');
 
-        // Test hasRole
-        console.log('Has "admin" role?', this.authService.hasRole('admin'));
-        console.log('Has "user" role?', this.authService.hasRole('user'));
-        console.log('Has "warehouse_manager" role?', this.authService.hasRole('warehouse_manager'));
+    //     // Test hasRole
+    //     console.log('Has "admin" role?', this.authService.hasRole('admin'));
+    //     console.log('Has "user" role?', this.authService.hasRole('user'));
+    //     console.log('Has "warehouse_manager" role?', this.authService.hasRole('warehouse_manager'));
 
-        // Test hasAnyRole
-        console.log('Has any of ["admin", "superadmin"]?',
-            this.authService.hasAnyRole(['admin', 'superadmin']));
+    //     // Test hasAnyRole
+    //     console.log('Has any of ["admin", "superadmin"]?',
+    //         this.authService.hasAnyRole(['admin', 'superadmin']));
 
-        console.groupEnd();
-    }
+    //     console.groupEnd();
+    // }
 }
