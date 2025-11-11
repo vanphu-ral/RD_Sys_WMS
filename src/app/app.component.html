@@ -45,7 +45,7 @@
 
       <!-- Nếu chưa đăng nhập -->
       <div class="user" *ngIf="!isLoggedIn">
-        <button mat-button routerLink="/" class="login-button">
+        <button mat-button (click)="login()" class="login-button">
           <mat-icon>login</mat-icon>
           <span>Đăng nhập</span>
         </button>

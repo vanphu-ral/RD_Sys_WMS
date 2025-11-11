@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from './AuthService';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-homepage',
@@ -13,13 +13,15 @@ import { AuthService } from './AuthService';
 })
 export class HomepageComponent implements OnInit {
   isLoggedIn = false;
+  isLoggedIn$ = this.authService.isLoggedIn$;
+  username$ = this.authService.username$;
   private isProcessingToken = false;
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
     private router: Router,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     // Kiểm tra đăng nhập từ AuthService
@@ -61,7 +63,7 @@ export class HomepageComponent implements OnInit {
 
     this.http
       .post(
-        'http://192.168.20.97:9000/realms/master/protocol/openid-connect/token',
+        'https://ssosys.rangdong.com.vn:9002/realms/master/protocol/openid-connect/token',
         body.toString(),
         {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -104,7 +106,7 @@ export class HomepageComponent implements OnInit {
   getUserInfo(accessToken: string): void {
     this.http
       .get(
-        'http://192.168.20.97:9000/realms/master/protocol/openid-connect/userinfo',
+        'https://ssosys.rangdong.com.vn:9002/realms/master/protocol/openid-connect/userinfo',
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -133,12 +135,21 @@ export class HomepageComponent implements OnInit {
     const clientId = 'RD_KHO';
     const realm = 'master';
     const redirectUri = encodeURIComponent(window.location.origin + '/home');
-    const loginUrl = `http://192.168.20.97:9000/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
+    const loginUrl = `https://ssosys.rangdong.com.vn:9002/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
 
     console.log('[HomePage] Redirecting to login:', loginUrl);
     window.location.href = loginUrl;
   }
-  redirectToArea(): void{
+  redirectToArea(): void {
     this.router.navigate(['/areas']);
+  }
+  login() {
+    this.authService.initiateLogin();
+  }
+
+  logout() {
+    this.authService.logout().subscribe(() => {
+      this.router.navigate(['/home']);
+    });
   }
 }

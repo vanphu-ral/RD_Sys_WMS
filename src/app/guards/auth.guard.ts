@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
-import { AuthService } from './AuthService';
+import { AuthService } from '../services/auth.service'; 
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
@@ -27,7 +27,7 @@ export class AuthGuard implements CanActivate {
         const clientId = 'RD_KHO';
         const realm = 'master';
         const redirectUri = encodeURIComponent(window.location.origin + '/home');
-        const loginUrl = `http://192.168.20.97:9000/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
+        const loginUrl = `https://ssosys.rangdong.com.vn:9002/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
 
         console.log('[AuthGuard] Redirecting to login:', loginUrl);
         

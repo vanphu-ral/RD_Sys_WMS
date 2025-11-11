@@ -90,7 +90,7 @@ export class AddNewLocationComponentComponent implements OnInit {
 
   //bien sinh sublocation
   prefix = {
-    name: 'SLOT',
+    name: 'SLO',
     separator: '-',
   };
 

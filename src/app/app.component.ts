@@ -17,7 +17,7 @@ import {
   MAT_RIPPLE_GLOBAL_OPTIONS,
 } from '@angular/material/core';
 import { KhoThanhPhamModule } from './entities/kho-thanh-pham/kho-thanh-pham.module';
-import { AuthService } from './homepage/AuthService';
+import { AuthService } from './services/auth.service'; 
 import { Observable } from 'rxjs';
 
 export interface TabLink {
@@ -161,14 +161,13 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
   //logout
-  logout(): void {
-    console.log('[AppComponent] Logout clicked');
+  login() {
+    this.authService.initiateLogin();
+  }
 
-    this.authService.logout().subscribe({
-      complete: () => {
-        console.log('[AppComponent] Logout complete, navigating to home');
-        this.router.navigate(['/home'], { replaceUrl: true });
-      },
+  logout() {
+    this.authService.logout().subscribe(() => {
+      this.router.navigate(['/home']);
     });
   }
 
