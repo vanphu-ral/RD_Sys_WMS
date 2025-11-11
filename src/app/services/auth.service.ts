@@ -17,6 +17,15 @@ interface TokenPayload {
   providedIn: 'root',
 })
 export class AuthService {
+  hasAnyRole(arg0: string[]): any {
+      throw new Error('Method not implemented.');
+  }
+  hasRole(arg0: string): any {
+      throw new Error('Method not implemented.');
+  }
+  getUserRoles(): string[] {
+      throw new Error('Method not implemented.');
+  }
   private isLoggedInSubject = new BehaviorSubject<boolean>(this.hasValidToken());
   private usernameSubject = new BehaviorSubject<string>(this.getStoredUsername());
 

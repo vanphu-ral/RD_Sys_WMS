@@ -27,6 +27,7 @@ import { AuthGuard } from './guards/auth.guard';
 import { AuthCallbackComponent } from './entities/auth-callback/auth-callback.component';
 import { ThongKeTonKhoComponent } from './entities/bao-cao-thong-ke/thong-ke-ton-kho/thong-ke-ton-kho.component';
 import { EncodedRedirectComponent } from './entities/encoded-redirect/encoded-redirect.component';
+import { UserInfoComponent } from './user/user-info.component';
 
 export const routes: Routes = [
   {
@@ -37,6 +38,12 @@ export const routes: Routes = [
   {
     path: 'auth/callback',
     component: AuthCallbackComponent,
+  },
+  {
+    path: 'user-info',
+    component: UserInfoComponent,
+    canActivate: [AuthGuard],
+    data: { tabLabel: 'Thông tin người dùng', isClosable: true },
   },
   {
     path: 'areas',

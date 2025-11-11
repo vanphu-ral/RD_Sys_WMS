@@ -249,4 +249,7 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     }
   }
+  info():void{
+    this.router.navigate(['/user-info']);
+  }
 }

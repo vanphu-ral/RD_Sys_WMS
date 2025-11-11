@@ -27,7 +27,7 @@
             </div>
           </div>
           <mat-divider></mat-divider>
-          <button mat-menu-item>
+          <button mat-menu-item (click)="info()">
             <mat-icon>person</mat-icon>
             <span>Thông tin cá nhân</span>
           </button>
@@ -66,3 +66,46 @@
   </div>
 </div>
 </div>
+<!-- token bên user-info nếu cần hiển thị cop sang bên user info -->
+<!-- <div class="token-section">
+        <h3>Token Information</h3>
+        <div class="token-card">
+          <div class="info-row">
+            <span class="label">Issued at:</span>
+            <span class="value">{{ tokenInfo.issuedAt }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Expires at:</span>
+            <span class="value">{{ tokenInfo.expiresAt }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Time remaining:</span>
+            <span class="value" [class.warning]="tokenInfo.remainingSeconds < 120">
+              {{ tokenInfo.remainingTime }}
+            </span>
+          </div>
+        </div>
+
+        <button class="btn-view-token" (click)="showRawToken = !showRawToken">
+          {{ showRawToken ? ' Hide' : ' View' }} Raw Token
+        </button>
+
+        <div class="raw-token" *ngIf="showRawToken">
+          <h4>Access Token (JWT):</h4>
+          <pre>{{ rawToken }}</pre>
+          
+          <h4>Decoded Payload:</h4>
+          <pre>{{ decodedPayload }}</pre>
+        </div>
+      </div>
+
+      <div class="debug-section">
+        <h3> Debug Info</h3>
+        <button class="btn-debug" (click)="logToConsole()">
+          Log to Console
+        </button>
+        <button class="btn-debug" (click)="testRoleCheck()">
+          Test Role Check
+        </button>
+      </div>
+    </div> -->
