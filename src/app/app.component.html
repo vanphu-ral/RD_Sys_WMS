@@ -1,7 +1,7 @@
 <div class="layout-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed">
   <div class="sidebar-container" [class.collapsed]="isSidebarCollapsed">
     <app-sidebar [isCollapsed]="isSidebarCollapsed" (collapseSidebar)="toggleSidebar()"></app-sidebar>
-    <div class="sidebar-toggle" (click)="toggleSidebar()">
+    <div class="sidebar-toggle sidebar-toggle-mobile" (click)="toggleSidebar()">
       <a style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"
         class="btn-toggle-sidebar">
         <mat-icon>menu</mat-icon>
@@ -11,6 +11,11 @@
 
   <div>
     <div class="topnav" style="display: flex;">
+      <div class="topnav-toggle topnav-toggle-desktop" (click)="toggleSidebar()">
+        <button class="btn-toggle-sidebar">
+          <mat-icon>menu</mat-icon>
+        </button>
+      </div>
       <div class="user" *ngIf="isLoggedIn">
         <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
           <mat-icon>person_outline</mat-icon>

@@ -2,6 +2,7 @@ $topnav-height: 60px;
 $sidebar-width-open: 250px;
 $sidebar-width-closed: 50px;
 $transition-duration: 0.3s;
+$mobile-breakpoint: 768px;
 
 .layout-wrapper.sidebar-collapsed {
   .topnav {
@@ -12,13 +13,19 @@ $transition-duration: 0.3s;
   .main-content-container {
     margin-left: $sidebar-width-closed;
   }
+
+  .topnav-toggle {
+    left: 0;
+  }
 }
+
 ::ng-deep .snackbar-success {
   background-color: #14AE5C;
   color: white;
   font-weight: 500;
   font-size: 15px;
 }
+
 ::ng-deep .snackbar-warn {
   background-color: #f59e0b;
   color: #1e293b;
@@ -32,6 +39,7 @@ $transition-duration: 0.3s;
   font-weight: 500;
   font-size: 15px;
 }
+
 .topnav {
   display: flex;
   background-color: #f5f5f5;
@@ -46,7 +54,51 @@ $transition-duration: 0.3s;
   margin-left: $sidebar-width-open; // Bắt đầu sau sidebar
   transition: all $transition-duration ease;
   box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
-  
+
+  .topnav-toggle {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    transition: all $transition-duration ease;
+    // box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+
+    &:hover {
+      background-color: #2C3E50;
+      .btn-toggle-sidebar{
+        mat-icon{
+          color: #fff;
+        }
+      }
+    }
+
+    .btn-toggle-sidebar {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+
+      mat-icon {
+        color: #2C3E50;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+  }
+
   .wms-navbar {
     text-align: left;
     font-size: 25px;
@@ -56,7 +108,7 @@ $transition-duration: 0.3s;
     margin-right: 10px;
   }
 
-  .user-option{
+  .user-option {
     background: #f5f5f5;
     border: none;
     border-radius: 5px;
@@ -67,10 +119,11 @@ $transition-duration: 0.3s;
     align-items: center;
     box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
   }
-  
+
   .user {
     margin-left: auto;
     margin-right: 20px;
+
     .user-button {
       display: flex;
       align-items: center;
@@ -106,6 +159,7 @@ $transition-duration: 0.3s;
     }
   }
 }
+
 ::ng-deep .user-menu {
   min-width: 250px;
   margin-top: 8px;
@@ -149,8 +203,9 @@ $transition-duration: 0.3s;
     }
   }
 }
+
 // Khi sidebar collapsed, topnav mở rộng
-.sidebar-container.collapsed ~ div .topnav {
+.sidebar-container.collapsed~div .topnav {
   width: calc(100% - #{$sidebar-width-closed});
   margin-left: $sidebar-width-closed;
 }
@@ -175,18 +230,18 @@ $transition-duration: 0.3s;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
 
   &.collapsed {
     width: $sidebar-width-closed;
-    
+
     app-sidebar {
       overflow-x: hidden;
     }
-    
-    .sidebar-toggle mat-icon {
-      transform: rotate(180deg);
-    }
+
+    // .sidebar-toggle mat-icon {
+    //   transform: rotate(180deg);
+    // }
   }
 
   app-sidebar {
@@ -198,20 +253,22 @@ $transition-duration: 0.3s;
   .sidebar-toggle {
     flex-shrink: 0;
     padding: 12px 0;
-    background-color:#2C3E50;
+    background-color: #2C3E50;
     text-align: center;
     border-top: 1px solid #ffffff;
     cursor: pointer;
     transition: background-color 0.2s ease;
-    
+    display: none;
+
     &:hover {
       background-color: rgb(37, 61, 150);
     }
-    
+
     mat-icon {
       color: white;
     }
   }
+
 }
 
 .main-content-container {
@@ -221,15 +278,17 @@ $transition-duration: 0.3s;
   box-sizing: border-box;
   padding: 10px;
   background: #ffffff;
-  margin-left: $sidebar-width-open; 
-  margin-top: $topnav-height; 
+  margin-left: $sidebar-width-open;
+  margin-top: $topnav-height;
   padding-top: 10px;
 }
+
 .main-content-container,
 .main-content {
   overflow-x: hidden;
 }
-.sidebar-container.collapsed + .main-content-container {
+
+.sidebar-container.collapsed+.main-content-container {
   margin-left: $sidebar-width-closed;
 }
 
@@ -242,45 +301,40 @@ $transition-duration: 0.3s;
   min-height: calc(100vh - #{$topnav-height} - 90px);
 }
 
-@media (max-width: 992px) {
-  .sidebar-container {
-    left: 0;
-    border-radius: 0;
-    
-    &:not(.collapsed) {
-      width: 260px;
-      box-shadow: 5px 0 15px rgba(0,0,0,0.2);
-    }
+@media (max-width: $mobile-breakpoint) {
+  .topnav .topnav-toggle-desktop {
+    display: none !important;
   }
-  
-  .sidebar-container + .main-content-container,
-  .sidebar-container.collapsed + .main-content-container {
-    margin-left: 0;
-    padding-left: 15px;
-    padding-right: 15px;
-  }
-}
 
-@media (max-width: 768px) {
+  .sidebar-container .sidebar-toggle-mobile {
+    display: block !important;
+  }
+
+  .topnav {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
   .sidebar-container {
     transform: translateX(-100%);
     transition: transform $transition-duration ease;
     left: 0;
     z-index: 1001;
-    
+
     &.collapsed {
       transform: translateX(0);
       width: $sidebar-width-closed;
     }
-    
+
     &:not(.collapsed) {
       transform: translateX(0);
       width: 260px;
     }
   }
-  
-  .sidebar-container:not(.collapsed) + .main-content-container {
+
+  .sidebar-container:not(.collapsed)+.main-content-container {
     position: relative;
+
     &::after {
       content: "";
       position: fixed;
@@ -288,23 +342,57 @@ $transition-duration: 0.3s;
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
       z-index: 1000;
     }
   }
-  
+
   .wms-navbar {
     font-size: 20px !important;
+  }
+}
+
+@media (min-width: #{$mobile-breakpoint + 1px}) {
+
+  // Hiển thị toggle ở topnav trên desktop
+  .topnav .topnav-toggle-desktop {
+    display: flex !important;
+  }
+
+  // Ẩn toggle trong sidebar trên desktop
+  .sidebar-container .sidebar-toggle-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .sidebar-container {
+    left: 0;
+    border-radius: 0;
+
+    &:not(.collapsed) {
+      width: 260px;
+      box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .sidebar-container+.main-content-container,
+  .sidebar-container.collapsed+.main-content-container {
+    margin-left: 0;
+    padding-left: 15px;
+    padding-right: 15px;
   }
 }
 
 ::ng-deep .mat-mdc-tab-header-pagination-controls-enabled .mat-mdc-tab-header-pagination {
   display: none;
 }
+
 .mat-ripple-element {
   display: none !important;
   opacity: 0 !important;
 }
+
 .mat-tab-header-pagination .mat-ripple-element {
   display: none !important;
 }
@@ -314,12 +402,12 @@ nav.mat-tab-nav-bar {
   border-bottom: 1px solid #e0e0e0;
   padding: 0 10px;
 
-  
+
   .custom-tab-link {
     position: relative;
     padding-right: 30px !important;
     max-width: 100px;
-    
+
     .tab-label {
       max-width: 80px;
       overflow: hidden;
@@ -327,7 +415,7 @@ nav.mat-tab-nav-bar {
       display: inline-block;
       vertical-align: middle;
     }
-    
+
     .tab-close-button {
       position: absolute;
       right: 5px;
@@ -335,7 +423,7 @@ nav.mat-tab-nav-bar {
       transform: translateY(-50%);
       width: 24px;
       height: 24px;
-      
+
       mat-icon {
         font-size: 16px;
       }

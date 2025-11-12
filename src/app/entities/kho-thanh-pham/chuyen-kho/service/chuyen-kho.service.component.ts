@@ -6,17 +6,18 @@ import { InternalTransferRequest } from '../chuyen-kho.component';
 @Injectable({ providedIn: 'root' })
 export class ChuyenKhoService {
   private baseUrl = 'http://192.168.20.101:8050/api';
+  private testUrl = 'http://192.168.10.99:8050/api';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getWarehouses(): Observable<{ id: number; name: string }[]> {
     return this.http.get<any>(`${this.baseUrl}/areas`).pipe(
       map((res) =>
         Array.isArray(res.data)
           ? res.data.map((item: any) => ({
-              id: item.id,
-              name: item.name,
-            }))
+            id: item.id,
+            name: item.name,
+          }))
           : []
       )
     );
@@ -53,6 +54,13 @@ export class ChuyenKhoService {
   getTransferItemsById(id: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/iwtr/requests/${id}/items`);
   }
+
+  //lay thong tin scan
+  getInventoryByIdentifier(identifier: string): Observable<any> {
+    const url = `${this.testUrl}/inventories/${identifier}`;
+    return this.http.get<any>(url);
+  }
+
 
   //lưu thông tin scan
   submitScan(requestId: number, payload: any): Observable<any> {

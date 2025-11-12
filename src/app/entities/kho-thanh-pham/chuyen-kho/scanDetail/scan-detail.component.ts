@@ -50,7 +50,7 @@ export class ScanDetailComponent implements OnInit {
     private router: Router,
     private snackBar: MatSnackBar,
     private chuyenKhoService: ChuyenKhoService
-  ) {}
+  ) { }
   ngOnInit(): void {
     const state = history.state;
     this.requestId = state.requestId;
@@ -74,51 +74,51 @@ export class ScanDetailComponent implements OnInit {
     });
   }
 
-  onLocationScanEnter() {
+  onLocationScanEnter(): void {
     if (!this.scanPallet || !this.scanLocation) return;
 
-    const matched = this.detailList.find(
-      (item: { productCode: string }) =>
-        item.productCode === this.scanPallet ||
-        item.productCode === this.scanLocation
-    );
-    if (!matched) {
-      this.snackBar.open('Không tìm thấy mã hàng trong danh sách!', 'Đóng', {
-        duration: 3000,
-        panelClass: ['snackbar-error'],
-      });
-      return;
-    }
+    const identifier = this.selectedMode === 'pallet' ? this.scanPallet : this.scanLocation;
 
-    const now = new Date();
-    const formattedTime = now.toLocaleString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
+    this.chuyenKhoService.getInventoryByIdentifier(identifier).subscribe({
+      next: (res) => {
+        const now = new Date();
+        const formattedTime = now.toLocaleString('vi-VN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        });
+
+        const newItem: ScannedItem = {
+          productId: res.id,
+          inventoryCode: res.identifier,
+          serialPallet: res.serial_pallet,
+          quantity: res.quantity,
+          originalQuantity: res.initial_quantity,
+          productName: res.material_name || res.name || 'Không xác định',
+          scanTime: formattedTime,
+          warehouse: this.scanLocation,
+        };
+
+        this.scannedList = [...this.scannedList, newItem];
+        this.scanPallet = '';
+        this.scanLocation = '';
+        setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy thông tin inventory:', err);
+        this.snackBar.open('Không tìm thấy thông tin pallet/thùng!', 'Đóng', {
+          duration: 3000,
+          panelClass: ['snackbar-error'],
+        });
+      },
     });
-
-    const newItem: ScannedItem = {
-      productId: matched?.id || 0,
-      // productName: matched?.productName || 'Không xác định',
-      inventoryCode: this.scanLocation,
-      serialPallet: this.scanPallet,
-      quantity: matched.quantity,
-      originalQuantity: matched.quantity,
-      productName: matched.productName,
-      scanTime: formattedTime,
-      warehouse: this.scanLocation,
-    };
-    console.log('Matched:', matched);
-
-    this.scannedList = [...this.scannedList, newItem];
-
-    this.scanPallet = '';
-    this.scanLocation = '';
-
-    setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
   }
+
+
+
+
   onPageChange(page: number): void {
     this.currentPage = page;
     // Load data for specific page
