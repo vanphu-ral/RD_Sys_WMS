@@ -3,16 +3,18 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ScanCheckComponent } from '../scan-check/scan-check.component';
 import { MatDialog } from '@angular/material/dialog';
-export interface ScannedItem {
-  maHangHoa: string;
-  tenHangHoa: string;
-  serialPallet: string;
-  serialBox: string;
-  soLuong: number;
-  area: string;
-  location: string;
-  thoiDiemScan: string;
+import { NhapKhoService } from '../service/nhap-kho.service';
+export interface DetailItem {
+  id: number;
+  warehouse_import_requirement_id: number;
+  palletCode: string;
+  boxCode: string;
+  boxQuantity: number;
+  updatedBy: string;
+  updatedDate: string;
+  scanStatus: 'Đã scan' | 'Chưa scan';
 }
+
 export interface MainInfo {
   maPO: string;
   maSanPham: string;
@@ -27,12 +29,6 @@ export interface MainInfo {
   ghiChu: string;
 }
 
-export interface DetailItem {
-  palletCode: string;
-  boxCode: string;
-  soPallet: number;
-  scanStatus: 'Chưa scan' | 'Đã scan';
-}
 @Component({
   selector: 'app-nhap-kho-component',
   standalone: false,
@@ -41,7 +37,7 @@ export interface DetailItem {
 })
 export class PheDuyetComponent implements OnInit {
   nhapKhoId: number | undefined;
-  nhapKhoData: ScannedItem | undefined;
+  // nhapKhoData: ScannedItem | undefined;
   currentPage = 1;
   //bien scan
   scanPallet: string = '';
@@ -51,67 +47,26 @@ export class PheDuyetComponent implements OnInit {
     'stt',
     'palletCode',
     'boxCode',
-    'soPallet',
+    'boxQuantity',
+    'updatedDate',
     'scanStatus',
   ];
-  scannedList: ScannedItem[] = [
-    {
-      maHangHoa: 'LED000035',
-      tenHangHoa: 'Đèn LED cắm ứng 8W',
-      serialPallet: 'P202500191',
-      serialBox: 'B202500191',
-      soLuong: 10,
-      area: 'RD-01',
-      location: '01-B01-01-001',
-      thoiDiemScan: '31/10/2025 08:35',
-    },
-  ];
+
   mainInfo: MainInfo = {
-    maPO: '253233',
-    maSanPham: 'KHHTTK-202510W5',
-    maKhachHang: 'KHTT',
-    tenSanPham: 'Đèn LED chiếu pha 6500k',
-    soPallet: 10,
-    soThung: 10,
-    soLuongSP: 10,
-    maWO: 10,
-    soLOT: '2025207564OA',
-    ngayNhap: '29/10/2025',
-    ghiChu: 'Ghi chú',
+    maPO: '',
+    maSanPham: '',
+    maKhachHang: '',
+    tenSanPham: '',
+    soPallet: 0,
+    soThung: 0,
+    soLuongSP: 0,
+    maWO: 0,
+    soLOT: '',
+    ngayNhap: '',
+    ghiChu: '',
   };
 
-  detailList: DetailItem[] = [
-    {
-      palletCode: 'KHHTTK-202510W5',
-      boxCode: 'KHTT',
-      soPallet: 10,
-      scanStatus: 'Đã scan',
-    },
-    {
-      palletCode: 'KHHTTK-202510W5',
-      boxCode: 'KHTT',
-      soPallet: 10,
-      scanStatus: 'Chưa scan',
-    },
-    {
-      palletCode: 'KHHTTK-202510W5',
-      boxCode: 'KHTT',
-      soPallet: 10,
-      scanStatus: 'Chưa scan',
-    },
-    {
-      palletCode: 'KHHTTK-202510W5',
-      boxCode: 'KHTT',
-      soPallet: 10,
-      scanStatus: 'Chưa scan',
-    },
-    {
-      palletCode: 'KHHTTK-202510W5',
-      boxCode: 'KHTT',
-      soPallet: 10,
-      scanStatus: 'Chưa scan',
-    },
-  ];
+  detailList: DetailItem[] = [];
   selectedMode: 'pallet' | 'thung' | null = null;
 
   @ViewChild('palletInput') palletInput!: ElementRef;
@@ -120,23 +75,79 @@ export class PheDuyetComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
-  ) {}
+    private dialog: MatDialog,
+    private nhapKhoService: NhapKhoService
+  ) { }
 
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
       this.nhapKhoId = +params['id'];
+      if (this.nhapKhoId) {
+        this.loadData(this.nhapKhoId);
+      }
     });
 
     this.route.queryParams.subscribe((queryParams) => {
       console.log('Mã sản phẩm:', queryParams['maSanPham']);
       console.log('Status:', queryParams['status']);
     });
+
     const state = history.state;
     if (state.updatedList) {
       this.detailList = state.updatedList;
     }
   }
+
+
+  loadData(id: number): void {
+    this.nhapKhoService.getImportRequirement(id).subscribe({
+      next: (res) => {
+        const info = res.data.import_requirement;
+
+        this.mainInfo = {
+          maPO: info.po_code || '',
+          maSanPham: '', // chưa có trong API
+          maKhachHang: String(info.client_id),
+          tenSanPham: info.inventory_name || '',
+          soPallet: info.number_of_pallet,
+          soThung: info.number_of_box,
+          soLuongSP: info.quantity,
+          maWO: Number(info.wo_code) || 0,
+          soLOT: info.lot_number || '',
+          ngayNhap: this.formatDate(info.updated_date),
+          ghiChu: info.note || '',
+        };
+
+        this.detailList = (res.data.containers as any[]).map((c): DetailItem => ({
+          id: c.id,
+          warehouse_import_requirement_id: c.warehouse_import_requirement_id,
+          palletCode: c.serial_pallet,
+          boxCode: c.box_code,
+          boxQuantity: c.box_quantity,
+          updatedBy: c.updated_by,
+          updatedDate: this.formatDate(c.updated_date),
+          scanStatus: 'Chưa scan',
+        }));
+
+
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy dữ liệu nhập kho:', err);
+      },
+    });
+
+  }
+  formatDate(dateStr: string): string {
+    const d = new Date(dateStr);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+  }
+
+
   trackByIndex(index: number, item: any): number {
     return index;
   }
@@ -164,48 +175,44 @@ export class PheDuyetComponent implements OnInit {
     this.locationInput?.nativeElement?.focus();
   }
 
-  onLocationScanEnter() {
-    if (!this.scanPallet || !this.scanLocation) return;
+  // onLocationScanEnter() {
+  //   if (!this.scanPallet || !this.scanLocation) return;
 
-    const now = new Date();
-    const formattedTime = now.toLocaleString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
+  //   const now = new Date();
+  //   const formattedTime = now.toLocaleString('vi-VN', {
+  //     hour: '2-digit',
+  //     minute: '2-digit',
+  //     day: '2-digit',
+  //     month: '2-digit',
+  //     year: 'numeric',
+  //   });
 
-    const newItem: ScannedItem = {
-      maHangHoa: 'LED000035',
-      tenHangHoa: 'Đèn LED cắm ứng 8W',
-      serialPallet: this.scanPallet,
-      serialBox: this.selectedMode === 'thung' ? this.scanPallet : '',
-      soLuong: 1,
-      area: 'RD-01',
-      location: this.scanLocation,
-      thoiDiemScan: formattedTime,
-    };
+  //   const newItem: ScannedItem = {
+  //     maHangHoa: 'LED000035',
+  //     tenHangHoa: 'Đèn LED cắm ứng 8W',
+  //     serialPallet: this.scanPallet,
+  //     serialBox: this.selectedMode === 'thung' ? this.scanPallet : '',
+  //     soLuong: 1,
+  //     area: 'RD-01',
+  //     location: this.scanLocation,
+  //     thoiDiemScan: formattedTime,
+  //   };
 
-    this.scannedList.unshift(newItem);
-    this.snackBar.open('Lưu thành công!', 'Đóng', {
-      duration: 3000,
-      horizontalPosition: 'right',
-      verticalPosition: 'bottom',
-      panelClass: ['snackbar-success', 'snackbar-position'],
-    });
+  //   this.snackBar.open('Lưu thành công!', 'Đóng', {
+  //     duration: 3000,
+  //     horizontalPosition: 'right',
+  //     verticalPosition: 'bottom',
+  //     panelClass: ['snackbar-success', 'snackbar-position'],
+  //   });
 
-    // reset input
-    this.scanPallet = '';
-    this.scanLocation = '';
-    this.selectedMode = null;
+  //   // reset input
+  //   this.scanPallet = '';
+  //   this.scanLocation = '';
+  //   this.selectedMode = null;
 
-    // focus lại vào pallet để scan tiếp
-    setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
-  }
-  loadData(): void {
-    // Load dữ liệu từ service
-  }
+  //   // focus lại vào pallet để scan tiếp
+  //   setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
+  // }
 
   onPageChange(page: number): void {
     // Load data for new page

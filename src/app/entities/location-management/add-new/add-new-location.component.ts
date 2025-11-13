@@ -19,6 +19,8 @@ import { AreaService } from '../../area-component/service/area-service.component
 import { MatTooltip } from '@angular/material/tooltip';
 import * as XLSX from 'xlsx';
 import * as FileSaver from 'file-saver';
+import { AuthService } from '../../../services/auth.service';
+import { UserInfoComponent } from '../../../user/user-info.component';
 
 @Component({
   selector: 'app-location-component',
@@ -51,6 +53,7 @@ export class AddNewLocationComponentComponent implements OnInit {
     subCode: string;
     locationName: string;
     locationCode: string;
+    areaCode: string;
     isEditing?: boolean;
   }[] = [];
   subLocationColumns: string[] = [
@@ -71,8 +74,8 @@ export class AddNewLocationComponentComponent implements OnInit {
     description: '',
     area_id: 0,
     address: '',
-    humidity: 0,
-    temperature: 0,
+    humidity: 60,
+    temperature: 30,
     barcode: '',
     is_multi_location: false,
     number_of_rack: 0,
@@ -103,47 +106,82 @@ export class AddNewLocationComponentComponent implements OnInit {
     suffixSeparator: '-',
   };
   selectedAreaId: number | undefined;
+  areaCode: string = '';
   constructor(
     private snackBar: MatSnackBar,
     private locationService: LocationService,
     private areaService: AreaService,
-    private route: ActivatedRoute
-  ) {}
+    private route: ActivatedRoute,
+    private authService: AuthService
+  ) { }
 
   ngOnInit(): void {
-    this.loadDataArea();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEditMode = true;
-      this.locationService.getLocationById(+id).subscribe({
-        next: (res) => {
-          this.location = res;
-          this.selectedAreaId = res.area_id;
 
-          this.subLocations = (res.sub_locations || []).map((item: any) => ({
-            subCode: item.code,
-            locationCode: res.code,
-            locationName: item.name || item.code,
-            isEditing: false,
-          }));
-          this.updatePagedSubLocations();
+      this.areaService.getAreas().subscribe({
+        next: (areaRes) => {
+          this.areaList = areaRes.data;
 
-          if (res.is_multi_location) {
-            this.location.is_multi_location = true;
-            this.grid.rows = res.child_location_row_count || 0;
-            this.grid.columns = res.child_location_column_count || 0;
-            this.grid.suffixSeparator = res.suffix_separator || '';
-            this.grid.suffixLength = +(res.suffix_digit_len || 2);
-            this.prefix.name = res.prefix_name || '';
-            this.prefix.separator = res.prefix_separator || '';
-          }
+          this.locationService.getLocationById(+id).subscribe({
+            next: (res) => {
+              this.location = res;
+              this.selectedAreaId = res.area_id;
+
+              const area = this.areaList.find((a) => a.id === this.selectedAreaId);
+              const areaCode = (area?.code || '').replace(/\s+/g, '');
+              this.areaCode = areaCode;
+
+              this.subLocations = (res.sub_locations || []).map((item: any) => {
+                const fullCode = item.code || '';
+
+                // Format: areaCode-locationCode-subCode
+                const parts = fullCode.split('-');
+
+                let subCode = '';
+                if (parts.length >= 3) {
+                  subCode = parts.slice(2).join('-'); // "SLO-01-01"
+                } else {
+                  subCode = fullCode; // Fallback
+                }
+
+                return {
+                  subCode: subCode,           //  "SLO-01-01"
+                  locationCode: res.code,     // "C01"
+                  locationName: item.name || item.code,
+                  areaCode: areaCode,         // "19"
+                  isEditing: false,
+                };
+              });
+
+
+              this.updatePagedSubLocations();
+
+              if (res.is_multi_location) {
+                this.location.is_multi_location = true;
+                this.grid.rows = res.child_location_row_count || 0;
+                this.grid.columns = res.child_location_column_count || 0;
+                this.grid.suffixSeparator = res.suffix_separator || '';
+                this.grid.suffixLength = +(res.suffix_digit_len || 2);
+                this.prefix.name = res.prefix_name || '';
+                this.prefix.separator = res.prefix_separator || '';
+              }
+            },
+            error: (err) => {
+              console.error('Lỗi khi lấy location:', err);
+            },
+          });
         },
         error: (err) => {
-          console.error('Lỗi khi lấy location:', err);
+          console.error('Lỗi khi lấy danh sách area:', err);
         },
       });
+    } else {
+      this.loadDataArea();
     }
   }
+
 
   getSelectedAreaName(): string {
     const area = this.areaList.find((a) => a.id === this.selectedAreaId);
@@ -264,13 +302,16 @@ export class AddNewLocationComponentComponent implements OnInit {
           subCode,
           locationName: this.location.name,
           locationCode: this.location.code,
+          areaCode: this.areaCode,
           isEditing: false,
         });
+
       }
     }
 
     this.updatePagedData();
   }
+
 
   onEditSubLocation(index: number) {
     const globalIndex = this.pageIndex * this.pageSize + index;
@@ -318,8 +359,8 @@ export class AddNewLocationComponentComponent implements OnInit {
   }
   getBarcodeValue(): string {
     const area = this.areaList.find((a) => a.id === this.selectedAreaId);
-    const areaName = (area?.name || '').replace(/\s+/g, '');
-    const locationName = (this.location.name || '').replace(/\s+/g, '');
+    const areaName = (area?.code || '').replace(/\s+/g, '');
+    const locationName = (this.location.code || '').replace(/\s+/g, '');
     return `${areaName}-${locationName}`;
   }
 
@@ -328,6 +369,10 @@ export class AddNewLocationComponentComponent implements OnInit {
   }
 
   onSave(): void {
+    const username = this.authService.getUsername();
+
+    const area = this.areaList.find((a) => a.id === this.selectedAreaId);
+    const areaCode = (area?.code || '').replace(/\s+/g, '');
     const isMulti = this.location.is_multi_location;
 
     const payload: Location = {
@@ -340,7 +385,7 @@ export class AddNewLocationComponentComponent implements OnInit {
       barcode: this.location.barcode,
       humidity: +(this.location?.humidity ?? 0),
       temperature: +(this.location?.temperature ?? 0),
-      updated_by: 'admin',
+      updated_by: username,
     };
 
     if (isMulti) {
@@ -352,7 +397,7 @@ export class AddNewLocationComponentComponent implements OnInit {
         child_location_row_count: this.grid.rows,
         child_location_column_count: this.grid.columns,
         suffix_separator: this.grid.suffixSeparator,
-        suffix_digit_len: this.grid.suffixLength.toString(),
+        suffix_digit_len: this.grid.suffixLength,
       });
     }
 
@@ -379,16 +424,16 @@ export class AddNewLocationComponentComponent implements OnInit {
           this.subLocations.length > 0
         ) {
           const subPayload = this.subLocations.map((sub) => ({
-            code: sub.subCode,
+            code: areaCode + '-' + sub.locationCode + '-' + sub.subCode,
             name: sub.subCode,
             area_id: this.selectedAreaId || 0,
             address: this.location.address,
             is_multi_location: 0,
             humidity: 60,
             temperature: 30,
-            barcode: sub.subCode,
+            barcode: areaCode + '-' + sub.locationCode + '-' + sub.subCode,
             is_active: 1,
-            updated_by: 'test',
+            updated_by: username,
             // parent_location_id: parentId,
           }));
 
@@ -397,8 +442,7 @@ export class AddNewLocationComponentComponent implements OnInit {
             .subscribe({
               next: () => {
                 this.snackBar.open(
-                  `${
-                    this.isEditMode ? 'Cập nhật' : 'Tạo'
+                  `${this.isEditMode ? 'Cập nhật' : 'Tạo'
                   } sub location thành công!`,
                   'Đóng',
                   {

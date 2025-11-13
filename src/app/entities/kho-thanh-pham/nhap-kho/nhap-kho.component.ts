@@ -63,7 +63,7 @@ export class NhapKhoComponent {
   pageSize: number = 10;
   currentPage: number = 1;
   totalPages: number = 1;
-  constructor(private router: Router, private nhapKhoService: NhapKhoService) {}
+  constructor(private router: Router, private nhapKhoService: NhapKhoService) { }
   ngOnInit(): void {
     this.loadDanhSachNhapKho();
   }
@@ -123,15 +123,10 @@ export class NhapKhoComponent {
   // Navigate đến trang scan
   onScan(nhapkho: NhapKhoItem): void {
     this.router.navigate(
-      ['/kho-thanh-pham/nhap-kho-sx/scan', nhapkho.id]
-      // {
-      //   queryParams: {
-      //     maSanPham: nhapkho.maSanPham,
-      //     status: nhapkho.status,
-      //   },
-      // }
+      ['/kho-thanh-pham/nhap-kho-sx/phe-duyet', nhapkho.id, 'scan'],
     );
   }
+
 
   onSearch(): void {
     console.log('Searching for:', this.searchTerm);

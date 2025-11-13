@@ -10,7 +10,7 @@
         </div>
         <button mat-raised-button color="primary" class="add-btn" [routerLink]="'/location'">
             <mat-icon>arrow_back</mat-icon>
-            {{ isEditMode ? 'Quay lại danh sách' : 'Hủy tạo mới' }}
+            Quay lại danh sách
         </button>
 
     </div>
@@ -40,9 +40,8 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Tên vị trí</mat-label>
-                    <input matInput [(ngModel)]="location.name" placeholder="Nhập tên location"
-                        (ngModelChange)="updateBarcode()" />
+                    <mat-label>Barcode</mat-label>
+                    <input matInput [value]="getBarcodeValue()" disabled placeholder="Mã barcode tự động" />
                 </mat-form-field>
             </div>
 
@@ -84,10 +83,10 @@
 
 
             <div class="form-row">
-                <mat-form-field appearance="outline" class="form-field">
+                <!-- <mat-form-field appearance="outline" class="form-field">
                     <mat-label>Barcode</mat-label>
                     <input matInput [value]="getBarcodeValue()" disabled placeholder="Mã barcode tự động" />
-                </mat-form-field>
+                </mat-form-field> -->
 
 
                 <div class="toggle-slide">
@@ -166,7 +165,7 @@
                         <mat-label>Suffix Digit Length</mat-label>
                         <input matInput type="number" [(ngModel)]="grid.suffixLength" />
                     </mat-form-field>
-                    <span class="info-configuration">*01, 02 hoặc 1, 2</span>
+                    <span class="info-configuration">*Số đơn vị ô</span>
                 </div>
 
                 <div style="display: flex; flex-direction: column;">
@@ -230,13 +229,13 @@
 
                     <!-- Location -->
                     <ng-container matColumnDef="location">
-                        <th mat-header-cell *matHeaderCellDef>Location</th>
+                        <th mat-header-cell *matHeaderCellDef>Vị trí</th>
                         <td mat-cell *matCellDef="let element">{{ element.locationCode }}</td>
                     </ng-container>
 
                     <!-- Sub Location -->
                     <ng-container matColumnDef="subLocation">
-                        <th mat-header-cell *matHeaderCellDef>Sub Location</th>
+                        <th mat-header-cell *matHeaderCellDef>Tên vị trí phụ</th>
                         <td mat-cell *matCellDef="let element">
                             <ng-container *ngIf="!element.isEditing">{{ element.subCode }}</ng-container>
                             <ng-container *ngIf="element.isEditing">
@@ -246,9 +245,9 @@
                     </ng-container>
 
                     <ng-container matColumnDef="combined">
-                        <th mat-header-cell *matHeaderCellDef>Full Name</th>
+                        <th mat-header-cell *matHeaderCellDef>Code</th>
                         <td mat-cell *matCellDef="let element">
-                            {{ element.locationCode }}-{{ element.subCode }}
+                             {{ element.areaCode }}-{{ element.locationCode }}-{{ element.subCode }}
                         </td>
                     </ng-container>
 

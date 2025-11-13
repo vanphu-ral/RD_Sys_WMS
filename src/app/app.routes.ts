@@ -170,7 +170,7 @@ export const routes: Routes = [
     }
   },
   {
-    path: 'kho-thanh-pham/nhap-kho-sx/scan',
+    path: 'kho-thanh-pham/nhap-kho-sx/phe-duyet/:id/scan',
     component: ScanCheckComponent,
     canActivate: [AuthGuard],
     data: {

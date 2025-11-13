@@ -46,7 +46,7 @@ export class LocationManagementComponent implements OnInit {
   displayedColumns: string[] = [
     'id',
     'code',
-    'name',
+    // 'name',
     'description',
     'area_id',
     'number_of_rack',
@@ -78,7 +78,7 @@ export class LocationManagementComponent implements OnInit {
     private snackBar: MatSnackBar,
     private router: Router,
     private areaService: AreaService
-  ) {}
+  ) { }
   ngOnInit(): void {
     this.loadLocations();
     this.loadAreas();
@@ -89,10 +89,10 @@ export class LocationManagementComponent implements OnInit {
       .getLocations(this.currentPage, this.pageSize)
       .subscribe({
         next: (res) => {
-          this.locations = res.data;
-          this.originalLocations = [...res.data];
-          this.locations = [...res.data];
-          this.filteredData = [...res.data];
+          const sorted = [...res.data].sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+          this.locations = sorted;
+          this.originalLocations = [...sorted];
+          this.filteredData = [...sorted];
           this.totalItems = res.meta.total_items;
           this.pageSize = res.meta.size;
           this.totalPages = Math.ceil(this.totalItems / this.pageSize);
@@ -102,6 +102,7 @@ export class LocationManagementComponent implements OnInit {
         },
       });
   }
+
   getTypeClass(type: string): string {
     const typeClasses: { [key: string]: string } = {
       SITE: 'type-site',

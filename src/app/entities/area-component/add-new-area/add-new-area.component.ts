@@ -13,6 +13,7 @@ import { ActivatedRoute, Router, RouterLinkWithHref } from '@angular/router';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AreaService } from '../service/area-service.component';
+import { UserInfoComponent } from '../../../user/user-info.component';
 
 export interface Area {
   id: number;
@@ -62,7 +63,7 @@ export class AddNewAreaComponentComponent implements OnInit {
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
     private areaService: AreaService,
-    private router: Router
+    private router: Router,
   ) {}
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

@@ -66,7 +66,6 @@ import { ConfirmDialogXuatHangComponent } from './xuat-hang-theo-don-ban-hang/di
     MatIconModule,
     MatCardModule,
     MatMenuModule,
-    MatTableModule,
     MatAutocompleteModule,
     MatSnackBarModule,
     ConfirmDialogComponent,

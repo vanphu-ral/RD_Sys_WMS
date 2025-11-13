@@ -1,3 +1,5 @@
+@use "@angular/material" as mat;
+
 .nhapkho-container {
     padding: 10px;
     background-color: #f8fafc;
@@ -51,6 +53,12 @@
     }
 }
 
+.header-quantity-input {
+    width: 100px;
+    margin: 0;
+    @include mat.form-field-density(-5);
+}
+
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-success .mdc-snackbar__surface {
     background-color: #14AE5C !important;
     color: white !important;
@@ -71,6 +79,7 @@
     background-color: #dc2626 !important;
     color: white !important;
 }
+
 .nhapkho-card {
     box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
     border-radius: 8px;
@@ -109,9 +118,29 @@
         }
     }
 }
+
 .card-content {
     padding: 24px;
 }
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;    
+}
+.status-badge.scanned {
+    background-color: #d3f6e4 !important;
+    color: #14AE5C !important;
+}
+
+.status-badge.unscanned {
+    background-color: #fed7aa !important;
+    color: #ea580c !important;
+}
+
 
 .mode-buttons {
     display: flex;

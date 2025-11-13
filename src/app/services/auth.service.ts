@@ -23,6 +23,7 @@ export class AuthService {
   hasRole(arg0: string): any {
     throw new Error('Method not implemented.');
   }
+
   getUserRoles(): string[] {
     const token = this.getAccessToken();
     if (!token) return [];

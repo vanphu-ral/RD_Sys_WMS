@@ -141,34 +141,41 @@
                 <!-- STT Column -->
                 <ng-container matColumnDef="stt">
                     <th mat-header-cell *matHeaderCellDef>STT</th>
-                    <td mat-cell *matCellDef="let item; let i = index">{{i + 1}}</td>
+                    <td mat-cell *matCellDef="let item; let i = index">{{ i + 1 }}</td>
                 </ng-container>
 
                 <!-- Pallet code Column -->
                 <ng-container matColumnDef="palletCode">
                     <th mat-header-cell *matHeaderCellDef>Pallet code</th>
-                    <td mat-cell *matCellDef="let item">{{item.palletCode}}</td>
+                    <td mat-cell *matCellDef="let item">{{ item.palletCode }}</td>
                 </ng-container>
 
                 <!-- Box code Column -->
                 <ng-container matColumnDef="boxCode">
                     <th mat-header-cell *matHeaderCellDef>Box code</th>
-                    <td mat-cell *matCellDef="let item">{{item.boxCode}}</td>
+                    <td mat-cell *matCellDef="let item">{{ item.boxCode }}</td>
                 </ng-container>
 
-                <!-- Số pallet Column -->
-                <ng-container matColumnDef="soPallet">
-                    <th mat-header-cell *matHeaderCellDef>Số pallet</th>
-                    <td mat-cell *matCellDef="let item">{{item.soPallet}}</td>
+                <!-- Box quantity Column -->
+                <ng-container matColumnDef="boxQuantity">
+                    <th mat-header-cell *matHeaderCellDef>Số lượng thùng</th>
+                    <td mat-cell *matCellDef="let item">{{ item.boxQuantity }}</td>
                 </ng-container>
 
+                <!-- Updated date Column -->
+                <ng-container matColumnDef="updatedDate">
+                    <th mat-header-cell *matHeaderCellDef>Ngày cập nhật</th>
+                    <td mat-cell *matCellDef="let item">{{ item.updatedDate }}</td>
+                </ng-container>
+
+                <!-- Scan status Column -->
                 <ng-container matColumnDef="scanStatus">
                     <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
                     <td mat-cell *matCellDef="let item">
                         <span [ngClass]="{
                             'scanned': item.scanStatus === 'Đã scan',
                             'unscanned': item.scanStatus === 'Chưa scan'
-                            }">
+                        }">
                             {{ item.scanStatus }}
                         </span>
                     </td>
@@ -177,21 +184,22 @@
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
             </table>
+
         </div>
         <div class="mobile-scan-list">
             <div class="mobile-scan-card" *ngFor="let item of detailList; let i = index"
                 [class.scanned]="item.scanStatus === 'Đã scan'" [class.unscanned]="item.scanStatus === 'Chưa scan'">
-
                 <div class="scan-header">
                     <div class="scan-number">
-                        <mat-icon>{{item.scanStatus === 'Đã scan' ? 'check_circle' :
-                            'radio_button_unchecked'}}</mat-icon>
-                        <span>#{{i + 1}}</span>
+                        <mat-icon>
+                            {{ item.scanStatus === 'Đã scan' ? 'check_circle' : 'radio_button_unchecked' }}
+                        </mat-icon>
+                        <span>#{{ i + 1 }}</span>
                     </div>
                     <div class="scan-status-badge" [class.scanned]="item.scanStatus === 'Đã scan'"
                         [class.unscanned]="item.scanStatus === 'Chưa scan'">
-                        <mat-icon>{{item.scanStatus === 'Đã scan' ? 'verified' : 'pending'}}</mat-icon>
-                        {{item.scanStatus}}
+                        <mat-icon>{{ item.scanStatus === 'Đã scan' ? 'verified' : 'pending' }}</mat-icon>
+                        {{ item.scanStatus }}
                     </div>
                 </div>
 
@@ -201,7 +209,7 @@
                             <mat-icon>qr_code</mat-icon>
                             Pallet Code
                         </div>
-                        <div class="code-value">{{item.palletCode}}</div>
+                        <div class="code-value">{{ item.palletCode }}</div>
                     </div>
 
                     <div class="code-section">
@@ -209,14 +217,14 @@
                             <mat-icon>qr_code_2</mat-icon>
                             Box Code
                         </div>
-                        <div class="code-value">{{item.boxCode}}</div>
+                        <div class="code-value">{{ item.boxCode }}</div>
                     </div>
                 </div>
 
                 <div class="pallet-count">
                     <mat-icon>inventory</mat-icon>
-                    <span class="count-label">Số pallet:</span>
-                    <span class="count-value">{{item.soPallet}}</span>
+                    <span class="count-label">Số lượng thùng:</span>
+                    <span class="count-value">{{ item.boxQuantity }}</span>
                 </div>
             </div>
 
