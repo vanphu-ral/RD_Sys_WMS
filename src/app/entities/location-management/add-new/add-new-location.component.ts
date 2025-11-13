@@ -377,7 +377,7 @@ export class AddNewLocationComponentComponent implements OnInit {
 
     const payload: Location = {
       code: this.location.code,
-      name: this.location.name,
+      name: this.location.code,
       area_id: this.selectedAreaId || 0,
       address: this.location.address,
       description: this.location.description,
