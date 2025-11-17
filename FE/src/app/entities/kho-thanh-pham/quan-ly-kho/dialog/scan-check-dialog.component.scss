@@ -1,0 +1,651 @@
+.dialog-container {
+    max-width: 1200px;
+    width: 100%;
+}
+
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e2e8f0;
+
+    .header-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        mat-icon {
+            font-size: 28px;
+            width: 28px;
+            height: 28px;
+            color: #1e293b;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .subtitle {
+            margin: 4px 0 0 0;
+            font-size: 13px;
+            color: #64748b;
+        }
+    }
+}
+
+.scan-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+
+    th,
+    td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #e0e0e0;
+        text-align: left;
+        font-size: 14px;
+    }
+
+    th {
+        background-color: #f5f5f5;
+        font-weight: 600;
+    }
+
+    td button {
+        vertical-align: middle;
+    }
+}
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-success .mdc-snackbar__surface {
+    background-color: #14AE5C !important;
+    color: white !important;
+}
+
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-position {
+    margin-bottom: 75vh;
+    width: 10rem;
+    height: 35px;
+}
+
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-warn .mdc-snackbar__surface {
+    background-color: #f59e0b;
+    color: #1e293b;
+}
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-error .mdc-snackbar__surface {
+    background-color: #dc2626 !important;
+    color: white !important;
+}
+
+mat-dialog-content {
+    padding: 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.mode-section,
+.info-section {
+    margin-bottom: 24px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    color: #1e293b;
+    margin-bottom: 16px;
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.toggle-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    .toggle-divider {
+        color: #cbd5e1;
+        font-size: 20px;
+    }
+}
+
+.mode-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+
+    button {
+        height: 48px;
+        padding: 0 24px;
+        font-weight: 500;
+        border-radius: 8px;
+        background-color: white;
+        color: #64748b;
+        border: 2px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+
+        &.active {
+            background-color: #14AE5C;
+            color: white;
+            border-color: #14AE5C;
+        }
+    }
+}
+
+.scan-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+
+    .scan-field {
+        width: 100%;
+    }
+}
+
+.info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.info-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .info-label {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .info-value {
+        font-size: 14px;
+        color: #1e293b;
+        font-weight: 500;
+
+        &.status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            background-color: #dbeafe;
+            color: #2563eb;
+            width: fit-content;
+        }
+    }
+}
+
+.update-quantity {
+    margin-top: 24px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+
+    h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 16px;
+    }
+
+    .quantity-field {
+        width: 300px;
+    }
+}
+
+mat-dialog-actions {
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+
+    .save-btn {
+        height: 44px;
+        padding: 0 32px;
+        font-weight: 500;
+
+        mat-icon {
+            margin-right: 8px;
+        }
+    }
+}
+
+
+@media (max-width: 768px) {
+
+    // Dialog Container
+    .dialog-container {
+        max-width: 100vw;
+        width: calc(100vw - 60px) !important;
+        padding-left: 40px;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    // Dialog Header
+    .dialog-header {
+        padding: 12px 16px;
+        flex-shrink: 0;
+
+        .header-title {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+
+            mat-icon {
+                font-size: 24px;
+                width: 24px;
+                height: 24px;
+            }
+
+            h2 {
+                font-size: 18px;
+                line-height: 1.3;
+            }
+
+            .subtitle {
+                font-size: 12px;
+                margin-top: 2px;
+            }
+        }
+
+        button[mat-icon-button] {
+            mat-icon {
+                font-size: 24px;
+            }
+        }
+    }
+
+    // Dialog Content
+    mat-dialog-content {
+        padding: 16px;
+        max-height: none;
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    // Mode Section
+    .mode-section {
+        margin-bottom: 20px;
+
+        .section-title {
+            font-size: 15px;
+            margin-bottom: 12px;
+
+            mat-icon {
+                font-size: 18px;
+                width: 18px;
+                height: 18px;
+            }
+        }
+    }
+
+    // Mode Buttons - Stack vertically on mobile
+    .mode-buttons {
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 16px;
+
+        button {
+            width: 100%;
+            height: 48px;
+            justify-content: center;
+            font-size: 15px;
+
+            mat-icon {
+                font-size: 22px;
+                width: 22px;
+                height: 22px;
+            }
+
+            &.active {
+                transform: scale(1);
+                box-shadow: 0 2px 8px rgba(20, 174, 92, 0.3);
+            }
+        }
+    }
+
+    // Scan Inputs - Stack vertically
+    .scan-inputs {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+
+        .scan-field {
+            width: 100%;
+
+            ::ng-deep .mdc-text-field {
+                min-height: 52px; // Better touch target
+            }
+
+            ::ng-deep .mat-mdc-form-field-infix {
+                padding-top: 16px;
+                padding-bottom: 16px;
+            }
+
+            ::ng-deep input {
+                font-size: 15px;
+            }
+        }
+    }
+
+    // Info Section
+    .info-section {
+        margin-bottom: 20px;
+
+        .section-title {
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+    }
+
+    // Info Grid - Stack to single column
+    .info-grid {
+        gap: 0;
+    }
+
+    .info-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+
+        &:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+    }
+
+    .info-item {
+        padding: 10px 12px;
+        background: #f8fafc;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        transition: background 0.2s;
+
+        &:active {
+            background: #f1f5f9;
+        }
+
+        &:last-child:empty {
+            display: none;
+        }
+
+        .info-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 600;
+            word-break: break-word;
+
+            &.status-badge {
+                padding: 6px 12px;
+                font-size: 12px;
+                margin-top: 4px;
+            }
+        }
+    }
+
+    // Alternative: Horizontal layout for info items (optional)
+    .info-item.horizontal {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+
+        .info-label {
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .info-value {
+            text-align: right;
+            flex: 1;
+        }
+    }
+
+    // Update Quantity Section
+    .update-quantity {
+        margin-top: 20px;
+        padding-top: 16px;
+
+        h3 {
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+
+        .quantity-field {
+            width: 100%;
+
+            ::ng-deep .mdc-text-field {
+                min-height: 52px;
+            }
+
+            ::ng-deep input {
+                font-size: 16px;
+                text-align: center;
+                font-weight: 600;
+            }
+        }
+    }
+
+    // Transfer Warehouse Section
+    .transfer-warehouse {
+        margin-top: 20px;
+        padding-top: 16px;
+
+        h3 {
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+
+        .quantity-field {
+            width: 100%;
+
+            ::ng-deep .mdc-text-field {
+                min-height: 52px;
+            }
+        }
+    }
+
+    // Dialog Actions
+    mat-dialog-actions {
+        padding: 12px 16px;
+        flex-shrink: 0;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+
+        .save-btn {
+            width: 100%;
+            height: 48px;
+            font-size: 15px;
+            font-weight: 600;
+
+            mat-icon {
+                margin-right: 8px;
+                font-size: 20px;
+            }
+        }
+    }
+
+    // Snackbar adjustments
+    ::ng-deep .mat-mdc-snack-bar-container {
+        &.snackbar-position {
+            margin-bottom: 20px !important;
+            margin-left: 16px;
+            margin-right: 16px;
+            max-width: calc(100vw - 32px);
+        }
+
+        .mdc-snackbar__surface {
+            min-width: auto !important;
+        }
+
+        .mat-mdc-snack-bar-label {
+            font-size: 14px;
+        }
+    }
+}
+
+// Very small screens
+@media (max-width: 480px) {
+    .dialog-header {
+        padding: 10px 12px;
+
+        .header-title {
+            h2 {
+                font-size: 16px;
+            }
+
+            .subtitle {
+                font-size: 11px;
+            }
+        }
+    }
+
+    mat-dialog-content {
+        padding: 12px;
+    }
+
+    .mode-buttons button {
+        height: 44px;
+        font-size: 14px;
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    .scan-inputs .scan-field {
+        ::ng-deep .mdc-text-field {
+            min-height: 48px;
+        }
+    }
+
+    .info-item {
+        padding: 8px 10px;
+
+        .info-label {
+            font-size: 10px;
+        }
+
+        .info-value {
+            font-size: 13px;
+        }
+    }
+
+    mat-dialog-actions {
+        padding: 10px 12px;
+
+        .save-btn {
+            height: 44px;
+            font-size: 14px;
+        }
+    }
+}
+
+// Landscape mobile
+@media (max-height: 500px) and (max-width: 768px) {
+    mat-dialog-content {
+        padding: 12px 16px;
+    }
+
+    .mode-buttons {
+        flex-direction: row;
+        margin-bottom: 12px;
+
+        button {
+            flex: 1;
+            height: 44px;
+        }
+    }
+
+    .scan-inputs {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .info-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .info-item {
+        padding: 8px 10px;
+        margin-bottom: 6px;
+    }
+
+    mat-dialog-actions {
+        padding: 10px 16px;
+
+        .save-btn {
+            height: 40px;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+
+    // Full screen dialog on mobile
+    .cdk-overlay-pane {
+        max-width: 100vw !important;
+        width: calc(100vw - 60px) !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        left: 60px !important;
+    }
+
+    .mat-mdc-dialog-container {
+        border-radius: 0 !important;
+        max-height: 100vh !important;
+        height: 100vh !important;
+
+        .mat-mdc-dialog-surface {
+            border-radius: 0 !important;
+        }
+    }
+
+    // Prevent body scroll when dialog is open
+    body.dialog-open {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+    }
+}

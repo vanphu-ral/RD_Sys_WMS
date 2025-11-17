@@ -1,0 +1,319 @@
+// @use '@angular/material' as mat;
+
+// $my-theme: mat.define-light-theme((
+//   color: (
+//     primary: mat.define-palette(mat.$indigo-palette),
+//     accent: mat.define-palette(mat.$pink-palette)
+//   ),
+//   typography: mat.define-typography-config(),
+//   density: 0
+// ));
+
+// // Áp dụng core styles và theme
+// @include mat.core();
+// @include mat.all-component-themes($my-theme);
+
+.function-list {
+  display: flex;         
+  align-items: center;   
+  gap: 16px;             
+}
+
+.bordered-table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid #e40b0b;
+}
+
+.bordered-table th,
+.bordered-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+
+}
+
+th {
+    font-weight: bold;
+    text-align: left;
+}
+
+
+
+.listupdate-with-badge {
+  position: relative;
+  display: inline-block;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background-color: rgb(48, 58, 188);
+  color: white;
+  border-radius: 50%;
+  padding: 4px 6px;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 2;
+  min-width: 20px;
+  text-align: center;
+  
+}
+
+.example-section {
+  margin: 12px 0;
+}
+
+.example-margin {
+  margin: 0 12px;
+}
+
+ul {
+  list-style-type: none;
+  margin-top: 4px;
+}
+table {
+  width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+th, td {
+  padding: 8px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+
+
+th {
+  height: 50px;
+  background-color: rgb(49, 110, 241)
+}
+
+.mat-header-cell.search-header {
+  padding: 0;
+  overflow: visible;
+}
+
+/* Container chứa nội dung header */
+.header-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+
+/* Ô tìm kiếm */
+.search-container {
+  padding: 0px 0px 0px 0px;
+}
+
+.search-container mat-form-field {
+  width: 100%;
+}
+
+.search-container .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+.search-container .mat-form-field-outline {
+  background-color: white;
+  border-radius: 4px;
+}
+.mat-mdc-form-field-hint-wrapper,
+.mat-mdc-form-field-hint-spacer {
+  display: none !important;
+}
+
+.custom-search-input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.custom-search-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
+
+.mat-mdc-table {
+  width: 100%;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.mat-column-name {
+  height: 50;
+}
+
+.search-container mat-form-field input.mat-input-element { // Hoặc input.mat-mdc-input-element cho MDC
+  font-size: 14px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+
+.search-header {
+    padding: 0;
+    margin: 0;
+}
+
+// 
+
+.column-title{
+  color: white;
+}
+
+.search-container {
+  padding: 0px;
+
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Căn giữa theo chiều ngang */
+  width: 100%; /* Chiếm full width của th */
+}
+
+.custom-search-wrapper{
+  height:  20px;
+
+
+}
+// .custom-search-wrapper {
+//   width: calc(100% - 16px); /* Trừ đi padding */
+//   max-width: 100%; /* Đảm bảo không vượt quá kích thước th */
+//   position: relative;
+// }
+
+.mat-checkbox-frame {
+  border-color: white !important;
+}
+
+.mdc-checkbox__background{
+ color: white !important;
+}
+
+.mdc-checkbox__mixedmark{
+  color: white !important;
+}
+
+.mat-column-Material ID { /* Thay 'tenCuaCotCuaBan' bằng tên cột thật của bạn */
+  flex: 0 0 150px; /* flex-grow, flex-shrink, flex-basis */
+
+}
+.mat-column-vendor {
+  flex: 0 0 120px; /* Ví dụ: 120px */
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+.custom-search-wrapper {
+  width: 100%;
+}
+
+.custom-search-input {
+  width: 98%;
+  padding: 12px 1px 1px 4px ;
+  font-size: 13px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  align-items: center;
+  margin-left: -2px;
+} 
+
+.th{
+  background-color:rgb(49, 110, 241)
+}
+.td-flex-center {
+  display: flex;
+  justify-content: center; /* căn giữa ngang */
+  align-items: center;     /* căn giữa dọc */
+  height: 100%;
+}
+
+.icon-box {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+}
+
+.td-flex-center :hover{
+  background-color: #5c5c5c;
+  color: white;
+}
+
+section {
+  display: table;
+}
+
+.example-label {
+  display: table-cell;
+  font-size: 14px;
+  margin-left: 8px;
+  min-width: 120px;
+}
+
+.example-button-row {
+  display: table-cell;
+  max-width: 600px;
+}
+
+.example-button-row .mat-mdc-button-base {
+  margin: 8px 8px 8px 0;
+}
+
+.example-flex-container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.example-button-container {
+  display: flex;
+  justify-content: center;
+  width: 140px;
+}
+
+// 
+tr.example-detail-row {
+  height: 0;
+} 
+
+
+tr.example-element-row:not(.example-expanded-row):hover {
+  background: whitesmoke;
+}
+
+tr.example-element-row:not(.example-expanded-row):active {
+  background: #efefef;
+}
+
+.example-element-row td {
+  border-bottom-width: 0;
+}
+
+.example-element-detail {
+  overflow: hidden;
+  display: flex;
+}
+
+.example-element-detail {
+  overflow: hidden;
+  display: flex;
+}
+
+.example-element-detail {
+  display: block; 
+
+}
+

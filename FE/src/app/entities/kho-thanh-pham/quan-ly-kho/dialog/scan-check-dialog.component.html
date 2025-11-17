@@ -1,0 +1,196 @@
+<div class="dialog-container">
+    <div class="dialog-header">
+        <div class="header-title">
+            <mat-icon>qr_code_scanner</mat-icon>
+            <div>
+                <h2>Scan check</h2>
+                <p class="subtitle">Internal warehouse transfer</p>
+            </div>
+        </div>
+        <button mat-icon-button mat-dialog-close>
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <mat-dialog-content>
+        <!-- Scan Mode Selection -->
+        <div class="mode-section">
+            <div class="section-title">
+                <mat-icon>qr_code_2</mat-icon>
+                <span>Chọn vật cần scan</span>
+            </div>
+
+            <div class="mode-buttons">
+                <button *ngIf="mode !== 'update'" mat-raised-button class="mode-btn"
+                    [class.active]="selectedScanMode === 'pallet'" (click)="toggleScanMode('pallet')">
+                    <mat-icon>inventory_2</mat-icon>
+                    Pallet
+                </button>
+
+                <!-- Nút Thùng luôn hiển thị -->
+                <button mat-raised-button class="mode-btn" [class.active]="selectedScanMode === 'box'"
+                    (click)="toggleScanMode('box')">
+                    <mat-icon>widgets</mat-icon>
+                    Thùng
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Scan Inputs -->
+        <div class="scan-inputs" *ngIf="selectedScanMode">
+            <mat-form-field class="scan-field" appearance="outline">
+                <mat-label>{{ selectedScanMode === 'pallet' ? 'Pallet scan...' : 'Box scan...' }}</mat-label>
+                <input matInput [(ngModel)]="palletScan" #palletInput
+                    (keydown.enter)="mode === 'transfer' ? focusLocationInput() : onScanComplete()" />
+            </mat-form-field>
+
+            <mat-form-field class="scan-field" appearance="outline" *ngIf="mode === 'transfer'">
+                <mat-label>Tên kho chuyển đến...</mat-label>
+                <input matInput [(ngModel)]="locationScan" #locationInput (keydown.enter)="onScanComplete()" />
+            </mat-form-field>
+        </div>
+        <div class="update-quantity" *ngIf="mode === 'update' && isInfoVisible">
+            <h3>Cập nhật số lượng tồn:</h3>
+            <mat-form-field class="quantity-field" appearance="outline">
+                <mat-label>Số lượng tồn...</mat-label>
+                <input matInput type="number" [(ngModel)]="updatedQuantity" />
+            </mat-form-field>
+        </div>
+
+        <!-- Transfer Warehouse Section -->
+        <!-- <div class="transfer-warehouse" *ngIf="mode === 'transfer' && isInfoVisible">
+            <h3>Chuyển đến kho:</h3>
+            <mat-form-field class="quantity-field" appearance="outline">
+                <mat-label>Tên kho chuyển đến...</mat-label>
+                <input matInput [(ngModel)]="targetWarehouse" />
+            </mat-form-field>
+        </div> -->
+
+        <!-- Information Section -->
+        <div class="info-section" *ngIf="isInfoVisible && mode !== 'transfer'">
+            <div class="section-title">
+                <mat-icon>info</mat-icon>
+                <span>Thông tin sản phẩm</span>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-row">
+                    <div class="info-item">
+                        <span class="info-label">Mã sản phẩm:</span>
+                        <span class="info-value">{{ productInfo.maSanPham }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Mã thùng:</span>
+                        <span class="info-value">{{ productInfo.maThung }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Cập nhật bởi:</span>
+                        <span class="info-value">{{ productInfo.capNhatBoi }}</span>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-item">
+                        <span class="info-label">Tên sản phẩm:</span>
+                        <span class="info-value">{{ productInfo.tenSanPham }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Location:</span>
+                        <span class="info-value">{{ productInfo.location }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Scan bởi:</span>
+                        <span class="info-value">{{ productInfo.scanBoi }}</span>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-item">
+                        <span class="info-label">Tên khách hàng:</span>
+                        <span class="info-value">{{ productInfo.tenKhachHang }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Area:</span>
+                        <span class="info-value">{{ productInfo.area }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Số lượng gốc:</span>
+                        <span class="info-value">{{ productInfo.soLuongGoc }}</span>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-item">
+                        <span class="info-label">Mã khách hàng:</span>
+                        <span class="info-value">{{ productInfo.maKhachHang }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Trạng thái:</span>
+                        <span class="info-value status-badge">{{ productInfo.trangThai }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Số lượng hiện tại:</span>
+                        <span class="info-value">{{ productInfo.soLuongHienTai }}</span>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-item">
+                        <span class="info-label">Mã Pallet:</span>
+                        <span class="info-value">{{ productInfo.maPallet }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Ngày cập nhật:</span>
+                        <span class="info-value">{{ productInfo.ngayCapNhat }}</span>
+                    </div>
+                    <div class="info-item"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transfer Table -->
+        <div class="transfer-table" *ngIf="mode === 'transfer' && scannedItems.length > 0">
+            <div class="section-title">
+                <mat-icon>list</mat-icon>
+                <span>Danh sách đã scan</span>
+            </div>
+
+            <table class="scan-table">
+                <thead>
+                    <tr>
+                        <th>{{ selectedScanMode === 'box' ? 'Mã thùng' : 'Mã pallet' }}</th>
+                        <th>Location mới</th>
+                        <th>Ngày scan</th>
+                        <th>Scan bởi</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of scannedItems; let i = index">
+                        <td>{{ item.code }}</td>
+                        <td>{{ item.location }}</td>
+                        <td>{{ item.scannedAt }}</td>
+                        <td>{{ item.scannedBy }}</td>
+                        <td>
+                            <button mat-icon-button color="warn" (click)="removeScannedItem(i)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+        <button mat-raised-button color="primary" class="save-btn" (click)="onSave()">
+            <mat-icon>save</mat-icon>
+            Lưu
+        </button>
+    </mat-dialog-actions>
+
+
+</div>
