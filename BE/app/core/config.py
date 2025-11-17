@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     KEYCLOAK_CLIENT_ID: str = "RD_KHO"
     KEYCLOAK_CLIENT_SECRET: str = "BXq009ttkCAYqQpczs4YqtaUFod4WlmI"
     KEYCLOAK_REDIRECT_URI: str = "ssosys.rangdong.com.vn:9002"
-# 
+
 # Tên miền :ssosys.rangdong.com.vn:9002
 # realm: rangdong
 # clientID : RD_KHO
@@ -39,6 +39,6 @@ class Settings(BaseSettings):
         env_file = ".env"
         case_sensitive = True
 
-
+#
 # Global settings instance
 settings = Settings()
