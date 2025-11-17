@@ -1,0 +1,29 @@
+{
+  "data": {
+    "inventoryDashboardGrouped": {
+      "data": [
+        {
+          "groupKey": "area_code",
+          "groupValue": "A003",
+          "totalAvailableQuantity": 2100,
+          "totalInitialQuantity": 2100,
+          "itemCount": 2,
+          "totalUniqueProducts": 0,
+          "totalClients": 0,
+          "totalPos": 2,
+          "totalPallets": 1,
+          "totalContainers": 2,
+          "totalLocations": 1,
+          "lastUpdated": null,
+          "lastReceived": null
+        }
+      ],
+      "meta": {
+        "page": 1,
+        "size": 20,
+        "totalItems": 1,
+        "totalPages": 1
+      }
+    }
+  }
+}

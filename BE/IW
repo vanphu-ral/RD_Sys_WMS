@@ -1,0 +1,74 @@
+# IWTR Type Mismatch Error Fix
+
+## Problem
+The application was encountering this error when creating IWTR records:
+```
+sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError: column "scan_status" is of type boolean but expression is of type character varying
+```
+
+## Root Cause
+1. Database schema expected boolean values for `status` and `scan_status` columns
+2. Application models defined these fields as `String(20)` columns
+3. Data was being passed as string values (e.g., "False") instead of boolean values
+4. The service layer wasn't properly converting string representations to boolean
+
+## Solution Implemented
+
+### 1. Model Changes (`app/modules/inventory/models.py`)
+Updated column definitions to use proper boolean types:
+- `InternalWarehouseTransferRequest.status`: `String(20)` → `Boolean, default=False`
+- `InternalWarehouseTransferRequest.scan_status`: `String(20)` → `Boolean, default=False`
+- `OutboundShipmentRequestOnOrder.status`: `String(20)` → `Boolean, default=False`
+- `OutboundShipmentRequestOnOrder.scan_status`: `String(20)` → `Boolean, default=False`
+
+### 2. Service Layer Changes (`app/modules/inventory/service.py`)
+Added robust boolean conversion logic:
+
+#### New `_convert_to_boolean()` method
+```python
+@staticmethod
+def _convert_to_boolean(value) -> bool:
+    """Convert various types to boolean, handling string representations properly"""
+    if isinstance(value, bool):
+        return value
+    elif isinstance(value, str):
+        # Handle string representations of boolean values
+        if value.lower() in ('true', '1', 'yes', 'on'):
+            return True
+        elif value.lower() in ('false', '0', 'no', 'off', ''):
+            return False
+        else:
+            # For any other non-empty string, treat as truthy
+            return bool(value)
+    else:
+        # For numbers, None, and other types
+        return bool(value)
+```
+
+#### Updated creation methods
+- `IWTRService.create_iwtr_request()`: Now converts `status` and `scan_status` using the new conversion method
+- `OSRService.create_osr_request()`: Same conversion logic for consistency
+
+#### Updated data retrieval methods
+- `IWTRService.get_iwtr_requests()`: Properly handles nullable boolean values
+- `OSRService.get_osr_requests()`: Same handling for consistency
+
+## Test Results
+The fix handles various input types correctly:
+- Boolean values: `True` → `True`, `False` → `False`
+- String representations: `"True"` → `True`, `"False"` → `False`, `"false"` → `False`
+- Numeric strings: `"1"` → `True`, `"0"` → `False`
+- Empty strings: `""` → `False`
+- None values: `None` → `False`
+- Other strings: `"random"` → `True` (truthy)
+
+## Impact
+This fix resolves the type mismatch error and ensures:
+1. Data integrity between the application and database
+2. Proper handling of various input formats
+3. Consistent behavior across IWTR and OSR operations
+4. Backward compatibility with existing code
+
+## Files Modified
+- `app/modules/inventory/models.py` - Changed column types to Boolean
+- `app/modules/inventory/service.py` - Added boolean conversion logic and updated methods

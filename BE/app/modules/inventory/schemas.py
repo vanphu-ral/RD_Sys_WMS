@@ -81,9 +81,21 @@ class AreaResponse(BaseModel):
     description: Optional[str] = None
     address: Optional[str] = None
     is_active: bool
+    updated_by: Optional[str] = None
+    updated_date: datetime = None
 
     class Config:
         from_attributes = True
+
+
+class AreaUpdate(BaseModel):
+    """Area update schema"""
+    code: Optional[str] = None
+    name: Optional[str] = None
+    thu_kho: Optional[str] = None
+    description: Optional[str] = None
+    address: Optional[str] = None
+    is_active: Optional[bool] = None
 
 
 class AreaListMeta(BaseModel):
@@ -104,7 +116,7 @@ class LocationResponse(BaseModel):
     id: int
     code: str
     name: str
-    area_id: Optional[int] = None
+    area_id: int
     address: Optional[str] = None
     description: Optional[str] = None
     is_multi_location: Optional[bool] = None
@@ -116,11 +128,13 @@ class LocationResponse(BaseModel):
     child_location_row_count: Optional[int] = None
     child_location_column_count: Optional[int] = None
     suffix_separator: Optional[str] = None
-    suffix_digit_len: Optional[str] = None
+    suffix_digit_len: Optional[int] = None
     humidity: Optional[float] = None
     temperature: Optional[float] = None
-    barcode: Optional[str] = None
+    barcode: str
     is_active: bool
+    updated_by: str = None
+    updated_date: datetime = None
 
     class Config:
         from_attributes = True
@@ -137,3 +151,311 @@ class LocationListResponse(BaseModel):
     """Paginated location list response"""
     data: list[LocationResponse]
     meta: LocationListMeta
+
+class GeneralInfo(BaseModel):
+    """Schema for general import information"""
+    ma_po: Optional[str] = None
+    ma_kh: int  # Will be mapped to client_id
+    ma_sp: str
+    ten_sp: str
+    so_pallet: int
+    so_thung: int
+    so_luong_sp: int
+    ma_wo: str
+    so_lot: str
+    ngay_nhap: str
+    ghi_chu: str
+    create_by: int  # Will be mapped to updated_by
+
+
+class Detail(BaseModel):
+    """Schema for import detail items"""
+    serial_pallet: str
+    box_code: str
+    quantity: int
+
+
+class WarehouseImportRequest(BaseModel):
+    """Schema for warehouse import request"""
+    general_info: GeneralInfo
+    detail: list[Detail]
+
+
+class WarehouseImportResponse(BaseModel):
+    """Response schema for warehouse import"""
+    id: int
+    order_id: Optional[int] = None
+    po_code: Optional[int] = None
+    client_id: Optional[int] = None
+    inventory_name: Optional[str] = None
+    number_of_pallet: Optional[int] = None
+    number_of_box: Optional[int] = None
+    quantity: int
+    wo_code: str
+    lot_number: str
+    status: bool
+    approved_by: Optional[str] = None
+    is_check_all: bool
+    note: Optional[str] = None
+    updated_by: Optional[str] = None
+    updated_date: datetime
+    deleted_at: Optional[datetime] = None
+    deleted_by: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class WarehouseImportContainerResponse(BaseModel):
+    """Response schema for warehouse import containers"""
+    id: int
+    warehouse_import_requirement_id: int
+    serial_pallet: Optional[str] = None
+    box_code: str
+    box_quantity: int
+    updated_by: str
+    updated_date: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ContainerInventoryCreate(BaseModel):
+    """Create schema for container inventories"""
+    manufacturing_date: Optional[datetime] = None
+    expiration_date: Optional[datetime] = None
+    sap_code: Optional[str] = None
+    po: Optional[str] = None
+    lot: Optional[str] = None
+    vendor: Optional[str] = None
+    msd_level: Optional[str] = None
+    comments: Optional[str] = None
+    name: Optional[str] = None
+    import_container_id: int
+    inventory_identifier: str
+    location_id: Optional[int] = None
+    serial_pallet: Optional[str] = None
+    quantity_imported: Optional[int] = None
+    scan_by: Optional[str] = None
+    confirmed: bool = False
+
+
+class ContainerInventoryUpdate(BaseModel):
+    """Update schema for container inventories"""
+    manufacturing_date: Optional[datetime] = None
+    expiration_date: Optional[datetime] = None
+    sap_code: Optional[str] = None
+    po: Optional[str] = None
+    lot: Optional[str] = None
+    vendor: Optional[str] = None
+    msd_level: Optional[str] = None
+    comments: Optional[str] = None
+    name: Optional[str] = None
+    location_id: Optional[str] = None
+    serial_pallet: Optional[str] = None
+    quantity_imported: Optional[int] = None
+    scan_by: Optional[str] = None
+    confirmed: Optional[bool] = None
+
+
+class ContainerInventoryResponse(BaseModel):
+    """Response schema for container inventories"""
+    id: int
+    manufacturing_date: Optional[datetime] = None
+    expiration_date: Optional[datetime] = None
+    sap_code: Optional[str] = None
+    po: Optional[str] = None
+    lot: Optional[str] = None
+    vendor: Optional[str] = None
+    msd_level: Optional[str] = None
+    comments: Optional[str] = None
+    name: Optional[str] = None
+    import_container_id: int
+    inventory_identifier: str
+    location_id: Optional[int] = None
+    serial_pallet: Optional[str] = None
+    quantity_imported: Optional[int] = None
+    scan_by: Optional[str] = None
+    time_checked: datetime
+    confirmed: bool
+
+    class Config:
+        from_attributes = True
+
+
+class InventoryResponse(BaseModel):
+    """Response schema for inventories"""
+    id: int
+    identifier: str
+    serial_pallet: Optional[str] = None
+    part_number: Optional[str] = None
+    location_id: int
+    parent_location_id: Optional[int] = None
+    last_location_id: Optional[int] = None
+    parent_inventory_id: Optional[str] = None
+    expiration_date: Optional[datetime] = None
+    received_date: Optional[datetime] = None
+    updated_date: Optional[datetime] = None
+    updated_by: Optional[str] = None
+    calculated_status: Optional[str] = None
+    manufacturing_date: Optional[datetime] = None
+    initial_quantity: int
+    available_quantity: int
+    quantity: Optional[int] = None
+    name: Optional[str] = None
+    sap_code: Optional[str] = None
+    po: Optional[str] = None
+    lot: Optional[str] = None
+    vendor: Optional[str] = None
+    msd_level: Optional[str] = None
+    comments: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class IWTRResponse(BaseModel):
+    """Response schema for internal warehouse transfer requests"""
+    id: int
+    ma_yc_cknb: str
+    tu_kho: Optional[int] = None
+    den_kho: Optional[int] = None
+    don_vi_linh: Optional[str] = None
+    don_vi_nhan: Optional[str] = None
+    ly_do_xuat_nhap: Optional[str] = None
+    ngay_chung_tu: Optional[str] = None
+    so_phieu_xuat: Optional[str] = None
+    so_chung_tu: Optional[str] = None
+    series_pgh: Optional[str] = None
+    status: Optional[str] = None
+    note: Optional[str] = None
+    scan_status: bool
+    updated_by: Optional[str] = None
+    updated_date: datetime
+    deleted_at: Optional[datetime] = None
+    deleted_by: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ProductsInIWTRResponse(BaseModel):
+    """Response schema for products in IWTR"""
+    id: int
+    internal_warehouse_transfer_requests_id: int
+    product_code: str
+    product_name: Optional[str] = None
+    tu_kho: Optional[int] = None
+    den_kho: Optional[int] = None
+    total_quantity: Optional[int] = None
+    dvt: Optional[str] = None
+    updated_by: Optional[str] = None
+    updated_date: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class InventoriesInIWTRResponse(BaseModel):
+    """Response schema for inventories in IWTR"""
+    id: int
+    product_in_iwtr_id: int
+    inventory_identifier: Optional[str] = None
+    serial_pallet: Optional[str] = None
+    scan_by: Optional[str] = None
+    quantity_dispatched: Optional[int] = None
+    scan_time: datetime
+    confirmed: bool
+
+    class Config:
+        from_attributes = True
+
+
+class OSRResponse(BaseModel):
+    """Response schema for outbound shipment requests on order"""
+    id: int
+    ma_yc_xk: str
+    kho_xuat: Optional[int] = None
+    xuat_toi: Optional[int] = None
+    don_vi_linh: Optional[str] = None
+    don_vi_nhan: Optional[str] = None
+    ly_do_xuat_nhap: Optional[str] = None
+    ngay_chung_tu: Optional[str] = None
+    so_phieu_xuat: Optional[str] = None
+    so_chung_tu: Optional[str] = None
+    series_pgh: Optional[str] = None
+    status: Optional[str] = None
+    note: Optional[str] = None
+    scan_status: Optional[str] = None
+    updated_by: Optional[str] = None
+    updated_date: datetime
+    deleted_at: Optional[datetime] = None
+    deleted_by: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ProductsInOSRResponse(BaseModel):
+    """Response schema for products in OSR"""
+    id: int
+    outbound_shipment_request_on_order_id: int
+    product_code: str
+    product_name: Optional[str] = None
+    total_quantity: Optional[int] = None
+    dvt: Optional[str] = None
+    updated_by: Optional[str] = None
+    updated_date: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class InventoriesInOSRResponse(BaseModel):
+    """Response schema for inventories in OSR"""
+    id: int
+    product_in_osr_id: int
+    inventory_identifier: str
+    serial_pallet: str
+    scan_by: str
+    quantity_dispatched: int
+    scan_time: datetime
+    confirmed: bool
+
+    class Config:
+        from_attributes = True
+
+
+class UpdateContainerInventoryRequest(BaseModel):
+    """Schema for updating container inventory quantity and confirmed status"""
+    import_container_id: int
+    inventory_identifier: str
+    quantity_imported: int
+    confirmed: bool
+    location_id: Optional[int] = None
+
+class UpdateInventoriesInIWTRRequest(BaseModel):
+    product_in_iwtr_id: int
+    inventory_identifier: str
+    quantity_imported: int
+    confirmed: bool
+
+
+class BulkUpdateContainerInventoryRequest(BaseModel):
+
+    updates: list[UpdateContainerInventoryRequest]
+
+class BulkUpdateInventoriesInIWTRRequest(BaseModel):
+
+    updates: list[UpdateInventoriesInIWTRRequest]
+
+class UpdateInventoriesInOSRRequest(BaseModel):
+    product_in_osr_id: int
+    inventory_identifier: str
+    quantity_imported: int
+    confirmed: bool
+
+
+class BulkUpdateInventoriesInOSRRequest(BaseModel):
+
+    updates: list[UpdateInventoriesInOSRRequest]

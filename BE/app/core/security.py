@@ -1,8 +1,9 @@
 """
 Security utilities for authentication and authorization
 """
+import time
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Dict
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
@@ -11,12 +12,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.keycloak import get_keycloak_openid
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT token scheme
 security = HTTPBearer()
+
+# JWKS cache for Keycloak token verification
+_jwks_cache = None
+_jwks_cache_time = 0
+JWKS_CACHE_DURATION = 3600  # 1 hour
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
@@ -25,6 +32,54 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_password_hash(password: str) -> str:
     """Hash a password"""
     return pwd_context.hash(password)
+
+def get_jwks() -> Dict:
+    """Fetch and cache JWKS from Keycloak"""
+    global _jwks_cache, _jwks_cache_time
+    current_time = time.time()
+
+    if _jwks_cache is None or (current_time - _jwks_cache_time) > JWKS_CACHE_DURATION:
+        keycloak_openid = get_keycloak_openid()
+        _jwks_cache = keycloak_openid.certs()
+        _jwks_cache_time = current_time
+
+    return _jwks_cache
+
+def verify_keycloak_token(token: str) -> Optional[Dict]:
+    """Verify Keycloak JWT token using JWKS"""
+    try:
+        # Decode header để lấy kid
+        header = jwt.get_unverified_header(token)
+        kid = header.get('kid')
+
+        if not kid:
+            return None
+
+        # Lấy JWKS
+        jwks = get_jwks()
+        key = None
+
+        # Tìm key theo kid
+        for jwk_key in jwks['keys']:
+            if jwk_key['kid'] == kid:
+                key = jwk_key
+                break
+
+        if not key:
+            return None
+
+        # Verify token với public key
+        payload = jwt.decode(
+            token,
+            key,
+            algorithms=['RS256'],  # Keycloak thường dùng RS256
+            audience=settings.KEYCLOAK_CLIENT_ID
+        )
+
+        return payload
+
+    except JWTError:
+        return None
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create JWT access token"""
@@ -39,21 +94,24 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 def verify_token(token: str) -> Optional[str]:
-    """Verify JWT token and return username"""
+    """Verify token - support both internal JWT and Keycloak tokens"""
+    # Thử verify Keycloak token trước
+    keycloak_payload = verify_keycloak_token(token)
+    if keycloak_payload:
+        return keycloak_payload.get('preferred_username') or keycloak_payload.get('sub')
+
+    # Fallback to internal JWT (nếu cần)
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            return None
-        return username
+        return payload.get("sub")
     except JWTError:
         return None
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
-) -> str:
-    """Get current authenticated user"""
+) -> Dict:
+    """Get current authenticated user from Keycloak token"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -61,13 +119,20 @@ async def get_current_user(
     )
 
     token = credentials.credentials
-    username = verify_token(token)
-    if username is None:
+    user_info = verify_keycloak_token(token)
+
+    if user_info is None:
         raise credentials_exception
 
-    # Here you would typically check if user exists in database
-    # For now, just return the username
-    return username
+    # Return full user info from Keycloak
+    return {
+        "sub": user_info.get("sub"),
+        "preferred_username": user_info.get("preferred_username"),
+        "name": user_info.get("name"),
+        "email": user_info.get("email"),
+        "roles": user_info.get("realm_access", {}).get("roles", []),
+        "groups": user_info.get("groups", [])
+    }
 
 
 async def authenticate_user(db: AsyncSession, username: str, password: str):

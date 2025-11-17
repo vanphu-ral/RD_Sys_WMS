@@ -31,11 +31,18 @@ ExternalAppsAsyncSessionLocal = async_sessionmaker(
     expire_on_commit=False,
 )
 
+
 Base = declarative_base()
 
 
 # HÀM GET_DB BẤT ĐỒNG BỘ (Main WMS Database)
 async def get_db():
+    async with AsyncSessionLocal() as db:
+        yield db
+
+
+# HÀM GET_ASYNC_DB (Alias for get_db)
+async def get_async_db():
     async with AsyncSessionLocal() as db:
         yield db
 

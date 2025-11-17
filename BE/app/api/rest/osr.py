@@ -1,6 +1,4 @@
-"""
-REST API endpoints for Outbound Shipment Requests (OSR)
-"""
+
 from typing import List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, Query, HTTPException
@@ -14,15 +12,19 @@ from app.modules.inventory.external_apps_schemas import (
     OSRHeaderResponse,
     OSRCreateRequest,
     OSRResponse,
-    ExternalAppsSyncResponse
+    OSRFullResponse,
+    ExternalAppsSyncResponse,
+    OSRCreateResponse,
+    OSRInventoriesCreateRequest,
+    OSRInventoriesCreateResponse,
+    InventoryInOSRResponse,
+    OSRScanDetailRequest,
+    OSRScanDetailResponse
 )
+from app.modules.inventory.schemas import BulkUpdateInventoriesInOSRRequest
 
 router = APIRouter()
 
-
-# ============================================================================
-# SAP OSR Endpoints (GET from SAP)
-# ============================================================================
 
 @router.get("/sap/osr", response_model=List[OSRHeaderResponse])
 async def get_osr_from_external_apps(
@@ -37,11 +39,7 @@ async def get_osr_from_external_apps(
     limit: int = Query(100, ge=1, le=1000, description="Maximum records to fetch"),
     # current_user: str = Depends(get_current_user)
 ):
-    """
-    Get OSR (Outbound Shipment Requests) from SAP database (ORDR table)
-    
-    This endpoint fetches sales order data directly from SAP without detail lines.
-    """
+
     try:
         osr_list = await ExternalAppsOSRService.get_osr_from_external_apps(
             external_apps_db=external_apps_db,
@@ -65,9 +63,7 @@ async def get_osr_by_doc_entry(
     external_apps_db: AsyncSession = Depends(get_external_apps_db),
     # current_user: str = Depends(get_current_user)
 ):
-    """
-    Get single OSR by DocEntry from SAP
-    """
+
     try:
         osr = await ExternalAppsOSRService.get_osr_by_doc_entry(external_apps_db, doc_entry)
         if not osr:
@@ -85,9 +81,7 @@ async def get_open_osr_from_external_apps(
     limit: int = Query(100, ge=1, le=1000, description="Maximum records to fetch"),
     # current_user: str = Depends(get_current_user)
 ):
-    """
-    Get all open OSR from SAP (CANCELED='N', DocStatus='O')
-    """
+
     try:
         osr_list = await ExternalAppsOSRService.get_open_osr_from_external_apps(external_apps_db, limit)
         return osr_list
@@ -95,9 +89,23 @@ async def get_open_osr_from_external_apps(
         raise HTTPException(status_code=500, detail=f"Error fetching open OSR from SAP: {str(e)}")
 
 
-# ============================================================================
-# WMS OSR Endpoints (POST to WMS)
-# ============================================================================
+@router.get("/sap/osr/full/{doc_entry}", response_model=OSRFullResponse)
+async def get_full_osr_by_doc_entry(
+    doc_entry: int,
+    external_apps_db: AsyncSession = Depends(get_external_apps_db),
+    # current_user: str = Depends(get_current_user)
+):
+
+    try:
+        full_osr = await ExternalAppsOSRService.get_full_osr_by_doc_entry(external_apps_db, doc_entry)
+        if not full_osr:
+            raise HTTPException(status_code=404, detail=f"OSR with DocEntry {doc_entry} not found in SAP")
+        return full_osr
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching full OSR from SAP: {str(e)}")
+
 
 @router.get("/requests", response_model=List[dict])
 async def get_osr_requests(
@@ -116,68 +124,13 @@ async def create_osr_request(
     db: AsyncSession = Depends(get_db),
     # current_user: str = Depends(get_current_user)
 ):
-    """
-    Create new OSR request in WMS database
-    """
+
     try:
         osr = await OSRService.create_osr_request(db, osr_data.model_dump())
         return osr
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating OSR: {str(e)}")
 
-
-@router.post("/sync-from-sap", response_model=ExternalAppsSyncResponse)
-async def sync_osr_from_external_apps(
-    external_apps_db: AsyncSession = Depends(get_external_apps_db),
-    db: AsyncSession = Depends(get_db),
-    doc_entry: Optional[int] = Query(None, description="Sync specific DocEntry"),
-    limit: int = Query(100, ge=1, le=1000, description="Maximum records to sync"),
-    # current_user: str = Depends(get_current_user)
-):
-    """
-    Sync OSR from SAP to WMS database
-    
-    This endpoint:
-    1. Fetches open OSR from SAP (ORDR table)
-    2. Maps SAP data to WMS format
-    3. Creates new OSR records in WMS database
-    """
-    try:
-        # Fetch from SAP
-        if doc_entry:
-            external_apps_osr = await ExternalAppsOSRService.get_osr_by_doc_entry(external_apps_db, doc_entry)
-            external_apps_osr_list = [external_apps_osr] if external_apps_osr else []
-        else:
-            external_apps_osr_list = await ExternalAppsOSRService.get_open_osr_from_external_apps(external_apps_db, limit)
-        
-        records_fetched = len(external_apps_osr_list)
-        records_created = 0
-        records_failed = 0
-        errors = []
-        
-        # Create in WMS
-        for external_apps_osr in external_apps_osr_list:
-            try:
-                # Map External Apps data to WMS format
-                osr_data = ExternalAppsDataMapper.map_ordr_to_osr_create(external_apps_osr, "external_apps_sync")
-                
-                # Create in WMS
-                await OSRService.create_osr_request(db, osr_data)
-                records_created += 1
-            except Exception as e:
-                records_failed += 1
-                errors.append(f"DocEntry {external_apps_osr.DocEntry}: {str(e)}")
-        
-        return ExternalAppsSyncResponse(
-            success=records_failed == 0,
-            message=f"Synced {records_created} of {records_fetched} OSR records from SAP",
-            records_fetched=records_fetched,
-            records_created=records_created,
-            records_failed=records_failed,
-            errors=errors if errors else None
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error syncing OSR from SAP: {str(e)}")
 
 
 @router.patch("/requests/{request_id}/confirm-location")
@@ -191,12 +144,159 @@ async def confirm_osr_location(
     return await OSRService.confirm_osr_location(db, request_id, location_id)
 
 
-@router.post("/requests/{request_id}/scan")
+@router.post("/requests/{request_id}/scan", response_model=OSRScanDetailResponse)
 async def scan_osr(
     request_id: int,
-    scan_data: dict,
+    scan_request: OSRScanDetailRequest,
     db: AsyncSession = Depends(get_db),
     # current_user: str = Depends(get_current_user)
 ):
 
-    return await OSRService.scan_osr(db, request_id, scan_data)
+    try:
+        # Convert Pydantic models to dict for service layer
+        scan_details = [item.model_dump() for item in scan_request.scan_details]
+        result = await OSRService.scan_osr(db, request_id, scan_details)
+        return OSRScanDetailResponse(**result)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error scanning OSR: {str(e)}")
+
+
+@router.get("/requests/{product_in_ors_id}/scan", response_model=List[dict])
+async def get_osr_scan_details(
+    product_in_ors_id: int,
+    db: AsyncSession = Depends(get_db),
+    # current_user: str = Depends(get_current_user)
+):
+    """
+    Get all scan details for a specific product in OSR by product_in_ors_id (no pagination)
+    """
+    try:
+        scan_details = await OSRService.get_scan_details_by_product_in_osr_id(db, product_in_ors_id)
+        return scan_details
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching OSR scan details: {str(e)}")
+
+
+@router.post("/requests/with-items", response_model=OSRCreateResponse)
+async def create_osr_with_items(
+    request_data: OSRCreateRequest,
+    db: AsyncSession = Depends(get_db),
+    # current_user: str = Depends(get_current_user)
+):
+
+    try:
+        # Prepare OSR header data
+        osr_data = request_data.model_dump()
+
+        # Create OSR only
+        osr = await OSRService.create_osr_request(db, osr_data)
+
+        return OSRCreateResponse(
+            success=True,
+            message="OSR created successfully",
+            osr_id=osr.id
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error creating OSR: {str(e)}"
+        )
+
+
+@router.post("/requests/{request_id}/inventories", response_model=OSRInventoriesCreateResponse)
+async def create_osr_inventories(
+    request_id: int,
+    request_data: OSRInventoriesCreateRequest,
+    db: AsyncSession = Depends(get_db),
+    # current_user: str = Depends(get_current_user)
+):
+
+    try:
+        async with db.begin():
+            # Verify OSR exists
+            osr = await OSRService.get_osr_request_by_id(db, request_id)
+            if not osr:
+                raise HTTPException(status_code=404, detail=f"OSR with ID {request_id} not found")
+
+            # Convert inventories to dict list
+            inventories_data = [inv.model_dump() for inv in request_data.inventories]
+
+            # Create inventories in OSR
+            inventories = await OSRService.create_products_in_osr(
+                db=db,
+                osr_id=request_id,
+                inventories_data=inventories_data
+            )
+
+            # Format response
+            inventories_response = [
+                InventoryInOSRResponse(
+                    id=inv.id,
+                    outbound_shipment_request_on_order_id=inv.outbound_shipment_request_on_order_id,
+                    product_code=inv.product_code,
+                    product_name=inv.product_name,
+                    total_quantity=inv.total_quantity,
+                    dvt=inv.dvt,
+                    updated_by=inv.updated_by,
+                    updated_date=inv.updated_date
+                )
+                for inv in inventories
+            ]
+
+            return OSRInventoriesCreateResponse(
+                success=True,
+                inventories=inventories_response
+            )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error creating inventories in OSR: {str(e)}"
+        )
+
+
+@router.get("/requests/{request_id}/items", response_model=List[InventoryInOSRResponse])
+async def get_osr_inventories_by_request_id(
+    request_id: int,
+    db: AsyncSession = Depends(get_db),
+    # current_user: str = Depends(get_current_user)
+):
+    """
+    Get all inventories for a specific OSR request by ID
+    """
+    try:
+        inventories = await OSRService.get_inventories_by_osr_request_id(db, request_id)
+        return inventories
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching OSR inventories: {str(e)}")
+
+
+# cập nhật trạng thái của mã vật tư đã scan trong bảng inventories_in_osr
+@router.patch("/inventories_in_osr")
+async def update_inventories_in_osr(
+    request: BulkUpdateInventoriesInOSRRequest,
+    db: AsyncSession = Depends(get_db),
+    # current_user: str = Depends(get_current_user)
+):
+    updates = [
+        {
+            "product_in_osr_id": update.product_in_osr_id,
+            "inventory_identifier": update.inventory_identifier,
+            "quantity_imported": update.quantity_imported,
+            "confirmed": update.confirmed
+        }
+        for update in request.updates
+    ]
+    return await OSRService.update_inventories_in_osr(
+        db,
+        updates
+    )

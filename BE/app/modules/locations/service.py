@@ -16,8 +16,8 @@ class LocationService:
 
     @staticmethod
     async def get_locations(db: AsyncSession) -> List[Location]:
-        """Get all locations"""
-        result = await db.execute(select(Location))
+        stmt = select(Location).where(Location.parent_location_id.is_(None))
+        result = await db.execute(stmt)
         return result.scalars().all()
 
     @staticmethod
@@ -27,6 +27,70 @@ class LocationService:
         if not location:
             raise NotFoundException("Location", str(location_id))
         return location
+
+    @staticmethod
+    async def get_location_with_sub_locations(db: AsyncSession, location_id: int) -> dict:
+        """Get location with all its sub-locations"""
+ 
+        result = await db.execute(select(Location).where(Location.id == location_id))
+        location = result.scalar_one_or_none()
+        if not location:
+            raise NotFoundException("Location", str(location_id))
+        
+ 
+        sub_result = await db.execute(
+            select(Location).where(Location.parent_location_id == location_id)
+        )
+        sub_locations = sub_result.scalars().all()
+        
+ 
+        location_dict = {
+            "id": location.id,
+            "code": location.code,
+            "name": location.name,
+            "area_id": location.area_id,
+            "address": location.address,
+            "description": location.description,
+            "is_multi_location": location.is_multi_location,
+            "number_of_rack": location.number_of_rack,
+            "number_of_rack_empty": location.number_of_rack_empty,
+            "parent_location_id": location.parent_location_id,
+            "prefix_name": location.prefix_name,
+            "prefix_separator": location.prefix_separator,
+            "child_location_row_count": location.child_location_row_count,
+            "child_location_column_count": location.child_location_column_count,
+            "suffix_separator": location.suffix_separator,
+            "suffix_digit_len": location.suffix_digit_len,
+            "humidity": location.humidity,
+            "temperature": location.temperature,
+            "barcode": location.barcode,
+            "is_active": location.is_active,
+            "updated_by": location.updated_by,
+            "updated_date": location.updated_date,
+            "sub_locations": [
+                {
+                    "id": sub.id,
+                    "code": sub.code,
+                    "name": sub.name,
+                    "area_id": sub.area_id,
+                    "address": sub.address,
+                    "description": sub.description,
+                    "is_multi_location": sub.is_multi_location,
+                    "number_of_rack": sub.number_of_rack,
+                    "number_of_rack_empty": sub.number_of_rack_empty,
+                    "parent_location_id": sub.parent_location_id,
+                    "humidity": sub.humidity,
+                    "temperature": sub.temperature,
+                    "barcode": sub.barcode,
+                    "is_active": sub.is_active,
+                    "updated_by": sub.updated_by,
+                    "updated_date": sub.updated_date,
+                }
+                for sub in sub_locations
+            ]
+        }
+        
+        return location_dict
 
     @staticmethod
     async def get_location_by_code(db: AsyncSession, code: str) -> Location:
@@ -96,11 +160,23 @@ class LocationService:
             location_data = {
                 "code": sub_data.code,
                 "name": sub_data.name,
-                "area_id": sub_data.area_id if sub_data.area_id is not None else parent_location.area_id,  # ke thua tu parent neu khong co
+                "area_id": sub_data.area_id if sub_data.area_id is not None else (parent_location.area_id if parent_location.area_id else None),  # ke thua tu parent neu khong co va hop le
+                "address": sub_data.address,
+                "description": None,
+                "is_multi_location": False,
+                "number_of_rack": None,
+                "number_of_rack_empty": None,
                 "parent_location_id": parent_location_id,
+                "prefix_name": None,
+                "prefix_separator": None,
+                "child_location_row_count": None,
+                "child_location_column_count": None,
+                "suffix_separator": None,
+                "suffix_digit_len": None,
                 "humidity": sub_data.humidity if sub_data.humidity is not None else parent_location.humidity,  # ke thua tu parent neu khong co
                 "temperature": sub_data.temperature if sub_data.temperature is not None else parent_location.temperature,  # ke thua tu parent neu khong co
                 "barcode": sub_data.barcode,
+                "is_active": sub_data.is_active,
                 "updated_by": sub_data.updated_by
             }
             locations_to_create.append(Location(**location_data))

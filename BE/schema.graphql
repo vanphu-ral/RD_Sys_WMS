@@ -1,215 +1,315 @@
+# schema.graphql
 
-scalar DateTime
+# --- Kiểu dữ liệu Scalar tùy chỉnh (Nếu cần) ---
+# Nếu bạn muốn sử dụng kiểu dữ liệu DateTime rõ ràng hơn
+# scalar DateTime
 
+# --- Định nghĩa các Kiểu Object (Types) ---
 
-enum UserRole {
-  ADMIN
-  MANAGER
-  OPERATOR
-  VIEWER
-}
+## Quản lý Vị trí Kho (Location Management) ##
 
-
-type User {
+type Area {
   id: ID!
-  username: String!
-  email: String!
-  fullName: String
-  isActive: Boolean!
-  isSuperuser: Boolean!
-  createdAt: DateTime!
-  updatedAt: DateTime
-}
-
-type Product {
-  id: ID!
+  code: String!
   name: String!
+  thu_kho: String
   description: String
-  sku: String!
-  category: String
-  price: Float!
-  quantity: Int!
-  minQuantity: Int!
-  createdAt: DateTime!
-  updatedAt: DateTime
-}
-
-type InventoryItem {
-  id: ID!
-  productId: ID!
-  locationId: ID!
-  quantity: Int!
-  batchNumber: String
-  expiryDate: DateTime
-  createdAt: DateTime!
-  updatedAt: DateTime
-  product: Product
-  location: Location
+  address: String
+  is_active: Boolean
+  updated_by: String
+  updated_date: String # TIMESTAMP WITHOUT TIME ZONE
+  locations: [Location] # Quan hệ 1-n
 }
 
 type Location {
   id: ID!
-  name: String!
   code: String!
-  description: String
-  zone: String
-  aisle: String
-  rack: String
-  shelf: String
-  capacity: Int!
-  occupied: Int!
-  xCoordinate: Float
-  yCoordinate: Float
-  zCoordinate: Float
-  createdAt: DateTime!
-  updatedAt: DateTime
-}
-
-# Input Types
-input UserCreateInput {
-  username: String!
-  email: String!
-  password: String!
-  fullName: String
-  isActive: Boolean
-  isSuperuser: Boolean
-}
-
-input UserUpdateInput {
-  email: String
-  fullName: String
-  isActive: Boolean
-  isSuperuser: Boolean
-  password: String
-}
-
-input ProductCreateInput {
   name: String!
+  area_id: Int!
+  address: String
   description: String
-  sku: String!
-  category: String
-  price: Float!
-  quantity: Int
-  minQuantity: Int
+  is_multi_location: Boolean
+  number_of_rack: Int
+  number_of_rack_empty: Int
+  parent_location_id: Int
+  prefix_name: String
+  prefix_separator: String
+  child_location_row_count: Int
+  child_location_column_count: Int
+  suffix_separator: String
+  suffix_digit_len: Int
+  humidity: Float
+  temperature: Float
+  barcode: String!
+  is_active: Boolean
+  updated_by: String!
+  updated_date: String # TIMESTAMP WITHOUT TIME ZONE
+  area: Area # Quan hệ n-1
+  parent_location: Location # Quan hệ n-1 (Self-reference)
+  inventories_at_location: [Inventory] # Quan hệ 1-n
+  child_locations: [Location] # Quan hệ 1-n (Self-reference)
 }
 
-input ProductUpdateInput {
+## Quản lý Tồn kho (Inventory Management) ##
+
+type Inventory {
+  id: ID!
+  identifier: String!
+  serial_pallet: String
+  part_number: String
+  location_id: Int!
+  parent_location_id: Int
+  last_location_id: Int
+  parent_inventory_id: String
+
+  expiration_date: String # TIMESTAMP WITHOUT TIME ZONE
+  received_date: String # TIMESTAMP WITHOUT TIME ZONE
+  updated_date: String # TIMESTAMP WITHOUT TIME ZONE
+  updated_by: String
+  calculated_status: String
+  manufacturing_date: String # TIMESTAMP WITHOUT TIME ZONE
+
+  initial_quantity: Int!
+  available_quantity: Int!
+  quantity: Int
+
   name: String
-  description: String
-  sku: String
-  category: String
-  price: Float
-  quantity: Int
-  minQuantity: Int
+  sap_code: String
+  po: String
+  lot: String
+  vendor: String
+  msd_level: String
+  comments: String
+
+  location: Location # Quan hệ n-1
+  parent_location: Location # Quan hệ n-1
+  last_location: Location # Quan hệ n-1
+  container_inventories: [ContainerInventory] # Quan hệ 1-n
 }
 
-input InventoryItemCreateInput {
-  productId: ID!
-  locationId: ID!
+## Nhập kho (Warehouse Import) ##
+
+type WarehouseImportRequirement {
+  id: ID!
+  order_id: Int
+  client_id: Int
+  inventory_name: String
+  number_of_pallet: Int
+  number_of_box: Int
   quantity: Int!
-  batchNumber: String
-  expiryDate: DateTime
+  wo_code: String!
+  lot_number: String!
+  status: Boolean
+  approved_by: String
+  is_check_all: Boolean
+  note: String
+  updated_by: String
+  updated_date: String # TIMESTAMP WITHOUT TIME ZONE
+  deleted_at: String # TIMESTAMP WITHOUT TIME ZONE
+  deleted_by: String
+  containers: [WarehouseImportContainer] # Quan hệ 1-n
 }
 
-input InventoryItemUpdateInput {
-  quantity: Int
-  batchNumber: String
-  expiryDate: DateTime
+type WarehouseImportContainer {
+  id: ID!
+  warehouse_import_requirement_id: Int!
+  serial_pallet: String!
+  box_code: String!
+  box_quantity: Int!
+  updated_by: String!
+  updated_date: String # TIMESTAMP WITHOUT TIME ZONE
+  requirement: WarehouseImportRequirement # Quan hệ n-1
+  inventories: [ContainerInventory] # Quan hệ 1-n
 }
 
-input LocationCreateInput {
-  name: String!
-  code: String!
-  description: String
-  zone: String
-  aisle: String
-  rack: String
-  shelf: String
-  capacity: Int
-  occupied: Int
-  xCoordinate: Float
-  yCoordinate: Float
-  zCoordinate: Float
+type ContainerInventory {
+  id: ID!
+  manufacturing_date: String # TIMESTAMP WITHOUT TIME ZONE
+  expiration_date: String # TIMESTAMP WITHOUT TIME ZONE
+  sap_code: String
+  po: String
+  lot: String
+  vendor: String
+  msd_level: String
+  comments: String
+  name: String
+  import_container_id: Int!
+  inventory_identifier: String!
+  location_id: String
+  scan_by: String
+  quantity_imported: Int
+  time_checked: String # TIMESTAMP WITHOUT TIME ZONE
+  confirmed: Boolean
+  import_container: WarehouseImportContainer # Quan hệ n-1
 }
 
-input LocationUpdateInput {
-   name: String
-   code: String
-   description: String
-   zone: String
-   aisle: String
-   rack: String
-   shelf: String
-   capacity: Int
-   occupied: Int
-   xCoordinate: Float
-   yCoordinate: Float
-   zCoordinate: Float
+## Xuất kho nội bộ (Internal Warehouse Transfer) ##
+
+type InternalWarehouseTransferRequest {
+  id: ID!
+  ma_yc_cknb: String!
+  tu_kho: Int
+  den_kho: Int
+  don_vi_linh: String
+  don_vi_nhan: String
+  ly_do_xuat_nhap: String
+  ngay_chung_tu: String
+  so_phieu_xuat: String
+  so_chung_tu: String
+  series_pgh: String
+  status: String
+  note: String
+  scan_status: Boolean
+  updated_by: String
+  updated_date: String # TIMESTAMP WITHOUT TIME ZONE
+  deleted_at: String # TIMESTAMP WITHOUT TIME ZONE
+  deleted_by: String
+  products: [ProductInIWTR] # Quan hệ 1-n
 }
 
-type DashboardData {
-   totalAreas: Int!
-   totalLocations: Int!
-   totalInventoryItems: Int!
-   activeImportRequirements: Int!
-   pendingIWTR: Int!
-   pendingOSR: Int!
-   recentActivities: [Activity!]!
+type ProductInIWTR {
+  id: ID!
+  internal_warehouse_transfer_requests_id: Int!
+  product_code: String!
+  product_name: String
+  tu_kho: Int
+  den_kho: Int
+  total_quantity: Int
+  dvt: String
+  updated_by: String
+  updated_date: String # TIMESTAMP WITHOUT TIME ZONE
+  request: InternalWarehouseTransferRequest # Quan hệ n-1
+  inventories: [InventoryInIWTR] # Quan hệ 1-n
 }
 
-type Activity {
-   id: ID!
-   type: String!
-   description: String!
-   timestamp: DateTime!
-   user: String
+type InventoryInIWTR {
+  id: ID!
+  product_in_iwtr_id: Int!
+  inventory_identifier: String
+  serial_pallet: String
+  scan_by: String
+  quantity_dispatched: Int!
+  scan_time: String # TIMESTAMP WITHOUT TIME ZONE
+  confirmed: Boolean
+  product_in_iwtr: ProductInIWTR # Quan hệ n-1
 }
 
-# Queries
+## Xuất kho theo đơn hàng bán (Outbound Shipment) ##
+
+type OutboundShipmentRequestOnOrder {
+  id: ID!
+  ma_yc_xk: String!
+  kho_xuat: Int
+  xuat_toi: Int
+  don_vi_linh: String
+  don_vi_nhan: String
+  ly_do_xuat_nhap: String
+  ngay_chung_tu: String
+  so_phieu_xuat: String
+  so_chung_tu: String
+  series_pgh: String
+  status: String
+  note: String
+  scan_status: String
+  updated_by: String
+  updated_date: String # TIMESTAMP WITHOUT TIME ZONE
+  deleted_at: String # TIMESTAMP WITHOUT TIME ZONE
+  deleted_by: String
+  products: [ProductInOSR] # Quan hệ 1-n
+}
+
+type ProductInOSR {
+  id: ID!
+  outbound_shipment_request_on_order_id: Int!
+  product_code: String!
+  product_name: String
+  total_quantity: Int
+  dvt: String
+  updated_by: String
+  updated_date: String # TIMESTAMP WITHOUT TIME ZONE
+  request: OutboundShipmentRequestOnOrder # Quan hệ n-1
+  inventories: [InventoryInOSR] # Quan hệ 1-n
+}
+
+type InventoryInOSR {
+  id: ID!
+  product_in_osr_id: Int!
+  inventory_identifier: String!
+  serial_pallet: String!
+  scan_by: String!
+  quantity_dispatched: Int!
+  scan_time: String # TIMESTAMP WITHOUT TIME ZONE
+  confirmed: Boolean
+  product_in_osr: ProductInOSR # Quan hệ n-1
+}
+
+# --- Định nghĩa Query (Truy vấn) và Mutation (Thao tác) cơ bản ---
+
+
+type InventoryDashboardItem {
+  id: ID!
+  part_number: String
+  name: String
+  client_id: Int
+  serial_pallet: String
+  identifier: String
+  po: String
+  available_quantity: Int
+  initial_quantity: Int
+  location_id: Int
+  area_code: String
+  area_name: String
+  status: String
+  updated_by: String
+  received_date: String
+  updated_date: String
+}
+
+# InventoryDashboardResponse dùng chung cho cả bên lấy tổng hợp
+type InventoryDashboardResponse {
+  data: [InventoryDashboardItem!]!
+  meta: PaginationMeta!
+}
+
+type PaginationMeta {
+  page: Int!
+  size: Int!
+  total_items: Int!
+  total_pages: Int!
+}
+
 type Query {
-   # User queries
-   users: [User!]!
-   user(id: ID!): User
-   userByUsername(username: String!): User
+  # Ví dụ truy vấn các Area
+  allAreas: [Area]
+  area(id: ID!): Area
 
-   # Product queries
-   products: [Product!]!
-   product(id: ID!): Product
+  # Ví dụ truy vấn các Location
+  allLocations: [Location]
+  location(id: ID!): Location
 
-   # Inventory queries
-   inventoryItems: [InventoryItem!]!
-   inventoryItem(id: ID!): InventoryItem
+  # Ví dụ truy vấn các Inventory
+  allInventories: [Inventory]
+  inventory(id: ID!): Inventory
 
-   # Location queries
-   locations: [Location!]!
-   location(id: ID!): Location
-   locationByCode(code: String!): Location
-   locationsByZone(zone: String!): [Location!]!
-   availableLocations: [Location!]!
-
-   # Dashboard query
-   dashboard: DashboardData!
+  # Inventory Dashboard với phân trang và lọc
+  inventoryDashboard(
+    page: Int = 1
+    size: Int = 20
+    part_number: String
+    name: String
+    client_id: Int
+    serial_pallet: String
+    identifier: String
+    po: String
+    location_id: Int
+    area_id: Int
+    status: String
+    updated_by: String
+  ): InventoryDashboardResponse!
 }
 
-# Mutations
-type Mutation {
-  # User mutations
-  createUser(input: UserCreateInput!): User!
-  updateUser(id: ID!, input: UserUpdateInput!): User!
-  deleteUser(id: ID!): Boolean!
 
-  # Product mutations
-  createProduct(input: ProductCreateInput!): Product!
-  updateProduct(id: ID!, input: ProductUpdateInput!): Product!
-  deleteProduct(id: ID!): Boolean!
-
-  # Inventory mutations
-  createInventoryItem(input: InventoryItemCreateInput!): InventoryItem!
-  updateInventoryItem(id: ID!, input: InventoryItemUpdateInput!): InventoryItem!
-  deleteInventoryItem(id: ID!): Boolean!
-
-  # Location mutations
-  createLocation(input: LocationCreateInput!): Location!
-  updateLocation(id: ID!, input: LocationUpdateInput!): Location!
-  deleteLocation(id: ID!): Boolean!
-}
+# schema {
+#   query: Query
+#   mutation: Mutation
+# }

@@ -1,12 +1,9 @@
-"""
-Keycloak integration utilities
-"""
+
 from keycloak import KeycloakOpenID
 from app.core.config import settings
 
 
 def get_keycloak_openid():
-    """Get Keycloak OpenID client instance"""
     return KeycloakOpenID(
         server_url=settings.KEYCLOAK_URL,
         client_id=settings.KEYCLOAK_CLIENT_ID,
@@ -16,13 +13,11 @@ def get_keycloak_openid():
 
 
 def get_well_known_openid_configuration():
-    """Get OpenID configuration from Keycloak"""
     try:
         keycloak_openid = get_keycloak_openid()
         return keycloak_openid.well_known()
     except Exception as e:
         print(f"Keycloak well-known config error: {e}")
-        # Return a basic configuration if well-known fails
         return {
             "authorization_endpoint": f"{settings.KEYCLOAK_URL}/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/auth",
             "token_endpoint": f"{settings.KEYCLOAK_URL}/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/token",
@@ -32,7 +27,7 @@ def get_well_known_openid_configuration():
 
 
 def get_authorization_url():
-    """Get authorization URL for login"""
+
     try:
         keycloak_openid = get_keycloak_openid()
         return keycloak_openid.auth_url(
@@ -56,7 +51,6 @@ def get_authorization_url():
 
 
 def exchange_code_for_token(code: str):
-    """Exchange authorization code for access token"""
     keycloak_openid = get_keycloak_openid()
     return keycloak_openid.token(
         grant_type="authorization_code",
@@ -66,18 +60,15 @@ def exchange_code_for_token(code: str):
 
 
 def refresh_token(refresh_token: str):
-    """Refresh access token using refresh token"""
     keycloak_openid = get_keycloak_openid()
     return keycloak_openid.refresh_token(refresh_token)
 
 
 def get_user_info(access_token: str):
-    """Get user information from access token"""
     keycloak_openid = get_keycloak_openid()
     return keycloak_openid.userinfo(access_token)
 
 
 def logout_user(refresh_token: str):
-    """Logout user by revoking refresh token"""
     keycloak_openid = get_keycloak_openid()
     return keycloak_openid.logout(refresh_token)
