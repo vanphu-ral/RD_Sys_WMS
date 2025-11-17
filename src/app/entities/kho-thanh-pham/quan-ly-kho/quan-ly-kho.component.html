@@ -1,0 +1,839 @@
+<div class="nhapkho-container">
+    <div class="nhapkho-header">
+        <div class="header-title">
+            <mat-icon class="title-icon">inventory</mat-icon>
+            <div>
+                <h1>Quản lý kho</h1>
+                <p class="subtitle">Warehouse materials management</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Card -->
+    <mat-card class="nhapkho-card">
+        <!-- Table Header -->
+        <div class="table-header">
+            <div class="table-title">
+                <mat-icon>list</mat-icon>
+                <span>Danh sách</span>
+            </div>
+            <div class="table-actions">
+                <button mat-raised-button color="primary" class="action-header-btn" (click)="onCheckWarehouse()">
+                    <mat-icon>search</mat-icon>
+                    Kiểm tra
+                </button>
+                <button mat-raised-button color="primary" class="action-header-btn" (click)="onUpdateInventory()">
+                    <mat-icon>update</mat-icon>
+                    Cập nhật tồn
+                </button>
+                <button mat-raised-button color="primary" class="action-header-btn" (click)="onTransferWarehouse()">
+                    <mat-icon>sync_alt</mat-icon>
+                    Chuyển kho
+                </button>
+                <div class="dropdown-group">
+                    <button mat-raised-button [matMenuTriggerFor]="viewMenu" class="dropdown-btn">
+                        Mode view
+                        <mat-icon>arrow_drop_down</mat-icon>
+                    </button>
+
+                    <mat-menu #viewMenu="matMenu">
+                        <button mat-menu-item (click)="onSelectView('area')">
+                            <mat-icon>location_on</mat-icon>
+                            <span>View theo Area</span>
+                        </button>
+                        <button mat-menu-item (click)="onSelectView('po')">
+                            <mat-icon>assignment</mat-icon>
+                            <span>View theo PO</span>
+                        </button>
+                        <button mat-menu-item (click)="onSelectView('customer')">
+                            <mat-icon>person</mat-icon>
+                            <span>View theo Mã khách hàng</span>
+                        </button>
+                        <button mat-menu-item (click)="onSelectView('product')">
+                            <mat-icon>category</mat-icon>
+                            <span>View theo Mã sản phẩm</span>
+                        </button>
+                    </mat-menu>
+                    <button mat-raised-button [matMenuTriggerFor]="columnMenu" class="dropdown-btn">
+                        View column
+                        <mat-icon>arrow_drop_down</mat-icon>
+                    </button>
+
+                    <mat-menu #columnMenu="matMenu">
+                        <div class="column-menu" (click)="$event.stopPropagation()">
+                            <mat-checkbox *ngFor="let col of allColumns" [(ngModel)]="col.visible"
+                                (change)="updateDisplayedColumns()">
+                                {{col.label}}
+                            </mat-checkbox>
+                        </div>
+                    </mat-menu>
+                </div>
+                <button mat-raised-button class="refresh-btn" matTooltip="Xuất dữ liệu">
+                    <mat-icon color="primary">ios_share</mat-icon>
+                </button>
+
+                <button mat-raised-button class="refresh-btn" matTooltip="Đồng bộ dữ liệu">
+                    <mat-icon color="primary">sync</mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <table mat-table [dataSource]="warehouseList" class="warehouse-table" *ngIf="currentViewMode === 'default'">
+                <!-- Duyệt qua tất cả các cột hiển thị -->
+                <ng-container *ngFor="let col of allColumns" [matColumnDef]="col.key">
+                    <ng-container *ngIf="col.visible">
+
+                        <!-- Header -->
+                        <th mat-header-cell *matHeaderCellDef>
+                            <div class="header-content">{{ col.label }}</div>
+
+                            <!-- Nếu không phải cột STT thì có ô tìm kiếm -->
+                            <ng-container *ngIf="col.key !== 'stt'">
+                                <mat-form-field class="search-field" appearance="outline">
+                                    <input matInput [(ngModel)]="filterValues[col.key]" (keyup.enter)="applyFilter()"
+                                        [matMenuTriggerFor]="filterModeMenu" />
+                                    <button mat-icon-button matSuffix [matMenuTriggerFor]="filterModeMenu">
+                                        <mat-icon>keyboard_arrow_down</mat-icon>
+                                    </button>
+                                </mat-form-field>
+                            </ng-container>
+                        </th>
+
+                        <!-- Cell -->
+                        <td mat-cell *matCellDef="let item; let i = index">
+                            <ng-container [ngSwitch]="col.key">
+                                <span *ngSwitchCase="'stt'">{{ i + 1 }}</span>
+                                <span *ngSwitchDefault>{{ item[col.key] }}</span>
+                            </ng-container>
+                        </td>
+                    </ng-container>
+
+                </ng-container>
+
+                <!-- Menu chọn chế độ lọc -->
+                <mat-menu #filterModeMenu="matMenu">
+                    <button mat-menu-item (click)="setFilterMode('constraint')">
+                        <span>Constraint</span>
+                    </button>
+                    <button mat-menu-item (click)="setFilterMode('not_constraint')">
+                        <span>Not Constraint</span>
+                    </button>
+                </mat-menu>
+
+                <!-- Header & Row -->
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+            </table>
+
+            <!-- PO View -->
+            <table mat-table [dataSource]="poDataSource" class="warehouse-table expandable-table" multiTemplateDataRows
+                *ngIf="currentViewMode === 'po'">
+
+                <!-- Duyệt qua các cột cha -->
+                <ng-container *ngFor="let col of poParentColumns" [matColumnDef]="col">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <ng-container [ngSwitch]="col">
+                            <!-- Cột mở rộng -->
+                            <ng-container *ngSwitchCase="'expand'"></ng-container>
+
+                            <!-- Cột PO có search -->
+                            <ng-container *ngSwitchCase="'po'">
+                                <div class="header-content">PO</div>
+                                <mat-form-field class="search-field" appearance="outline">
+                                    <input matInput [(ngModel)]="filterValues['po']" (keyup.enter)="applyFilter()"
+                                        [matMenuTriggerFor]="filterModeMenu" />
+                                    <button mat-icon-button matSuffix [matMenuTriggerFor]="filterModeMenu">
+                                        <mat-icon>keyboard_arrow_down</mat-icon>
+                                    </button>
+                                </mat-form-field>
+                            </ng-container>
+
+                            <!-- Các cột còn lại -->
+                            <ng-container *ngSwitchDefault>
+                                <div class="header-content">{{ col }}</div>
+                                <mat-form-field class="search-field" appearance="outline">
+                                    <input matInput [(ngModel)]="filterValues[col]" (keyup.enter)="applyFilter()" />
+                                </mat-form-field>
+                            </ng-container>
+                        </ng-container>
+                    </th>
+
+                    <td mat-cell *matCellDef="let item">
+                        <ng-container [ngSwitch]="col">
+                            <ng-container *ngSwitchCase="'expand'">
+                                <button mat-icon-button (click)="toggleRow(item); $event.stopPropagation()">
+                                    <mat-icon>{{ item.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
+                                </button>
+                            </ng-container>
+
+                            <ng-container *ngSwitchCase="'po'">
+                                <span class="po-badge">{{ item.po }}</span>
+                            </ng-container>
+
+                            <ng-container *ngSwitchDefault>
+                                {{ item[col] }}
+                            </ng-container>
+                        </ng-container>
+                    </td>
+                </ng-container>
+
+                <!-- Menu chọn chế độ lọc -->
+                <mat-menu #filterModeMenu="matMenu">
+                    <button mat-menu-item (click)="setFilterMode('constraint')">
+                        <span>Constraint</span>
+                    </button>
+                    <button mat-menu-item (click)="setFilterMode('not_constraint')">
+                        <span>Not Constraint</span>
+                    </button>
+                </mat-menu>
+
+                <!-- Expanded Detail Column -->
+                <ng-container matColumnDef="expandedDetail">
+                    <td mat-cell *matCellDef="let item" [attr.colspan]="poParentColumns.length">
+                        <div class="child-detail" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
+                            <div class="child-table-container" *ngIf="item.expanded">
+                                <h4 class="child-title">Chi tiết sản phẩm trong {{ item.po }}</h4>
+                                <table class="child-table">
+                                    <thead>
+                                        <tr>
+                                            <th *ngFor="let childCol of poChildColumns">{{ childCol }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let child of item.children">
+                                            <td *ngFor="let childCol of poChildColumns">
+                                                <ng-container [ngSwitch]="childCol">
+                                                    <ng-container *ngSwitchCase="'maSanPham'">
+                                                        <strong>{{ child[childCol] }}</strong>
+                                                    </ng-container>
+                                                    <ng-container *ngSwitchCase="'status'">
+                                                        <span class="status-badge"
+                                                            [ngClass]="getStatusClass(child.status)">
+                                                            {{ child.status }}
+                                                        </span>
+                                                    </ng-container>
+                                                    <ng-container *ngSwitchDefault>
+                                                        {{ child[childCol] }}
+                                                    </ng-container>
+                                                </ng-container>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <!-- Header & Rows -->
+                <tr mat-header-row *matHeaderRowDef="poParentColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: poParentColumns; when: isParentRow" class="parent-row"
+                    [class.expanded]="row.expanded" (click)="toggleRow(row)"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['expandedDetail']; when: isChildRow" class="child-row"></tr>
+            </table>
+
+
+            <!-- Product View -->
+            <table mat-table [dataSource]="productDataSource" class="warehouse-table expandable-table"
+                multiTemplateDataRows *ngIf="currentViewMode === 'product'">
+
+                <!-- Cột cha: dùng vòng lặp -->
+                <ng-container *ngFor="let col of productParentColumns" [matColumnDef]="col">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <ng-container [ngSwitch]="col">
+                            <!-- Cột mở rộng -->
+                            <ng-container *ngSwitchCase="'expand'"></ng-container>
+
+                            <!-- Cột có search đặc biệt -->
+                            <ng-container *ngSwitchCase="'maSanPham'">
+                                <div class="header-content">Mã sản phẩm</div>
+                                <mat-form-field class="search-field" appearance="outline">
+                                    <input matInput [(ngModel)]="filterValues['maSanPham']"
+                                        (keyup.enter)="applyFilter()" [matMenuTriggerFor]="filterModeMenu" />
+                                    <button mat-icon-button matSuffix [matMenuTriggerFor]="filterModeMenu">
+                                        <mat-icon>keyboard_arrow_down</mat-icon>
+                                    </button>
+                                </mat-form-field>
+                            </ng-container>
+
+                            <!-- Các cột còn lại -->
+                            <ng-container *ngSwitchDefault>
+                                <div class="header-content">{{ col }}</div>
+                                <mat-form-field class="search-field" appearance="outline">
+                                    <input matInput [(ngModel)]="filterValues[col]" (keyup.enter)="applyFilter()" />
+                                </mat-form-field>
+                            </ng-container>
+                        </ng-container>
+                    </th>
+
+                    <td mat-cell *matCellDef="let item">
+                        <ng-container [ngSwitch]="col">
+                            <ng-container *ngSwitchCase="'expand'">
+                                <button mat-icon-button (click)="toggleRow(item); $event.stopPropagation()">
+                                    <mat-icon>{{ item.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
+                                </button>
+                            </ng-container>
+
+                            <ng-container *ngSwitchDefault>
+                                {{ item[col] }}
+                            </ng-container>
+                        </ng-container>
+                    </td>
+                </ng-container>
+
+                <!-- Menu chọn chế độ lọc -->
+                <mat-menu #filterModeMenu="matMenu">
+                    <button mat-menu-item (click)="setFilterMode('constraint')">
+                        <span>Constraint</span>
+                    </button>
+                    <button mat-menu-item (click)="setFilterMode('not_constraint')">
+                        <span>Not Constraint</span>
+                    </button>
+                </mat-menu>
+
+                <!-- Cột mở rộng chi tiết -->
+                <ng-container matColumnDef="expandedDetail">
+                    <td mat-cell *matCellDef="let item" [attr.colspan]="productParentColumns.length">
+                        <div class="child-detail" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
+                            <div class="child-table-container" *ngIf="item.expanded">
+                                <h4 class="child-title">Chi tiết theo từng PO/KH - {{ item.maSanPham }}</h4>
+                                <table class="child-table">
+                                    <thead>
+                                        <tr>
+                                            <th *ngFor="let childCol of productChildColumns">{{ childCol }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let child of item.children">
+                                            <td *ngFor="let childCol of productChildColumns">
+                                                <ng-container [ngSwitch]="childCol">
+                                                    <ng-container *ngSwitchCase="'status'">
+                                                        <span class="status-badge"
+                                                            [ngClass]="getStatusClass(child.status)">
+                                                            {{ child.status }}
+                                                        </span>
+                                                    </ng-container>
+                                                    <ng-container *ngSwitchDefault>
+                                                        {{ child[childCol] }}
+                                                    </ng-container>
+                                                </ng-container>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <!-- Header & Rows -->
+                <tr mat-header-row *matHeaderRowDef="productParentColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: productParentColumns; when: isParentRow" class="parent-row"
+                    [class.expanded]="row.expanded" (click)="toggleRow(row)"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['expandedDetail']; when: isChildRow" class="child-row"></tr>
+            </table>
+
+
+            <!-- Area View -->
+            <table mat-table [dataSource]="areaDataSource" class="warehouse-table expandable-table"
+                multiTemplateDataRows *ngIf="currentViewMode === 'area'">
+
+                <!-- Cột cha: dùng vòng lặp -->
+                <ng-container *ngFor="let col of areaParentColumns" [matColumnDef]="col">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <ng-container [ngSwitch]="col">
+                            <!-- Cột mở rộng -->
+                            <ng-container *ngSwitchCase="'expand'"></ng-container>
+
+                            <!-- Cột có search đặc biệt -->
+                            <ng-container *ngSwitchCase="'khuVuc'">
+                                <div class="header-content">Khu vực</div>
+                                <mat-form-field class="search-field" appearance="outline">
+                                    <input matInput [(ngModel)]="filterValues['khuVuc']" (keyup.enter)="applyFilter()"
+                                        [matMenuTriggerFor]="filterModeMenu" />
+                                    <button mat-icon-button matSuffix [matMenuTriggerFor]="filterModeMenu">
+                                        <mat-icon>keyboard_arrow_down</mat-icon>
+                                    </button>
+                                </mat-form-field>
+                            </ng-container>
+
+                            <!-- Các cột còn lại -->
+                            <ng-container *ngSwitchDefault>
+                                <div class="header-content">{{ col }}</div>
+                                <mat-form-field class="search-field" appearance="outline">
+                                    <input matInput [(ngModel)]="filterValues[col]" (keyup.enter)="applyFilter()" />
+                                </mat-form-field>
+                            </ng-container>
+                        </ng-container>
+                    </th>
+
+                    <td mat-cell *matCellDef="let item">
+                        <ng-container [ngSwitch]="col">
+                            <ng-container *ngSwitchCase="'expand'">
+                                <button mat-icon-button (click)="toggleRow(item); $event.stopPropagation()">
+                                    <mat-icon>{{ item.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
+                                </button>
+                            </ng-container>
+
+                            <ng-container *ngSwitchDefault>
+                                {{ item[col] }}
+                            </ng-container>
+                        </ng-container>
+                    </td>
+                </ng-container>
+
+                <!-- Menu chọn chế độ lọc -->
+                <mat-menu #filterModeMenu="matMenu">
+                    <button mat-menu-item (click)="setFilterMode('constraint')">
+                        <span>Constraint</span>
+                    </button>
+                    <button mat-menu-item (click)="setFilterMode('not_constraint')">
+                        <span>Not Constraint</span>
+                    </button>
+                </mat-menu>
+
+                <!-- Cột mở rộng chi tiết -->
+                <ng-container matColumnDef="expandedDetail">
+                    <td mat-cell *matCellDef="let item" [attr.colspan]="areaParentColumns.length">
+                        <div class="child-detail" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
+                            <div class="child-table-container" *ngIf="item.expanded">
+                                <h4 class="child-title">Chi tiết sản phẩm trong khu vực {{ item.khuVuc }}</h4>
+                                <table class="child-table">
+                                    <thead>
+                                        <tr>
+                                            <th *ngFor="let childCol of areaChildColumns">{{ childCol }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let child of item.children">
+                                            <td *ngFor="let childCol of areaChildColumns">
+                                                <ng-container [ngSwitch]="childCol">
+                                                    <ng-container *ngSwitchCase="'maSanPham'">
+                                                        <strong>{{ child[childCol] }}</strong>
+                                                    </ng-container>
+                                                    <ng-container *ngSwitchCase="'status'">
+                                                        <span class="status-badge"
+                                                            [ngClass]="getStatusClass(child.status)">
+                                                            {{ child.status }}
+                                                        </span>
+                                                    </ng-container>
+                                                    <ng-container *ngSwitchDefault>
+                                                        {{ child[childCol] }}
+                                                    </ng-container>
+                                                </ng-container>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <!-- Header & Rows -->
+                <tr mat-header-row *matHeaderRowDef="areaParentColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: areaParentColumns; when: isParentRow" class="parent-row"
+                    [class.expanded]="row.expanded" (click)="toggleRow(row)"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['expandedDetail']; when: isChildRow" class="child-row"></tr>
+            </table>
+
+
+            <!-- Customer View -->
+            <table mat-table [dataSource]="customerDataSource" class="warehouse-table expandable-table"
+                multiTemplateDataRows *ngIf="currentViewMode === 'customer'">
+
+                <!-- Cột cha: dùng vòng lặp -->
+                <ng-container *ngFor="let col of customerParentColumns" [matColumnDef]="col">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <ng-container [ngSwitch]="col">
+                            <!-- Cột mở rộng -->
+                            <ng-container *ngSwitchCase="'expand'"></ng-container>
+
+                            <!-- Cột có search đặc biệt -->
+                            <ng-container *ngSwitchCase="'maKH'">
+                                <div class="header-content">Mã KH</div>
+                                <mat-form-field class="search-field" appearance="outline">
+                                    <input matInput [(ngModel)]="filterValues['maKH']" (keyup.enter)="applyFilter()"
+                                        [matMenuTriggerFor]="filterModeMenu" />
+                                    <button mat-icon-button matSuffix [matMenuTriggerFor]="filterModeMenu">
+                                        <mat-icon>keyboard_arrow_down</mat-icon>
+                                    </button>
+                                </mat-form-field>
+                            </ng-container>
+
+                            <!-- Các cột còn lại -->
+                            <ng-container *ngSwitchDefault>
+                                <div class="header-content">{{ col }}</div>
+                                <mat-form-field class="search-field" appearance="outline">
+                                    <input matInput [(ngModel)]="filterValues[col]" (keyup.enter)="applyFilter()" />
+                                </mat-form-field>
+                            </ng-container>
+                        </ng-container>
+                    </th>
+
+                    <td mat-cell *matCellDef="let item">
+                        <ng-container [ngSwitch]="col">
+                            <ng-container *ngSwitchCase="'expand'">
+                                <button mat-icon-button (click)="toggleRow(item); $event.stopPropagation()">
+                                    <mat-icon>{{ item.expanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
+                                </button>
+                            </ng-container>
+
+                            <ng-container *ngSwitchDefault>
+                                {{ item[col] }}
+                            </ng-container>
+                        </ng-container>
+                    </td>
+                </ng-container>
+
+                <!-- Menu chọn chế độ lọc -->
+                <mat-menu #filterModeMenu="matMenu">
+                    <button mat-menu-item (click)="setFilterMode('constraint')">
+                        <span>Constraint</span>
+                    </button>
+                    <button mat-menu-item (click)="setFilterMode('not_constraint')">
+                        <span>Not Constraint</span>
+                    </button>
+                </mat-menu>
+
+                <!-- Cột mở rộng chi tiết -->
+                <ng-container matColumnDef="expandedDetail">
+                    <td mat-cell *matCellDef="let item" [attr.colspan]="customerParentColumns.length">
+                        <div class="child-detail" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
+                            <div class="child-table-container" *ngIf="item.expanded">
+                                <h4 class="child-title">Chi tiết sản phẩm của khách hàng {{ item.tenKH }}</h4>
+                                <table class="child-table">
+                                    <thead>
+                                        <tr>
+                                            <th *ngFor="let childCol of customerChildColumns">{{ childCol }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let child of item.children">
+                                            <td *ngFor="let childCol of customerChildColumns">
+                                                <ng-container [ngSwitch]="childCol">
+                                                    <ng-container *ngSwitchCase="'maSanPham'">
+                                                        <strong>{{ child[childCol] }}</strong>
+                                                    </ng-container>
+                                                    <ng-container *ngSwitchCase="'status'">
+                                                        <span class="status-badge"
+                                                            [ngClass]="getStatusClass(child.status)">
+                                                            {{ child.status }}
+                                                        </span>
+                                                    </ng-container>
+                                                    <ng-container *ngSwitchDefault>
+                                                        {{ child[childCol] }}
+                                                    </ng-container>
+                                                </ng-container>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <!-- Header & Rows -->
+                <tr mat-header-row *matHeaderRowDef="customerParentColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: customerParentColumns; when: isParentRow" class="parent-row"
+                    [class.expanded]="row.expanded" (click)="toggleRow(row)"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['expandedDetail']; when: isChildRow" class="child-row"></tr>
+            </table>
+            <div class="mobile-expandable-list" *ngIf="currentViewMode === 'customer'">
+                <!-- Mobile Filter Toggle -->
+                <div class="mobile-filter-section">
+                    <button mat-stroked-button (click)="toggleMobileFilter()" class="filter-toggle-btn">
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                            <mat-icon>filter_list</mat-icon>
+                            Bộ lọc
+                        </span>
+                        <mat-icon>{{showMobileFilter ? 'expand_less' : 'expand_more'}}</mat-icon>
+                    </button>
+
+                    <!-- Filters Panel -->
+                    <div class="mobile-filters" [class.show]="showMobileFilter">
+                        <mat-form-field appearance="outline" class="filter-field">
+                            <mat-label>Mã KH</mat-label>
+                            <input matInput [(ngModel)]="filterValues['maKH']" (keyup.enter)="applyFilter()">
+                            <button mat-icon-button matSuffix >
+                                <mat-icon>keyboard_arrow_down</mat-icon>
+                            </button>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" class="filter-field"
+                            *ngFor="let col of getFilterColumn()">
+                            <mat-label>{{getColumnLabel(col)}}</mat-label>
+                            <input matInput [(ngModel)]="filterValues[col]" (keyup.enter)="applyFilter()">
+                        </mat-form-field>
+
+                        <div class="filter-actions">
+                            <button mat-button (click)="clearFilters()">
+                                <mat-icon>clear</mat-icon>
+                                Xóa
+                            </button>
+                            <button mat-raised-button color="primary" (click)="applyFilter(); toggleMobileFilter()">
+                                <mat-icon>check</mat-icon>
+                                Áp dụng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expandable Cards -->
+                <div class="expandable-cards">
+                    <div class="expandable-card" *ngFor="let item of customerDataSource"
+                        [class.expanded]="item.expanded">
+
+                        <!-- Parent Card -->
+                        <div class="parent-card" (click)="toggleRow(item)">
+                            <!-- Card Header -->
+                            <div class="card-header">
+                                <div class="header-left">
+                                    <div class="customer-code">{{item.maKH}}</div>
+                                    <div class="customer-name">{{item.tenKH}}</div>
+                                </div>
+                                <div class="header-right">
+                                    <button mat-icon-button class="expand-btn"
+                                        (click)="$event.stopPropagation(); toggleRow(item)">
+                                        <mat-icon>{{item.expanded ? 'expand_less' : 'expand_more'}}</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Stats Grid -->
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-icon inventory">
+                                        <mat-icon>inventory</mat-icon>
+                                    </div>
+                                    <div class="stat-info">
+                                        <div class="stat-label">SL Tồn</div>
+                                        <div class="stat-value">{{item.tongSLTon}}</div>
+                                    </div>
+                                </div>
+
+                                <div class="stat-item">
+                                    <div class="stat-icon product">
+                                        <mat-icon>category</mat-icon>
+                                    </div>
+                                    <div class="stat-info">
+                                        <div class="stat-label">Sản phẩm</div>
+                                        <div class="stat-value">{{item.soSP}}</div>
+                                    </div>
+                                </div>
+
+                                <div class="stat-item">
+                                    <div class="stat-icon po">
+                                        <mat-icon>description</mat-icon>
+                                    </div>
+                                    <div class="stat-info">
+                                        <div class="stat-label">PO</div>
+                                        <div class="stat-value">{{item.soPO}}</div>
+                                    </div>
+                                </div>
+
+                                <div class="stat-item">
+                                    <div class="stat-icon area">
+                                        <mat-icon>place</mat-icon>
+                                    </div>
+                                    <div class="stat-info">
+                                        <div class="stat-label">Khu vực</div>
+                                        <div class="stat-value">{{item.soKhuVuc}}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Additional Info -->
+                            <div class="additional-info">
+                                <div class="info-row">
+                                    <mat-icon>inventory_2</mat-icon>
+                                    <span class="label">Pallet:</span>
+                                    <span class="value">{{item.soPallet}}</span>
+                                </div>
+                                <div class="info-row">
+                                    <mat-icon>widgets</mat-icon>
+                                    <span class="label">Thùng:</span>
+                                    <span class="value">{{item.soThung}}</span>
+                                </div>
+                                <div class="info-row">
+                                    <mat-icon>schedule</mat-icon>
+                                    <span class="label">Ngày nhập:</span>
+                                    <span class="value">{{item.ngayNhapSomNhat}}</span>
+                                </div>
+                            </div>
+
+                            <!-- Expand Indicator -->
+                            <div class="expand-indicator" *ngIf="(item.children?.length || 0) > 0">
+                                <span>{{ item.children?.length || 0 }} sản phẩm</span>
+                                <mat-icon>{{item.expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}}</mat-icon>
+                            </div>
+                        </div>
+
+                        <!-- Children Cards (Expanded Content) -->
+                        <div class="children-container" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
+                            <div class="children-header">
+                                <mat-icon>inventory</mat-icon>
+                                <span>Chi tiết sản phẩm của {{item.tenKH}}</span>
+                            </div>
+
+                            <div class="child-cards">
+                                <div class="child-card" *ngFor="let child of item.children; let i = index">
+                                    <div class="child-number">#{{i + 1}}</div>
+
+                                    <div class="child-main">
+                                        <div class="product-code">{{child.maSanPham}}</div>
+                                        <div class="product-name">{{child.tenSP}}</div>
+                                    </div>
+
+                                    <div class="child-details">
+                                        <div class="detail-row">
+                                            <span class="label">PO:</span>
+                                            <span class="value po-badge">{{child.po}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">SL Tồn:</span>
+                                            <span class="value quantity">{{child.slTon}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">SL Gốc:</span>
+                                            <span class="value">{{child.slGoc}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Khu vực:</span>
+                                            <span class="value area-badge">{{child.khuVuc}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Location:</span>
+                                            <span class="value location-badge">{{child.location}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Pallet:</span>
+                                            <span class="value">{{child.maPallet}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Thùng:</span>
+                                            <span class="value">{{child.maThung}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Status:</span>
+                                            <span class="value">
+                                                <span class="status-badge" [ngClass]="getStatusClass(child.status)">
+                                                    {{child.status}}
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Ngày nhập:</span>
+                                            <span class="value">{{child.ngayNhap}}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Ngày cập nhật:</span>
+                                            <span class="value">{{child.ngayCapNhat}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>  
+
+        </div>
+        <div class="mobile-warehouse-list" *ngIf="currentViewMode === 'default'">
+            <div class="mobile-warehouse-card" *ngFor="let item of warehouseList; let i = index">
+                <div class="card-header">
+                    <div class="card-id">
+                        <span class="stt">#{{ i + 1 }}</span>
+                        <span class="product-code">{{ item.maSanPham }}</span>
+                    </div>
+                    <span class="status-badge" [ngClass]="getStatusClass(item.status)">
+                        {{ item.status }}
+                    </span>
+                </div>
+
+                <div class="card-content">
+                    <div class="info-row" *ngFor="let field of mobileDefaultFields">
+                        <span class="label">{{ field.label }}</span>
+                        <span class="value" [ngClass]="field.badge ? 'location-badge' : ''">
+                            {{ $any(item)[field.key] }}
+                        </span>
+                    </div>
+
+                    <div class="quantity-row">
+                        <div class="qty-box" *ngFor="let field of mobileQuantityFields" [ngClass]="field.class">
+                            <div class="qty-label">{{ field.label }}</div>
+                            <div class="qty-value">{{ $any(item)[field.key] }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mobile-warehouse-list view-po" *ngIf="currentViewMode === 'po'">
+            <div class="mobile-expandable-card" *ngFor="let item of poDataSource">
+                <div class="parent-header" (click)="toggleRow(item)">
+                    <div class="parent-info">
+                        <div class="parent-title">{{ item.po }}</div>
+                    </div>
+                    <div class="expand-icon" [class.expanded]="item.expanded">
+                        <span class="badge">{{ item.children?.length || 0 }}</span>
+                        <mat-icon>chevron_right</mat-icon>
+                    </div>
+                </div>
+
+                <div class="parent-stats">
+                    <div class="stat-item" *ngFor="let stat of mobilePOStats">
+                        <div class="stat-label">{{ stat.label }}</div>
+                        <div class="stat-value">{{ $any(item)[stat.key] }}</div>
+                    </div>
+                </div>
+
+                <div class="children-list" [class.show]="item.expanded">
+                    <div class="child-item" *ngFor="let child of item.children">
+                        <div class="child-row" *ngFor="let field of mobilePOChildFields">
+                            <span class="label">{{ field.label }}</span>
+                            <span class="value">
+                                <ng-container [ngSwitch]="field.badge">
+                                    <ng-container *ngSwitchCase="true">
+                                        <span class="status-badge" [ngClass]="getStatusClass(child.status)">
+                                            {{ child.status }}
+                                        </span>
+                                    </ng-container>
+                                    <ng-container *ngSwitchDefault>
+                                        <strong *ngIf="field.bold">{{ $any(child)[field.key] }}</strong>
+                                        <span *ngIf="!field.bold">{{ $any(child)[field.key] }}</span>
+                                    </ng-container>
+                                </ng-container>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <mat-form-field class="page-size-select" appearance="outline">
+                <mat-select [(value)]="pageSize">
+                    <mat-option [value]="10">10</mat-option>
+                    <mat-option [value]="25">25</mat-option>
+                    <mat-option [value]="50">50</mat-option>
+                    <mat-option [value]="100">100</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <div class="pagination-buttons">
+                <button mat-flat-button [class.page-active]="currentPage === 1" (click)="onPageChange(1)">1</button>
+                <button mat-stroked-button (click)="onPageChange(2)">2</button>
+                <button mat-stroked-button (click)="onPageChange(3)">3</button>
+                <span class="page-dots">...</span>
+                <button mat-stroked-button (click)="onPageChange(8)">8</button>
+                <button mat-stroked-button (click)="onPageChange(9)">9</button>
+            </div>
+        </div>
+    </mat-card>
+</div>

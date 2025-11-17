@@ -1,0 +1,186 @@
+<div class="chuyen-kho-detail-container">
+    <div class="chuyen-kho-detail-header">
+        <div class="header-title">
+            <mat-icon class="title-icon">fact_check</mat-icon>
+            <div>
+                <h1>Chi tiết xuất hàng</h1>
+                <p class="subtitle">Ship goods according to sales orders</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin chi tiết Card -->
+    <mat-card class="chuyen-kho-detail-card">
+        <div class="table-header">
+            <div class="table-title">
+                <mat-icon>description</mat-icon>
+                <span>Thông tin chi tiết</span>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table mat-table [dataSource]="pagedDetailList" class="detail-table">
+                <!-- STT -->
+                <ng-container matColumnDef="stt">
+                    <th mat-header-cell *matHeaderCellDef>STT</th>
+                    <td mat-cell *matCellDef="let item; let i = index">{{ i + 1 }}</td>
+                </ng-container>
+
+                <!-- Mã hàng hoá -->
+                <ng-container matColumnDef="productCode">
+                    <th mat-header-cell *matHeaderCellDef>Mã hàng</th>
+                    <td mat-cell *matCellDef="let item">{{item.productCode}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="productName">
+                    <th mat-header-cell *matHeaderCellDef>Tên hàng</th>
+                    <td mat-cell *matCellDef="let item">{{item.productName}}</td>
+                </ng-container>
+
+                <!-- <ng-container matColumnDef="quantity">
+                    <th mat-header-cell *matHeaderCellDef style="display:grid;">
+                        Số lượng
+                        <mat-form-field appearance="outline" class="header-quantity-input">
+                            <input matInput type="number" [(ngModel)]="globalQuantity"
+                                (keydown.enter)="applyGlobalQuantity()" (keydown.tab)="applyGlobalQuantity()" />
+                        </mat-form-field>
+                    </th>
+
+                    <td mat-cell *matCellDef="let item">
+                        <input matInput type="number" [(ngModel)]="item.quantity" min="0" class="quantity-input" />
+                    </td>
+                </ng-container> -->
+                <ng-container matColumnDef="quantity">
+                    <th mat-header-cell *matHeaderCellDef>Số lượng</th>
+                    <td mat-cell *matCellDef="let item">{{item.quantity}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="unit">
+                    <th mat-header-cell *matHeaderCellDef>ĐVT</th>
+                    <td mat-cell *matCellDef="let item">{{item.unit}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="updatedBy">
+                    <th mat-header-cell *matHeaderCellDef>Cập nhật bởi</th>
+                    <td mat-cell *matCellDef="let item">{{item.updatedBy}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="updatedDate">
+                    <th mat-header-cell *matHeaderCellDef>Ngày cập nhật</th>
+                    <td mat-cell *matCellDef="let item">{{item.updatedDate}}</td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+
+        </div>
+
+        <!-- Mobile Summary (Optional) -->
+        <div class="mobile-summary">
+            <div class="summary-title">Tổng quan</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-label">Tổng mục</div>
+                    <div class="summary-value">{{detailList.length}}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Tổng SL</div>
+                    <div class="summary-value">{{getTotalQuantity()}}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Detail List -->
+        <div class="mobile-detail-list">
+            <div class="mobile-detail-item" *ngFor="let item of pagedDetailList; let i = index">
+                <!-- Item Header -->
+                <div class="item-header">
+                    <div class="item-number">
+                        <mat-icon>inventory_2</mat-icon>
+                        <span>#{{((currentPage - 1) * pageSize) + i + 1}}</span>
+                    </div>
+                    <div class="quantity-badge">
+                        <mat-icon>production_quantity_limits</mat-icon>
+                        <span>{{item.quantity}} {{item.unit}}</span>
+                    </div>
+                </div>
+
+                <!-- Product Info -->
+                <div class="product-info">
+                    <div class="product-code">{{item.productCode}}</div>
+                    <div class="product-name">{{item.productName}}</div>
+                </div>
+
+                <!-- Item Details -->
+                <div class="item-details">
+                    <div class="detail-row">
+                        <span class="label">
+                            <mat-icon>straighten</mat-icon>
+                            ĐVT
+                        </span>
+                        <span class="value">{{item.unit}}</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <span class="label">
+                            <mat-icon>person</mat-icon>
+                            Cập nhật bởi
+                        </span>
+                        <span class="value">{{item.updatedBy || 'N/A'}}</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <span class="label">
+                            <mat-icon>schedule</mat-icon>
+                            Ngày cập nhật
+                        </span>
+                        <span class="value">{{item.updatedDate || 'N/A'}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" *ngIf="pagedDetailList.length === 0">
+                <mat-icon>inbox</mat-icon>
+                <p>Không có dữ liệu</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" *ngIf="detailList.length > pageSize">
+            <div class="pagination-controls">
+                <mat-form-field appearance="outline" class="page-size-select">
+                    <mat-label>Số dòng/trang</mat-label>
+                    <mat-select [(value)]="pageSize" (selectionChange)="onPageSizeChange($event.value)">
+                        <mat-option *ngFor="let size of pageSizeOptions" [value]="size">
+                            {{ size }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="pagination-numbers">
+                <button mat-button *ngFor="let page of [].constructor(totalPages); let i = index"
+                    [class.active]="currentPage === i + 1" (click)="onPageChange(i + 1)">
+                    {{ i + 1 }}
+                </button>
+            </div>
+
+        </div>
+    </mat-card>
+    <div class="action-footer">
+        <button mat-button class="cancel-btn" (click)="back()">
+            <mat-icon>arrow_back</mat-icon>
+            Back
+        </button>
+        <button mat-raised-button class="warehouse-btn" (click)="onScan(detailList[0])">
+            <mat-icon>qr_code_2</mat-icon>
+            Scan vật tư
+        </button>
+        <button mat-raised-button color="primary" class="confirm-btn">
+            <mat-icon>check</mat-icon>
+            Phê duyệt
+        </button>
+    </div>
+</div>

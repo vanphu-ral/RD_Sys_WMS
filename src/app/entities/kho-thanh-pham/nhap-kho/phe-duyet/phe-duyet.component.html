@@ -1,0 +1,276 @@
+<div class="nhapkho-container">
+    <div class="nhapkho-header">
+        <div class="header-title">
+            <mat-icon class="title-icon">playlist_add_check</mat-icon>
+            <div>
+                <h1>Kiểm duyệt nhập Kho</h1>
+                <p class="subtitle">Warehouse management from production</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mode Scan Card -->
+    <mat-card class="nhapkho-card">
+        <div class="table-header">
+            <div class="table-title">
+                <mat-icon>info</mat-icon>
+                <span>Thông tin chính</span>
+            </div>
+        </div>
+
+        <div class="info-content">
+            <div class="info-table-wrapper">
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th>Mã PO</th>
+                            <th>Mã sản phẩm</th>
+                            <th>Mã khách hàng</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Số pallet</th>
+                            <th>Số thùng</th>
+                            <th>Số lượng SP</th>
+                            <th>Mã WO</th>
+                            <th>Số LOT</th>
+                            <th>Ngày nhập</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{mainInfo.maPO}}</td>
+                            <td>{{mainInfo.maSanPham}}</td>
+                            <td>{{mainInfo.maKhachHang}}</td>
+                            <td>{{mainInfo.tenSanPham}}</td>
+                            <td>{{mainInfo.soPallet}}</td>
+                            <td>{{mainInfo.soThung}}</td>
+                            <td>{{mainInfo.soLuongSP}}</td>
+                            <td>{{mainInfo.maWO}}</td>
+                            <td>{{mainInfo.soLOT}}</td>
+                            <td>{{mainInfo.ngayNhap}}</td>
+                            <td>{{mainInfo.ghiChu}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="mobile-main-info">
+            <!-- Summary Header -->
+            <div class="summary-header">
+                <div class="header-row">
+                    <span class="header-label">Thông tin nhập kho</span>
+                    <mat-icon>info</mat-icon>
+                </div>
+
+                <div class="main-codes">
+                    <div class="code-box">
+                        <div class="code-label">Mã PO</div>
+                        <div class="code-value">{{mainInfo.maPO}}</div>
+                    </div>
+                    <div class="code-box">
+                        <div class="code-label">Mã SP</div>
+                        <div class="code-value">{{mainInfo.maSanPham}}</div>
+                    </div>
+                    <div class="code-box">
+                        <div class="code-label">Mã KH</div>
+                        <div class="code-value">{{mainInfo.maKhachHang}}</div>
+                    </div>
+                    <div class="code-box">
+                        <div class="code-label">Mã WO</div>
+                        <div class="code-value">{{mainInfo.maWO}}</div>
+                    </div>
+                </div>
+
+                <div class="product-name">{{mainInfo.tenSanPham}}</div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-icon pallet">
+                        <mat-icon>inventory_2</mat-icon>
+                    </div>
+                    <div class="stat-label">Pallet</div>
+                    <div class="stat-value">{{mainInfo.soPallet}}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon box">
+                        <mat-icon>widgets</mat-icon>
+                    </div>
+                    <div class="stat-label">Thùng</div>
+                    <div class="stat-value">{{mainInfo.soThung}}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon product">
+                        <mat-icon>category</mat-icon>
+                    </div>
+                    <div class="stat-label">Sản phẩm</div>
+                    <div class="stat-value">{{mainInfo.soLuongSP}}</div>
+                </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="additional-info">
+                <div class="info-row">
+                    <span class="label">Số LOT</span>
+                    <span class="value">{{mainInfo.soLOT}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Ngày nhập</span>
+                    <span class="value">{{mainInfo.ngayNhap}}</span>
+                </div>
+                <div class="info-row" *ngIf="mainInfo.ghiChu">
+                    <span class="label">Ghi chú</span>
+                    <span class="value">{{mainInfo.ghiChu}}</span>
+                </div>
+            </div>
+        </div>
+    </mat-card>
+
+    <!-- Thông tin chi tiết Card -->
+    <mat-card class="nhapkho-card">
+        <div class="table-header">
+            <div class="table-title">
+                <mat-icon>description</mat-icon>
+                <span>Thông tin chi tiết</span>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table mat-table [dataSource]="detailList" class="detail-table">
+                <!-- STT Column -->
+                <ng-container matColumnDef="stt">
+                    <th mat-header-cell *matHeaderCellDef>STT</th>
+                    <td mat-cell *matCellDef="let item; let i = index">{{ i + 1 }}</td>
+                </ng-container>
+
+                <!-- Pallet code Column -->
+                <ng-container matColumnDef="palletCode">
+                    <th mat-header-cell *matHeaderCellDef>Pallet code</th>
+                    <td mat-cell *matCellDef="let item">{{ item.palletCode }}</td>
+                </ng-container>
+
+                <!-- Box code Column -->
+                <ng-container matColumnDef="boxCode">
+                    <th mat-header-cell *matHeaderCellDef>Box code</th>
+                    <td mat-cell *matCellDef="let item">{{ item.boxCode }}</td>
+                </ng-container>
+
+                <!-- Box quantity Column -->
+                <ng-container matColumnDef="boxQuantity">
+                    <th mat-header-cell *matHeaderCellDef>Số lượng thùng</th>
+                    <td mat-cell *matCellDef="let item">{{ item.boxQuantity }}</td>
+                </ng-container>
+
+                <!-- Updated date Column -->
+                <ng-container matColumnDef="updatedDate">
+                    <th mat-header-cell *matHeaderCellDef>Ngày cập nhật</th>
+                    <td mat-cell *matCellDef="let item">{{ item.updatedDate }}</td>
+                </ng-container>
+
+                <!-- Scan status Column -->
+                <ng-container matColumnDef="scanStatus">
+                    <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+                    <td mat-cell *matCellDef="let item">
+                        <span [ngClass]="{
+                            'scanned': item.scanStatus === 'Đã scan',
+                            'unscanned': item.scanStatus === 'Chưa scan'
+                        }">
+                            {{ item.scanStatus }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+            </table>
+
+        </div>
+        <div class="mobile-scan-list">
+            <div class="mobile-scan-card" *ngFor="let item of detailList; let i = index"
+                [class.scanned]="item.scanStatus === 'Đã scan'" [class.unscanned]="item.scanStatus === 'Chưa scan'">
+                <div class="scan-header">
+                    <div class="scan-number">
+                        <mat-icon>
+                            {{ item.scanStatus === 'Đã scan' ? 'check_circle' : 'radio_button_unchecked' }}
+                        </mat-icon>
+                        <span>#{{ i + 1 }}</span>
+                    </div>
+                    <div class="scan-status-badge" [class.scanned]="item.scanStatus === 'Đã scan'"
+                        [class.unscanned]="item.scanStatus === 'Chưa scan'">
+                        <mat-icon>{{ item.scanStatus === 'Đã scan' ? 'verified' : 'pending' }}</mat-icon>
+                        {{ item.scanStatus }}
+                    </div>
+                </div>
+
+                <div class="scan-codes">
+                    <div class="code-section">
+                        <div class="code-label">
+                            <mat-icon>qr_code</mat-icon>
+                            Pallet Code
+                        </div>
+                        <div class="code-value">{{ item.palletCode }}</div>
+                    </div>
+
+                    <div class="code-section">
+                        <div class="code-label">
+                            <mat-icon>qr_code_2</mat-icon>
+                            Box Code
+                        </div>
+                        <div class="code-value">{{ item.boxCode }}</div>
+                    </div>
+                </div>
+
+                <div class="pallet-count">
+                    <mat-icon>inventory</mat-icon>
+                    <span class="count-label">Số lượng thùng:</span>
+                    <span class="count-value">{{ item.boxQuantity }}</span>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" *ngIf="detailList.length === 0">
+                <mat-icon>inbox</mat-icon>
+                <p>Chưa có dữ liệu scan</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <!-- <button mat-button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+                <mat-icon>chevron_left</mat-icon>
+                Previous
+            </button> -->
+
+            <div class="pagination-numbers">
+                <button mat-button [class.active]="currentPage === 1" (click)="onPageChange(1)">1</button>
+                <button mat-button [class.active]="currentPage === 2" (click)="onPageChange(2)">2</button>
+                <button mat-button [class.active]="currentPage === 3" (click)="onPageChange(3)">3</button>
+                <span class="dots">...</span>
+                <button mat-button (click)="onPageChange(8)">8</button>
+                <button mat-button (click)="onPageChange(9)">9</button>
+            </div>
+            <!-- 
+            <button mat-button class="pagination-btn" (click)="nextPage()">
+                Next
+                <mat-icon>chevron_right</mat-icon>
+            </button> -->
+        </div>
+    </mat-card>
+
+    <!-- Action Buttons -->
+    <div class="action-footer">
+        <button mat-button class="cancel-btn" (click)="onCancel()">
+            <mat-icon>close</mat-icon>
+            Cancel
+        </button>
+        <button mat-raised-button class="warehouse-btn" (click)="onScan()">
+            <mat-icon>qr_code_2</mat-icon>
+            Scan vật tư
+        </button>
+        <button mat-raised-button color="primary" class="confirm-btn" (click)="onConfirm()">
+            <mat-icon>check</mat-icon>
+            Phê duyệt
+        </button>
+    </div>
+</div>

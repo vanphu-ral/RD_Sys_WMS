@@ -1,0 +1,297 @@
+<div class="nhapkho-container">
+    <div class="nhapkho-header">
+        <div class="header-title">
+            <mat-icon class="title-icon">warehouse</mat-icon>
+            <div>
+                <h1>Quản lý nhập kho từ sản xuất</h1>
+                <p class="subtitle">Warehouse management from production</p>
+            </div>
+        </div>
+    </div>
+    <!-- Content Card -->
+    <mat-card class="nhapkho-card">
+        <!-- Table Header -->
+        <div class="table-header">
+            <div class="table-title">
+                <mat-icon>list</mat-icon>
+                <span>Danh sách Nhập kho ({{totalItems}})</span>
+            </div>
+            <div class="table-actions">
+                <button mat-raised-button (click)="onRefresh()" class="refresh-btn icon-only">
+                    <mat-icon color="primary">sync</mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <table mat-table [dataSource]="nhapKhoList" class="nhapkho-table">
+
+                <!-- ID -->
+                <ng-container matColumnDef="id">
+                    <th mat-header-cell *matHeaderCellDef>ID</th>
+                    <td mat-cell *matCellDef="let item">{{ item.id }}</td>
+                </ng-container>
+
+                <!-- Tên kho -->
+                <ng-container matColumnDef="inventory_name">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div>Tên kho</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput [(ngModel)]="filterValues.inventory_name" (keyup.enter)="applyFilter()" />
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{ item.inventory_name }}</td>
+                </ng-container>
+
+                <!-- Lot number -->
+                <ng-container matColumnDef="lot_number">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div>Lot number</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput [(ngModel)]="filterValues.lot_number" (keyup.enter)="applyFilter()" />
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{ item.lot_number }}</td>
+                </ng-container>
+
+                <!-- Số pallet -->
+                <ng-container matColumnDef="number_of_pallet">
+                    <th mat-header-cell *matHeaderCellDef>Số pallet</th>
+                    <td mat-cell *matCellDef="let item">{{ item.number_of_pallet }}</td>
+                </ng-container>
+
+                <!-- Số thùng -->
+                <ng-container matColumnDef="number_of_box">
+                    <th mat-header-cell *matHeaderCellDef>Số thùng</th>
+                    <td mat-cell *matCellDef="let item">{{ item.number_of_box }}</td>
+                </ng-container>
+
+                <!-- Số sản phẩm -->
+                <ng-container matColumnDef="quantity">
+                    <th mat-header-cell *matHeaderCellDef>Số sản phẩm</th>
+                    <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+                </ng-container>
+
+                <!-- Mã WO -->
+                <ng-container matColumnDef="wo_code">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div>Mã WO</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput [(ngModel)]="filterValues.wo_code" (keyup.enter)="applyFilter()" />
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">{{ item.wo_code }}</td>
+                </ng-container>
+
+                <!-- Ngày nhập -->
+                <ng-container matColumnDef="import_date">
+                    <th mat-header-cell *matHeaderCellDef>Ngày nhập</th>
+                    <td mat-cell *matCellDef="let item">{{ formatDate(item.import_date) }}</td>
+                </ng-container>
+
+                <!-- Trạng thái -->
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div>Trạng thái</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <mat-select [(ngModel)]="filterValues.status" (selectionChange)="applyFilter()"
+                                placeholder="Chọn trạng thái">
+                                <mat-option value="">Tất cả</mat-option>
+                                <mat-option value="Mới tạo">Mới tạo</mat-option>
+                                <mat-option value="Chờ nhập">Chờ nhập</mat-option>
+                                <mat-option value="Đã nhập">Đã nhập</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let item">
+                        <span class="status-badge" [ngClass]="getStatusClass(item.status)">
+                            {{ item.status }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <!-- Options -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef class="text-center actions-column">Thao tác</th>
+                    <td mat-cell *matCellDef="let item" class="text-center actions-column">
+                        <div class="action-buttons-wrapper">
+                            <button mat-icon-button class="action-btn approve-btn" (click)="onApprove(item)"
+                                matTooltip="Phê duyệt">
+                                <mat-icon>check_circle</mat-icon>
+                            </button>
+                            <button mat-icon-button class="action-btn detail-btn" (click)="onViewDetail(item)"
+                                matTooltip="Xem chi tiết">
+                                <mat-icon>visibility</mat-icon>
+                            </button>
+                            <button mat-icon-button class="action-btn scan-btn" (click)="onScan(item)"
+                                matTooltip="Quét mã">
+                                <mat-icon>qr_code_scanner</mat-icon>
+                            </button>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <!-- Header & Row -->
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+            </table>
+
+        </div>
+
+        <!-- mobile -->
+
+        <div class="mobile-filter-toggle">
+            <button mat-stroked-button (click)="toggleMobileFilters()" class="filter-toggle-btn">
+                <span>
+                    <mat-icon>filter_list</mat-icon>
+                    Bộ lọc
+                </span>
+                <mat-icon>{{showMobileFilters ? 'expand_less' : 'expand_more'}}</mat-icon>
+            </button>
+        </div>
+
+        <!-- Mobile Filters Panel -->
+        <div class="mobile-filters" [class.show]="showMobileFilters">
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Tên kho</mat-label>
+                <input matInput [(ngModel)]="filterValues.inventory_name" (keyup.enter)="applyFilter()" />
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Lot number</mat-label>
+                <input matInput [(ngModel)]="filterValues.lot_number" (keyup.enter)="applyFilter()" />
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Mã WO</mat-label>
+                <input matInput [(ngModel)]="filterValues.wo_code" (keyup.enter)="applyFilter()" />
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Trạng thái</mat-label>
+                <mat-select [(ngModel)]="filterValues.status" (selectionChange)="applyFilter()">
+                    <mat-option value="">Tất cả</mat-option>
+                    <mat-option value="Mới tạo">Mới tạo</mat-option>
+                    <mat-option value="Chờ nhập">Chờ nhập</mat-option>
+                    <mat-option value="Đã nhập">Đã nhập</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <div class="filter-actions">
+                <button mat-button (click)="clearFilters()">
+                    <mat-icon>clear</mat-icon>
+                    Xóa
+                </button>
+                <button mat-raised-button color="primary" (click)="applyFilter(); toggleMobileFilters()">
+                    <mat-icon>check</mat-icon>
+                    Áp dụng
+                </button>
+            </div>
+        </div>
+
+
+        <!-- Mobile Card List -->
+        <div class="mobile-nhapkho-list">
+            <div class="mobile-nhapkho-card" *ngFor="let item of nhapKhoList">
+                <!-- Card Header -->
+                <div class="card-header">
+                    <div class="card-id-section">
+                        <div class="card-id">
+                            <mat-icon>tag</mat-icon>
+                            #{{ item.id }}
+                        </div>
+                        <div class="card-wo">WO: {{ item.wo_code }}</div>
+                    </div>
+                    <span class="status-badge" [ngClass]="getStatusClass(item.status)">
+                        {{ item.status }}
+                    </span>
+                </div>
+
+                <!-- Card Content -->
+                <div class="card-content">
+                    <div class="info-row">
+                        <span class="info-label">
+                            <mat-icon>warehouse</mat-icon>
+                            Tên kho
+                        </span>
+                        <span class="info-value">{{ item.inventory_name }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">
+                            <mat-icon>numbers</mat-icon>
+                            Lot number
+                        </span>
+                        <span class="info-value">{{ item.lot_number }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">
+                            <mat-icon>calendar_today</mat-icon>
+                            Ngày nhập
+                        </span>
+                        <span class="info-value">{{ formatDate(item.import_date) }}</span>
+                    </div>
+
+                    <!-- Quantity Section -->
+                    <div class="quantity-section">
+                        <div class="quantity-item pallet">
+                            <span class="qty-label">Pallet</span>
+                            <span class="qty-value">{{ item.number_of_pallet }}</span>
+                        </div>
+                        <div class="quantity-item box">
+                            <span class="qty-label">Thùng</span>
+                            <span class="qty-value">{{ item.number_of_box }}</span>
+                        </div>
+                        <div class="quantity-item product">
+                            <span class="qty-label">SP</span>
+                            <span class="qty-value">{{ item.quantity }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Actions -->
+                <div class="card-actions">
+                    <button mat-raised-button class="approve-btn" (click)="onApprove(item)">
+                        <mat-icon>check_circle</mat-icon>
+                        Phê duyệt
+                    </button>
+                    <button mat-stroked-button class="detail-btn" (click)="onViewDetail(item)">
+                        <mat-icon>visibility</mat-icon>
+                        Chi tiết
+                    </button>
+                    <button mat-stroked-button class="scan-btn" (click)="onScan(item)">
+                        <mat-icon>qr_code_scanner</mat-icon>
+                        Scan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <mat-form-field class="page-size-select" appearance="outline">
+                <mat-select [(value)]="pageSize" (selectionChange)="onPageSizeChange()">
+                    <mat-option [value]="10">10</mat-option>
+                    <mat-option [value]="25">25</mat-option>
+                    <mat-option [value]="50">50</mat-option>
+                    <mat-option [value]="100">100</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <div class="pagination-buttons">
+                <button *ngFor="let page of [].constructor(totalPages); let i = index" mat-button
+                    [class.page-active]="currentPage === i + 1" (click)="onPageChange(i + 1)">
+                    {{ i + 1 }}
+                </button>
+            </div>
+        </div>
+
+    </mat-card>
+
+</div>

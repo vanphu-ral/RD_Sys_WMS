@@ -1,0 +1,300 @@
+@use "@angular/material" as mat;
+
+.nhapkho-container {
+    padding: 10px;
+    background-color: #f8fafc;
+    min-height: 100vh;
+}
+
+.nhapkho-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 20px 24px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+
+    .header-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .title-icon {
+            font-size: 32px;
+            width: 32px;
+            height: 32px;
+            color: #1e293b;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .subtitle {
+            margin: 4px 0 0 0;
+            font-size: 14px;
+            color: #64748b;
+        }
+    }
+}
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-success .mdc-snackbar__surface {
+    background-color: #14AE5C !important;
+    color: white !important;
+}
+
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-position {
+    margin-bottom: 75vh;
+}
+
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-warn .mdc-snackbar__surface {
+    background-color: #f59e0b;
+    color: #1e293b;
+}
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-error .mdc-snackbar__surface {
+    background-color: #dc2626 !important;
+    color: white !important;
+}
+.nhapkho-card {
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e2e8f0;
+
+    .table-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 16px;
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+    }
+}
+
+// Thông tin chính
+.info-content {
+    padding: 24px;
+}
+
+.info-table-wrapper {
+    overflow-x: auto;
+}
+
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+
+    thead {
+        background-color: #f8fafc;
+
+        th {
+            color: #64748b;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 14px 16px;
+            text-align: left;
+            white-space: nowrap;
+            border-bottom: 2px solid #e2e8f0;
+        }
+    }
+
+    tbody {
+        td {
+            padding: 16px;
+            color: #334155;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+    }
+}
+
+// Thông tin chi tiết
+.table-container {
+    overflow-x: auto;
+    padding: 20px;
+}
+
+.detail-table {
+    width: 100%;
+
+    th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 16px 24px;
+        white-space: nowrap;
+        text-align: left;
+    }
+
+    td {
+        padding: 16px 24px;
+        color: #334155;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    .table-row {
+        &:hover {
+            background-color: #f8fafc;
+        }
+    }
+}
+
+// Pagination
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+
+    .pagination-btn {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #64748b;
+        font-weight: 500;
+        min-width: 100px;
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    .pagination-numbers {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+
+        button {
+            min-width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            color: #64748b;
+            font-weight: 500;
+
+            &.active {
+                background-color: #1e293b;
+                color: white;
+            }
+
+            &:hover:not(.active) {
+                background-color: #f8fafc;
+            }
+        }
+
+        .dots {
+            padding: 0 8px;
+            color: #64748b;
+        }
+    }
+}
+
+// Action Footer
+.action-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 8px;
+    // position: sticky;
+    bottom: 10px;
+
+    button {
+        height: 44px;
+        padding: 0 24px;
+        font-weight: 500;
+        font-size: 15px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+            margin: 0;
+        }
+    }
+
+    .cancel-btn {
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+
+        &:hover {
+            background-color: #f8fafc;
+        }
+    }
+
+    .warehouse-btn {
+        background-color: #0ea5e9;
+        color: white;
+
+        &:hover {
+            background-color: #0284c7;
+        }
+    }
+
+    .confirm-btn {
+        background-color: #0D6EFD;
+        color: white;
+
+        &:hover {
+            background-color: #0257d5;
+        }
+    }
+}
+
+// Responsive
+@media (max-width: 1200px) {
+    .info-table {
+        font-size: 12px;
+
+        th, td {
+            padding: 10px 12px;
+        }
+    }
+}

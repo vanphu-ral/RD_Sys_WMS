@@ -1,0 +1,116 @@
+<div class="layout-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed">
+  <div class="sidebar-container" [class.collapsed]="isSidebarCollapsed">
+    <app-sidebar [isCollapsed]="isSidebarCollapsed" (collapseSidebar)="toggleSidebar()"></app-sidebar>
+    <div class="sidebar-toggle sidebar-toggle-mobile" (click)="toggleSidebar()">
+      <a style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"
+        class="btn-toggle-sidebar">
+        <mat-icon>menu</mat-icon>
+      </a>
+    </div>
+  </div>
+
+  <div>
+    <div class="topnav" style="display: flex;">
+      <div class="topnav-toggle topnav-toggle-desktop" (click)="toggleSidebar()">
+        <button class="btn-toggle-sidebar">
+          <mat-icon>menu</mat-icon>
+        </button>
+      </div>
+      <div class="user" *ngIf="isLoggedIn">
+        <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
+          <mat-icon>person_outline</mat-icon>
+          <span class="username">{{ username }}</span>
+          <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+        </button>
+
+        <mat-menu #userMenu="matMenu" class="user-menu">
+          <div class="user-menu-header">
+            <mat-icon>account_circle</mat-icon>
+            <div class="user-info">
+              <p class="user-name">{{ username }}</p>
+              <p class="user-role">Quản lý kho</p>
+            </div>
+          </div>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="info()">
+            <mat-icon>person</mat-icon>
+            <span>Thông tin cá nhân</span>
+          </button>
+          <button mat-menu-item>
+            <mat-icon>settings</mat-icon>
+            <span>Cài đặt</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="logout()">
+            <mat-icon color="warn">logout</mat-icon>
+            <span>Đăng xuất</span>
+          </button>
+        </mat-menu>
+      </div>
+
+      <!-- Nếu chưa đăng nhập -->
+      <div class="user" *ngIf="!isLoggedIn">
+        <button mat-button (click)="login()" class="login-button">
+          <mat-icon>login</mat-icon>
+          <span>Đăng nhập</span>
+        </button>
+      </div>
+    </div>
+</div>
+
+<div class="main-container">
+  <div class="main-content-container">
+    <div class="main-content">
+      <mat-tab-nav-panel #tabPanel></mat-tab-nav-panel>
+      <main class="main-content-area">
+        <div>
+          <router-outlet></router-outlet>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+</div>
+<!-- token bên user-info nếu cần hiển thị cop sang bên user info -->
+<!-- <div class="token-section">
+        <h3>Token Information</h3>
+        <div class="token-card">
+          <div class="info-row">
+            <span class="label">Issued at:</span>
+            <span class="value">{{ tokenInfo.issuedAt }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Expires at:</span>
+            <span class="value">{{ tokenInfo.expiresAt }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Time remaining:</span>
+            <span class="value" [class.warning]="tokenInfo.remainingSeconds < 120">
+              {{ tokenInfo.remainingTime }}
+            </span>
+          </div>
+        </div>
+
+        <button class="btn-view-token" (click)="showRawToken = !showRawToken">
+          {{ showRawToken ? ' Hide' : ' View' }} Raw Token
+        </button>
+
+        <div class="raw-token" *ngIf="showRawToken">
+          <h4>Access Token (JWT):</h4>
+          <pre>{{ rawToken }}</pre>
+          
+          <h4>Decoded Payload:</h4>
+          <pre>{{ decodedPayload }}</pre>
+        </div>
+      </div>
+
+      <div class="debug-section">
+        <h3> Debug Info</h3>
+        <button class="btn-debug" (click)="logToConsole()">
+          Log to Console
+        </button>
+        <button class="btn-debug" (click)="testRoleCheck()">
+          Test Role Check
+        </button>
+      </div>
+    </div> -->

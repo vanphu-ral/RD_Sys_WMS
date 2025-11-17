@@ -1,0 +1,405 @@
+.sidebar {
+  max-height: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  top: 0;
+  left: 0px;
+  z-index: 100;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Sử dụng easing function mượt hơn */
+  background-color: #2C3E50;
+  justify-content: space-between;
+  width: 300px;
+  overflow: hidden;
+  /* Quan trọng: ẩn nội dung tràn */
+}
+
+.title-sidebar {
+  padding: 5px 10px;
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: #1A252F;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 70px;
+  max-height: 70px;
+
+  .main-title-sidebar {
+    display: flex;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    min-height: 56px;
+
+    h4 {
+      margin: 0;
+      padding: 1rem 0;
+      margin-left: 10px;
+      transition: opacity 0.2s ease, width 0.3s ease, transform 0.2s ease;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    img {
+      width: 40px;
+      height: 40px;
+      font-size: 30px;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+    }
+  }
+
+  .sub-title-sidebar {
+    font-size: 12px;
+    margin-top: 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+    transition: opacity 0.2s ease, max-height 0.3s ease;
+    max-height: 20px;
+    overflow: hidden;
+  }
+}
+
+.sidebar.collapsed {
+  .title-sidebar {
+    min-height: 70px;
+    max-height: 70px;
+
+    .main-title-sidebar {
+      justify-content: center;
+      min-height: 56px; 
+
+      h4 {
+        opacity: 0;
+        width: 0;
+        padding: 1rem 0; 
+        transform: translateX(-10px);
+        overflow: hidden;
+      }
+
+      img {
+        transform: scale(0.9);
+      }
+    }
+
+    .sub-title-sidebar {
+      opacity: 0;
+      max-height: 0; 
+    }
+  }
+}
+
+.sidebar-content {
+  flex: 1;
+  z-index: 10000;
+  transition: inherit;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .sidebar-menu {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    ul {
+      transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+}
+
+.sidebar-menu-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-menu::-webkit-scrollbar {
+  width: 0px;
+}
+
+#manu-bar {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  transition: transform 0.3s ease;
+  /* Thêm transition cho khu vực menu */
+}
+
+.sidebar-menu {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  justify-content: center;
+  transition: inherit;
+}
+
+.sidebar a {
+  text-decoration: none;
+  transition: color .3s ease;
+}
+
+.sidebar-menu-icon {
+  color: white;
+  transition: transform 0.3s ease;
+  /* Thêm transition cho icon */
+}
+
+.sidebar .sidebar-content {
+  max-height: calc(100% - 30px);
+  height: calc(100% - 30px);
+  overflow-y: auto;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.sidebar .sidebar-content .sidebar-header {
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  transition: inherit;
+  /* Kế thừa transition */
+}
+
+li::marker {
+  content: none;
+}
+
+.sidebar-menu-title {
+  height: 50px;
+  color: white;
+  font-size: 14px;
+  padding: 0 15px;
+  transition:
+    opacity 0.2s ease,
+    transform 0.3s ease;
+  /* Thêm transform cho hiệu ứng trượt */
+  white-space: nowrap;
+  overflow: hidden;
+  transform: translateX(0);
+  /* Khởi tạo vị trí */
+}
+
+.sidebar-submenu-title {
+  color: white;
+  font-size: 16px;
+  padding: 0px;
+  margin-right: 10px;
+  height: 30px;
+  transition: inherit;
+}
+
+.sidebar-submenu-item {
+  padding: 8px 16px;
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+  /* Thêm transition cho opacity */
+}
+
+.sidebar-menu-link:hover {
+  background-color: rgb(21, 38, 100);
+  color: rgb(255, 255, 255);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  /* Đồng bộ thời gian transition */
+}
+
+
+.sidebar-submenu-title {
+  text-decoration: none;
+  color: white;
+  display: block;
+}
+
+.sidebar-submenu-item {
+  padding: 8px 16px;
+  transition: background-color 0.2s;
+}
+
+.sidebar-submenu-item:hover {
+  background-color: rgb(21, 38, 100);
+  cursor: pointer;
+}
+
+.sidebar-menu-link {
+  padding: 10px 5px;
+  transition:
+    background-color 0.3s ease,
+    padding 0.3s ease;
+  /* Thêm transition cho padding */
+  align-items: center;
+  display: flex;
+}
+
+.btn-toggle-sidebar {
+  width: 60px;
+  height: 50px;
+  display: inline-block;
+  background-color: transparent;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+#menu-bar {
+  height: 500px;
+}
+
+.btn-toggle-sidebar mat-icon {
+  color: white;
+  font-size: 36px;
+  width: 60px;
+  height: 30px;
+  transition: transform 0.3s ease;
+  /* Thêm transition cho icon */
+}
+
+.sidebar-toggle {
+  justify-items: center;
+  text-align: center;
+  border-top: 2px solid rgba(255, 255, 255);
+  transition: inherit;
+}
+
+.sidebar-submenu-link {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  padding: 10px 10px;
+  transition:
+    height 0.3s ease,
+    padding 0.3s ease;
+  /* Thêm transition cho kích thước */
+}
+
+.sidebar-submenu-title {
+  display: block;
+  color: #ffffff;
+  text-decoration: none;
+  width: 100%;
+  font-size: 16px;
+  transition:
+    opacity 0.2s ease,
+    font-size 0.3s ease;
+  /* Thêm transition cho font-size */
+}
+
+.sidebar-submenu-item {
+  padding: 0;
+}
+
+::ng-deep .mat-menu-panel {
+  transform: none !important;
+}
+
+
+.sidebar.collapsed {
+  width: 50px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Easing function giống khi mở */
+
+  .sidebar-content {
+    margin-right: 0;
+    overflow: hidden;
+    /* Ẩn nội dung tràn khi đóng */
+
+    .sidebar-menu ul {
+      padding-left: 0;
+    }
+  }
+
+  .sidebar-menu-link>div {
+    justify-content: center;
+  }
+
+  .sidebar-menu-icon {
+    margin-right: 0;
+    // margin-left: 12px; 
+    transform: scale(1.2);
+  }
+
+  .sidebar-menu-link[matmenutriggerfor] {
+    pointer-events: none;
+    cursor: default;
+  }
+
+  .sidebar-submenu-item,
+  .sidebar-submenu-link,
+  .sidebar-submenu-title {
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    transition:
+      height 0.2s ease,
+      padding 0.2s ease,
+      opacity 0.2s ease;
+  }
+}
+
+.sidebar.collapsed .sidebar-menu-title {
+  opacity: 0;
+  transform: translateX(-20px);
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.3s ease;
+}
+
+/* Thêm animation cho các phần tử con khi mở */
+.sidebar:not(.collapsed) {
+  .sidebar-menu-title {
+    animation: fadeInSlide 0.3s ease forwards;
+  }
+
+  .sidebar-submenu-item,
+  .sidebar-submenu-link,
+  .sidebar-submenu-title {
+    animation: fadeInSlide 0.3s ease forwards;
+  }
+}
+
+.title-sidebar {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+
+  .main-title-sidebar {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    h4 {
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    img {
+      transition: transform 0.3s ease;
+      flex-shrink: 0;
+    }
+  }
+
+  .sub-title-sidebar {
+    transition: opacity 0.3s ease, height 0.3s ease;
+    overflow: hidden;
+  }
+}
+
+@keyframes fadeInSlide {
+  0% {
+    opacity: 0;
+    transform: translateX(-5px); // Giảm khoảng cách di chuyển
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}

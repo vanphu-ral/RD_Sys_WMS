@@ -1,0 +1,18 @@
+<div class="confirm-dialog">
+  <h2 mat-dialog-title class="dialog-title">Xác nhận</h2>
+  
+  <mat-dialog-content class="dialog-content">
+    <p class="dialog-message">{{ data.message }}</p>
+  </mat-dialog-content>
+  
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-stroked-button class="cancel-btn" (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+      Huỷ
+    </button>
+    <button mat-raised-button color="primary" class="confirm-btn" (click)="onConfirm()">
+      <mat-icon>check</mat-icon>
+      Xác nhận
+    </button>
+  </mat-dialog-actions>
+</div>
