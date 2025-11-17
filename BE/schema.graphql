@@ -1,0 +1,215 @@
+
+scalar DateTime
+
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  OPERATOR
+  VIEWER
+}
+
+
+type User {
+  id: ID!
+  username: String!
+  email: String!
+  fullName: String
+  isActive: Boolean!
+  isSuperuser: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+type Product {
+  id: ID!
+  name: String!
+  description: String
+  sku: String!
+  category: String
+  price: Float!
+  quantity: Int!
+  minQuantity: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+type InventoryItem {
+  id: ID!
+  productId: ID!
+  locationId: ID!
+  quantity: Int!
+  batchNumber: String
+  expiryDate: DateTime
+  createdAt: DateTime!
+  updatedAt: DateTime
+  product: Product
+  location: Location
+}
+
+type Location {
+  id: ID!
+  name: String!
+  code: String!
+  description: String
+  zone: String
+  aisle: String
+  rack: String
+  shelf: String
+  capacity: Int!
+  occupied: Int!
+  xCoordinate: Float
+  yCoordinate: Float
+  zCoordinate: Float
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+# Input Types
+input UserCreateInput {
+  username: String!
+  email: String!
+  password: String!
+  fullName: String
+  isActive: Boolean
+  isSuperuser: Boolean
+}
+
+input UserUpdateInput {
+  email: String
+  fullName: String
+  isActive: Boolean
+  isSuperuser: Boolean
+  password: String
+}
+
+input ProductCreateInput {
+  name: String!
+  description: String
+  sku: String!
+  category: String
+  price: Float!
+  quantity: Int
+  minQuantity: Int
+}
+
+input ProductUpdateInput {
+  name: String
+  description: String
+  sku: String
+  category: String
+  price: Float
+  quantity: Int
+  minQuantity: Int
+}
+
+input InventoryItemCreateInput {
+  productId: ID!
+  locationId: ID!
+  quantity: Int!
+  batchNumber: String
+  expiryDate: DateTime
+}
+
+input InventoryItemUpdateInput {
+  quantity: Int
+  batchNumber: String
+  expiryDate: DateTime
+}
+
+input LocationCreateInput {
+  name: String!
+  code: String!
+  description: String
+  zone: String
+  aisle: String
+  rack: String
+  shelf: String
+  capacity: Int
+  occupied: Int
+  xCoordinate: Float
+  yCoordinate: Float
+  zCoordinate: Float
+}
+
+input LocationUpdateInput {
+   name: String
+   code: String
+   description: String
+   zone: String
+   aisle: String
+   rack: String
+   shelf: String
+   capacity: Int
+   occupied: Int
+   xCoordinate: Float
+   yCoordinate: Float
+   zCoordinate: Float
+}
+
+type DashboardData {
+   totalAreas: Int!
+   totalLocations: Int!
+   totalInventoryItems: Int!
+   activeImportRequirements: Int!
+   pendingIWTR: Int!
+   pendingOSR: Int!
+   recentActivities: [Activity!]!
+}
+
+type Activity {
+   id: ID!
+   type: String!
+   description: String!
+   timestamp: DateTime!
+   user: String
+}
+
+# Queries
+type Query {
+   # User queries
+   users: [User!]!
+   user(id: ID!): User
+   userByUsername(username: String!): User
+
+   # Product queries
+   products: [Product!]!
+   product(id: ID!): Product
+
+   # Inventory queries
+   inventoryItems: [InventoryItem!]!
+   inventoryItem(id: ID!): InventoryItem
+
+   # Location queries
+   locations: [Location!]!
+   location(id: ID!): Location
+   locationByCode(code: String!): Location
+   locationsByZone(zone: String!): [Location!]!
+   availableLocations: [Location!]!
+
+   # Dashboard query
+   dashboard: DashboardData!
+}
+
+# Mutations
+type Mutation {
+  # User mutations
+  createUser(input: UserCreateInput!): User!
+  updateUser(id: ID!, input: UserUpdateInput!): User!
+  deleteUser(id: ID!): Boolean!
+
+  # Product mutations
+  createProduct(input: ProductCreateInput!): Product!
+  updateProduct(id: ID!, input: ProductUpdateInput!): Product!
+  deleteProduct(id: ID!): Boolean!
+
+  # Inventory mutations
+  createInventoryItem(input: InventoryItemCreateInput!): InventoryItem!
+  updateInventoryItem(id: ID!, input: InventoryItemUpdateInput!): InventoryItem!
+  deleteInventoryItem(id: ID!): Boolean!
+
+  # Location mutations
+  createLocation(input: LocationCreateInput!): Location!
+  updateLocation(id: ID!, input: LocationUpdateInput!): Location!
+  deleteLocation(id: ID!): Boolean!
+}
