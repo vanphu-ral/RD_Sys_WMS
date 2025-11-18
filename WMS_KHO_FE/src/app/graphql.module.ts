@@ -14,23 +14,23 @@ console.log('[GraphQLModule] File graphql.module.ts is being loaded and parsed.'
 
 export function createApollo(httpLink: HttpLink) {
   // alert('[GraphQLModule] createApollo function IS BEING CALLED! Check console for environment.graphqlApiUrl.'); // TEMPORARY ALERT
-  console.log('[GraphQLModule] createApollo called. environment.graphqlApiUrl =', environment.graphqlApiUrl); // DEBUG LOG
-  const http = httpLink.create({ uri: environment.graphqlApiUrl });
+  // console.log('[GraphQLModule] createApollo called. environment.graphqlApiUrl =', environment.graphqlApiUrl); // DEBUG LOG
+  // const http = httpLink.create({ uri: environment.graphqlApiUrl });
 
-  const ws = new GraphQLWsLink(
-    createClient({ url: environment.graphqlWsUrl })
-  );
+  // const ws = new GraphQLWsLink(
+  //   createClient({ url: environment.graphqlApiUrl })
+  // );
 
-  const link = split(
-    ({ query }) => {
-      const definition = getMainDefinition(query);
-      return definition.kind === 'OperationDefinition' && definition.operation === 'subscription';
-    },
-    ws,
-    http
-  );
+  // const link = split(
+  //   ({ query }) => {
+  //     const definition = getMainDefinition(query);
+  //     return definition.kind === 'OperationDefinition' && definition.operation === 'subscription';
+  //   },
+  //   ws,
+  //   http
+  // );
 
-  return { link, cache: new InMemoryCache() };
+  return { cache: new InMemoryCache() };
 }
 
 

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { NhapKhoItem } from '../nhap-kho.component';
+import { environment } from '../../../../../environments/environment';
 
 export interface ScannedInventoryResponse {
   id: number;
@@ -82,9 +83,8 @@ export interface UpdateLocationPayload {
 }
 @Injectable({ providedIn: 'root' })
 export class NhapKhoService {
-  private apiUrl = 'http://192.168.20.101:8050/api/import-requirements';
-  private testUrl = 'http://192.168.10.99:8050/api';
-  private baseUrl = 'http://192.168.20.101:8050/api';
+  private apiUrl = `${environment.apiUrl}/import-requirements`;   // dùng biến môi trường
+  private baseUrl = environment.apiUrl;                          // base cho các endpoint khác
 
   constructor(private http: HttpClient) { }
 
@@ -94,11 +94,7 @@ export class NhapKhoService {
 
     if (params) {
       Object.keys(params).forEach((key) => {
-        if (
-          params[key] !== null &&
-          params[key] !== undefined &&
-          params[key] !== ''
-        ) {
+        if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
           httpParams = httpParams.set(key, params[key]);
         }
       });
@@ -107,92 +103,67 @@ export class NhapKhoService {
     return this.http.get<NhapKhoItem[]>(this.apiUrl, { params: httpParams });
   }
 
-  //danh sach kho minimal
+  // Danh sách kho minimal
   getMinimalLocations(): Observable<{ id: number; code: string }[]> {
-    return this.http.get<{ id: number; code: string }[]>(`${this.testUrl}/locations/minimal`);
+    return this.http.get<{ id: number; code: string }[]>(`${this.baseUrl}/locations/minimal`);
   }
-  //  Lấy chi tiết import requirement + containers
+
+  // Lấy chi tiết import requirement + containers
   getImportRequirement(id: number): Observable<any> {
-    const url = `${this.testUrl}/import-requirements/${id}`;
-    return this.http.get<any>(url);
+    return this.http.get<any>(`${this.baseUrl}/import-requirements/${id}`);
   }
 
-  //  POST: Scan vật tư (validate và lưu vào DB)
+  // POST: Scan vật tư (validate và lưu vào DB)
   postScannedInventory(payload: ScanPayload): Observable<ScannedInventoryResponse> {
-    const url = `${this.testUrl}/import-requirements/container-inventories/scan`;
-    return this.http.post<ScannedInventoryResponse>(url, payload);
+    return this.http.post<ScannedInventoryResponse>(`${this.baseUrl}/import-requirements/container-inventories/scan`, payload);
   }
 
-  //  GET: Lấy danh sách đã scan
-  getScannedContainers(
-    containerId: number,
-    params?: { page?: number; size?: number }
-  ): Observable<ScannedListResponse> {
-    const url = `${this.testUrl}/import-requirements/container-inventories/${containerId}/scan`;
+  // GET: Lấy danh sách đã scan
+  getScannedContainers(containerId: number, params?: { page?: number; size?: number }): Observable<ScannedListResponse> {
+    const url = `${this.baseUrl}/import-requirements/container-inventories/${containerId}/scan`;
 
     let httpParams = new HttpParams();
-    if (params?.page) {
-      httpParams = httpParams.set('page', params.page.toString());
-    }
-    if (params?.size) {
-      httpParams = httpParams.set('size', params.size.toString());
-    }
+    if (params?.page) httpParams = httpParams.set('page', params.page.toString());
+    if (params?.size) httpParams = httpParams.set('size', params.size.toString());
 
     return this.http.get<ScannedListResponse>(url, { params: httpParams });
   }
 
-  //  PUT: Cập nhật vị trí kho cho inventory
-  // updateInventoryLocation(payload: UpdateLocationPayload): Observable<any> {
-  //   const url = `${this.testUrl}/inventories/inventory/update-location`;
-  //   return this.http.put(url, payload);
-  // }
-
-  //  PUT: Đẩy thông tin tồn hàng lên hệ thống
+  // PUT: Đẩy thông tin tồn hàng lên hệ thống
   pushInventoriesToSystem(payload: PushInventoryPayload): Observable<any> {
-    const url = `${this.testUrl}/inventories/inventories_wh`;
-    return this.http.put(url, payload);
+    return this.http.put(`${this.baseUrl}/inventories/inventories_wh`, payload);
   }
 
-  //  PATCH: Cập nhật trạng thái phê duyệt nhập kho
-  updateImportRequirementStatus(
-    requirementId: number,
-    status: string
-  ): Observable<any> {
-    const url = `${this.testUrl}/warehouse-import/requirements/${requirementId}/status?status=${status}`;
-    return this.http.patch(url, {});
+  // PATCH: Cập nhật trạng thái phê duyệt nhập kho
+  updateImportRequirementStatus(requirementId: number, status: string): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/warehouse-import/requirements/${requirementId}/status?status=${status}`, {});
   }
 
-  //  PATCH: Cập nhật số lượng và confirmed cho container inventories
+  // PATCH: Cập nhật số lượng và confirmed cho container inventories
   updateContainerInventories(batchPayload: { updates: any[] }): Observable<any> {
-    const url = `${this.testUrl}/warehouse-import/container-inventories`;
-    return this.http.patch(url, batchPayload);
+    return this.http.patch(`${this.baseUrl}/warehouse-import/container-inventories`, batchPayload);
   }
 
-
-  //  Validate mã scan (helper - nếu cần API riêng)
+  // Validate mã scan
   getInventoryByIdentifier(identifier: string): Observable<any> {
-    const url = `${this.testUrl}/inventories/${identifier}`;
-    return this.http.get<any>(url);
+    return this.http.get<any>(`${this.baseUrl}/inventories/${identifier}`);
   }
 
   getBoxesInPallet(requirementId: number, palletSerial: string): Observable<any[]> {
-    const url = `${this.testUrl}/warehouse-import/scan-pallets/${requirementId}/${palletSerial}`;
-    return this.http.get<any[]>(url);
+    return this.http.get<any[]>(`${this.baseUrl}/warehouse-import/scan-pallets/${requirementId}/${palletSerial}`);
   }
 
   // PUT: Cập nhật quantity bằng identifier
   updateInventoryQuantity(payload: UpdateQuantityPayload): Observable<any> {
-    const url = `${this.testUrl}/inventories/inventory/update-quantity`;
-    return this.http.put(url, payload);
+    return this.http.put(`${this.baseUrl}/inventories/inventory/update-quantity`, payload);
   }
 
-  // PUT: Cập nhật location bằng identifier (đã có, nhưng đảm bảo)
+  // PUT: Cập nhật location bằng identifier
   updateInventoryLocation(payload: UpdateLocationPayload): Observable<any> {
-    const url = `${this.testUrl}/inventories/inventory/update-location`;
-    return this.http.put(url, payload);
+    return this.http.put(`${this.baseUrl}/inventories/inventory/update-location`, payload);
   }
 
-  // Method chain để confirm full flow (modern: RxJS chain)
+  // Method chain để confirm full flow
   confirmAndSyncInventories(
     batchPayload: { updates: Array<{ import_container_id: number; inventory_identifier: string; quantity_imported?: number; location_id?: number; confirmed?: boolean }> },
     inventoriesPayload: PushInventoryPayload,
@@ -222,9 +193,8 @@ export class NhapKhoService {
       switchMap(() => this.updateImportRequirementStatus(requirementId, status)),
       catchError(err => {
         console.error('Error in confirm flow:', err);
-        return throwError(() => err); 
+        return throwError(() => err);
       })
     );
   }
-
 }

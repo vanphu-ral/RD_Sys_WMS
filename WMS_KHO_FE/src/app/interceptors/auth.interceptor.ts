@@ -49,10 +49,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         console.error('[AuthInterceptor] 401 Unauthorized - Token expired or invalid');
         
         // Logout và redirect về home
-        authService.logout().subscribe(() => {
-          console.log('[AuthInterceptor] User logged out due to 401 error');
-          router.navigate(['/home']);
-        });
+        // authService.logout().subscribe(() => {
+        //   console.log('[AuthInterceptor] User logged out due to 401 error');
+        //   router.navigate(['/home']);
+        // });
       }
 
       // Xử lý các errors khác
