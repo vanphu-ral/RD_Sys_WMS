@@ -26,7 +26,7 @@ async def get_locations(
     is_active: Optional[bool] = Query(None),
     parent_location_id: Optional[int] = Query(None, description="Filter by parent location ID. Leave empty to get parent locations only."),
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    # current_user: str = Depends(get_current_user)
 ):
     return await LocationService.get_locations_paginated(
         db,
