@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://192.168.20.101:8050/api', 
-  graphqlApiUrl: 'http://192.168.20.101:8050/api',
+  apiUrl: 'https://ral.wms-logistic.rangdong.com.vn:9004/api', 
+  graphqlApiUrl: 'https://ral.wms-logistic.rangdong.com.vn:9004/api',
 };
