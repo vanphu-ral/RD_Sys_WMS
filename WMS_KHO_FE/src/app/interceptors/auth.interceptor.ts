@@ -13,21 +13,19 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Danh sách domains không cần thêm token (Keycloak endpoints)
-  const keycloakDomains = [
-    'rangdong.com.vn',
-    'ssosys.rangdong.com.vn'
+  // Danh sách API cần token (WHITELIST)
+  const protectedApis = [
+    'https://ral.wms-logistic.rangdong.com.vn:9004/api',
+    'http://192.168.10.99:8050/api', 
+    'http://192.168.20.101:8050/api',
   ];
 
-  // Kiểm tra xem request có phải đến Keycloak không
-  const isKeycloakRequest = keycloakDomains.some(domain => 
-    req.url.includes(domain)
-  );
+  // Kiểm tra request có phải API cần bảo vệ không
+  const needsToken = protectedApis.some(api => req.url.startsWith(api));
 
   let clonedRequest = req;
 
-  // Chỉ thêm token cho các API requests (không phải Keycloak)
-  if (!isKeycloakRequest) {
+  if (needsToken) {
     const token = authService.getAccessToken();
     
     if (token) {
@@ -36,34 +34,21 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           Authorization: `Bearer ${token}`
         }
       });
-      
-      console.log('[AuthInterceptor] Added token to request:', req.url);
+      console.log('[AuthInterceptor] Token added:', req.url);
+    } else {
+      console.warn('[AuthInterceptor] No token for protected API:', req.url);
     }
   }
 
-  // Xử lý response và errors
   return next(clonedRequest).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Xử lý 401 Unauthorized
       if (error.status === 401) {
-        console.error('[AuthInterceptor] 401 Unauthorized - Token expired or invalid');
-        
-        // Logout và redirect về home
-        // authService.logout().subscribe(() => {
-        //   console.log('[AuthInterceptor] User logged out due to 401 error');
-        //   router.navigate(['/home']);
-        // });
+        console.error('[AuthInterceptor] 401 - Redirecting to login');
+        authService.logout().subscribe();
       }
-
-      // Xử lý các errors khác
       if (error.status === 403) {
-        console.error('[AuthInterceptor] 403 Forbidden - Access denied');
+        console.error('[AuthInterceptor] 403 - Access denied');
       }
-
-      if (error.status === 0) {
-        console.error('[AuthInterceptor] Network error - Cannot reach server');
-      }
-
       return throwError(() => error);
     })
   );
