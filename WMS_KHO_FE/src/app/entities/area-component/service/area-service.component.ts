@@ -2,21 +2,22 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { Area } from '../area-management.component';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AreaService {
-  private apiUrl = 'http://192.168.20.101:8050/api/areas';
+  private apiUrl = `${environment.apiUrl}/areas`;   
 
   constructor(private http: HttpClient) {}
 
-  //lay danh sach area
+  // Lấy danh sách area
   getAreas(): Observable<{
     data: Area[];
     meta: { total_items: number; size: number; page: number };
   }> {
-    return this.http.get<any>('http://192.168.20.101:8050/api/areas').pipe(
+    return this.http.get<any>(this.apiUrl).pipe(
       map((res) => ({
         data: res.data.map((item: any) => ({
           id: item.id,
@@ -32,20 +33,19 @@ export class AreaService {
     );
   }
 
-  //cap nhat trang thai
+  // Cập nhật trạng thái
   updateAreaStatus(id: number, isActive: boolean): Observable<any> {
     const statusInt = isActive ? 1 : 0;
-    const url = `http://192.168.20.101:8050/api/areas/${id}/status?is_active=${statusInt}`;
+    const url = `${this.apiUrl}/${id}/status?is_active=${statusInt}`;
     return this.http.patch(url, {});
   }
 
-  //them moi area
+  // Thêm mới area
   createArea(area: any): Observable<any> {
     return this.http.post(this.apiUrl, [area]);
   }
 
-  //cap nhat area
-  //cap nhat area
+  // Cập nhật area
   updateArea(
     id: number,
     area: {
@@ -57,7 +57,7 @@ export class AreaService {
       is_active: number;
     }
   ): Observable<any> {
-    const url = `http://192.168.20.101:8050/api/areas/${id}`;
+    const url = `${this.apiUrl}/${id}`;
     return this.http.patch(url, area);
   }
 }

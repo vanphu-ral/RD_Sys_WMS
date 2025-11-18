@@ -1,10 +1,5 @@
 import { Routes } from '@angular/router';
 import { HomepageComponent } from './homepage/homepage.component';
-import { ListMaterialComponent } from './modules/material/components/list-material/list-material.component';
-import { MaterialUpdateRequestComponent } from './modules/material/components/material-update-request/material-update-request.component';
-import { MaterialApprovalHistoryComponent } from './modules/material/components/material-approval-history/material-approval-history.component';
-import { UpdateListComponent } from './modules/material/components/update-list/update-list.component';
-import { AggregatedPartComponent } from './modules/material/components/aggregated-part/aggregated-part.component';
 import { AreaManagementComponent } from './entities/area-component/area-management.component';
 import { LocationManagementComponent } from './entities/location-management/location-management.component';
 import { AddNewLocationComponentComponent } from './entities/location-management/add-new/add-new-location.component';
