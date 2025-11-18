@@ -113,7 +113,7 @@
                         <mat-label>Prefix Name</mat-label>
                         <input matInput [(ngModel)]="prefix.name" />
                     </mat-form-field>
-                    <span class="info-configuration">*Tiền tố cho tên vị trí phụ</span>
+                    <span class="info-configuration">*Tên vị trí phụ (giá)</span>
                 </div>
 
                 <div style="display: flex; flex-direction: column;">
@@ -121,7 +121,7 @@
                         <mat-label>Prefix Separator</mat-label>
                         <input matInput [(ngModel)]="prefix.separator" />
                     </mat-form-field>
-                    <span class="info-configuration">*Ký tự ngăn cách prefix</span>
+                    <span class="info-configuration">*Ký tự ngăn cách (prefix)</span>
                 </div>
                 <mat-slide-toggle [(ngModel)]="appendMode">
                     Thêm tiếp vị trí phụ (Tính từ vị trí phụ đã có hiện tại)
@@ -142,7 +142,7 @@
                         <mat-label>Rows</mat-label>
                         <input matInput type="number" [(ngModel)]="grid.rows" />
                     </mat-form-field>
-                    <span class="info-configuration">*Số hàng ngang</span>
+                    <span class="info-configuration">*Số tầng</span>
                 </div>
 
                 <div style="display: flex; flex-direction: column;">
@@ -150,7 +150,7 @@
                         <mat-label>Columns</mat-label>
                         <input matInput type="number" [(ngModel)]="grid.columns" />
                     </mat-form-field>
-                    <span class="info-configuration">*Số hàng dọc</span>
+                    <span class="info-configuration">*Số vị trí</span>
                 </div>
 
                 <div style="display: flex; flex-direction: column;">
@@ -173,7 +173,7 @@
                         <mat-label>Suffix Separator</mat-label>
                         <input matInput [(ngModel)]="grid.suffixSeparator" />
                     </mat-form-field>
-                    <span class="info-configuration">*Ký tự ngăn cách giữa row và column</span>
+                    <span class="info-configuration">*Ký tự ngăn cách giá/tầng</span>
                 </div>
                 <div style="display: flex; flex-direction: column;" class="preview">
                     <mat-form-field appearance="outline" class="form-field">
@@ -186,7 +186,7 @@
 
         <mat-card class="config-card info-card shadow-card">
             <mat-icon color="primary">info</mat-icon>
-            Tổng Locations: {{getTotalLocations()}} locations — phân bố: {{grid.rows}} hàng, {{grid.columns}} cột
+            Tổng Locations: {{getTotalLocations()}} vị trí — phân bố: {{grid.rows}} tầng, mỗi tầng {{grid.columns}} ô
         </mat-card>
 
         <mat-card class="location-card">

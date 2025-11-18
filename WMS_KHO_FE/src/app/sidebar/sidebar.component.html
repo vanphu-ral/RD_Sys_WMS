@@ -12,7 +12,7 @@
             </div>
 
             <div class="sidebar-menu">
-                <ul style="list-style-type:  none; padding-left: 10px; margin-top: 2px;">
+                <ul style="list-style-type:  none; padding-left: 0; margin-top: 2px;">
                     <li class="sidebar-menu-item" style="marker: none; " *ngFor="let menu of menus"
                         [ngClass]="{'active': menu.active , 'sidebar-dropdown':menu.type === 'dropdown' }">
                         <div class="sidebar-menu-link" *ngIf="menu.type !== 'header'" (click)="toggle(menu)"

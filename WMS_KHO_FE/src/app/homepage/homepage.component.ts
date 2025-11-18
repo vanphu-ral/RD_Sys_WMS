@@ -76,7 +76,8 @@ export class HomepageComponent implements OnInit {
           // Lưu token qua AuthService
           this.authService.setToken(
             response.access_token,
-            response.refresh_token
+            response.refresh_token,
+            response.id_token
           );
           this.isLoggedIn = true;
           // Lấy thông tin user

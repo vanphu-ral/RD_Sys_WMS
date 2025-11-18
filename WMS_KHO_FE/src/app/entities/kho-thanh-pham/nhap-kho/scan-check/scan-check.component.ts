@@ -617,6 +617,6 @@ export class ScanCheckComponent implements OnInit {
 
   // Hủy
   onCancel(): void {
-    this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']);
+    this.router.navigate(['/kho-thanh-pham/nhap-kho-sx/phe-duyet/', this.requestId]);
   }
 }

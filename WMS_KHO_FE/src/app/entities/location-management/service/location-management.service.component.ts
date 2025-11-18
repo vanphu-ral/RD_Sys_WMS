@@ -57,16 +57,16 @@ export class LocationService {
   }
 
   createLocation(location: Location): Observable<Location> {
-    return this.http.post<Location>(this.apiUrl, location);
+    return this.http.post<Location>(`${this.apiUrl}/locations`, location);
   }
 
   createSubLocations(parentId: number, subPayload: any[]): Observable<any> {
-    const url = `${this.apiUrl}/${parentId}/sub-locations/bulk`;
+    const url = `${this.apiUrl}/locations/${parentId}/sub-locations/bulk`;
     return this.http.post<any>(url, subPayload);
   }
 
   clearSubLocations(locationId: number): Observable<any> {
-    const url = `${this.apiUrl}/${locationId}/clear-sub-locations`;
+    const url = `${this.apiUrl}/locations/${locationId}/clear-sub-locations`;
     return this.http.post(url, {});
   }
 }

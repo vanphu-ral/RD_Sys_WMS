@@ -119,7 +119,8 @@ export class AuthService {
         `code_challenge=${codeChallenge}&` +
         `code_challenge_method=S256&` +
         `prompt=login&` +    // Bắt buộc form login
-        `max_age=0`;         // Form TRỐNG (xóa cache)
+        `max_age=0` +
+        `kc_action=logout`;
 
       console.log('[AuthService] Redirecting to Keycloak login');
       window.location.href = loginUrl;
@@ -144,7 +145,7 @@ export class AuthService {
       }
 
       const tokens = await this.exchangeCodeForTokens(code, codeVerifier);
-      this.setToken(tokens.access_token, tokens.refresh_token);
+      this.setToken(tokens.access_token, tokens.refresh_token, tokens.id_token);
 
       const decoded = jwtDecode<TokenPayload>(tokens.access_token);
       this.setUsername(decoded.preferred_username || decoded.sub);
@@ -183,15 +184,16 @@ export class AuthService {
   }
 
   // ============= TOKEN MANAGEMENT =============
-  setToken(accessToken: string, refreshToken: string): void {
-    localStorage.setItem('access_token', accessToken);
-    localStorage.setItem('refresh_token', refreshToken);
-    localStorage.setItem('login_time', Date.now().toString());
-
-    this.isLoggedInSubject.next(true);
-    this.startSessionTimer();
-    this.startTokenRefresh();
-  }
+  setToken(accessToken: string, refreshToken: string, idToken: string): void {
+  localStorage.setItem('access_token', accessToken);
+  localStorage.setItem('refresh_token', refreshToken);
+  localStorage.setItem('id_token', idToken);
+  localStorage.setItem('login_time', Date.now().toString());
+  
+  this.isLoggedInSubject.next(true);
+  this.startSessionTimer();
+  this.startTokenRefresh();
+}
 
   setUsername(username: string): void {
     localStorage.setItem('username', username);
@@ -284,7 +286,7 @@ export class AuthService {
     ).subscribe({
       next: (response: any) => {
         console.log('[AuthService] Token refreshed successfully');
-        this.setToken(response.access_token, response.refresh_token);
+        this.setToken(response.access_token, response.refresh_token, response.id_token);
       },
       error: (err) => {
         console.error('[AuthService] Token refresh failed:', err);
@@ -295,75 +297,34 @@ export class AuthService {
 
   // ============= LOGOUT =============
   logout(): Observable<void> {
-    console.log('[AuthService] Logging out...');
+  console.log('[AuthService] Logging out...');
 
-    // Hủy timer
-    this.sessionTimer?.unsubscribe();
-    this.tokenRefreshTimer?.unsubscribe();
+  this.sessionTimer?.unsubscribe();
+  this.tokenRefreshTimer?.unsubscribe();
 
-    const refreshToken = localStorage.getItem('refresh_token');
+  const idToken = localStorage.getItem('id_token'); // Cần lưu id_token khi login
+  
+  return new Observable((observer) => {
+    // Xóa dữ liệu phía client ngay
+    this.clearAuthData();
+    
+    observer.next();
+    observer.complete();
 
-    return new Observable((observer) => {
-      // Fire & forget: hủy refresh token ở Keycloak (không chuyển trang)
-      if (refreshToken) {
-        const body = new URLSearchParams();
-        body.set('client_id', this.CLIENT_ID);
-        body.set('refresh_token', refreshToken);
+    // Redirect đến Keycloak logout endpoint để xóa SSO session
+    const postLogoutRedirectUri = encodeURIComponent(
+      `${window.location.origin}/home`
+    );
+    
+    const logoutUrl = 
+      `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/logout?` +
+      `post_logout_redirect_uri=${postLogoutRedirectUri}` +
+      (idToken ? `&id_token_hint=${idToken}` : '');
 
-        this.http.post(
-          `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/logout`,
-          body.toString(),
-          { headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }) }
-        ).subscribe({
-          next: () => console.log('[AuthService] Token invalidated (refresh)'),
-          error: (err) => console.warn('[AuthService] Logout warning:', err)
-        });
-      }
-
-      // Xóa dữ liệu phía client ngay
-      this.clearAuthData();
-
-      // Thông báo hoàn thành cho caller
-      observer.next();
-      observer.complete();
-
-      // Chuẩn bị PKCE và redirect thẳng tới trang login
-      const codeVerifier = this.generateCodeVerifier();
-      const state = this.generateState();
-      sessionStorage.setItem('code_verifier', codeVerifier);
-      sessionStorage.setItem('auth_state', state);
-
-      // Tạo code challenge rồi redirect
-      this.generateCodeChallenge(codeVerifier)
-        .then((codeChallenge) => {
-          const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
-          const loginUrl =
-            `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/auth?` +
-            `client_id=${this.CLIENT_ID}&` +
-            `response_type=code&` +
-            `redirect_uri=${redirectUri}&` +
-            `scope=openid profile email&` +
-            `state=${state}&` +
-            `code_challenge=${codeChallenge}&` +
-            `code_challenge_method=S256&` +
-            `prompt=login&` +        
-            `max_age=0&` +           
-            `login_hint=`;           
-
-          console.log('[AuthService] Redirecting to Keycloak login (forced prompt)');
-          window.location.href = loginUrl;
-        })
-        .catch((err) => {
-          console.error('[AuthService] PKCE error during logout->login:', err);
-          // Fallback: vẫn redirect (không PKCE), chỉ để tránh kẹt UI
-          const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
-          const fallbackLoginUrl =
-            `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/auth?` +
-            `client_id=${this.CLIENT_ID}&response_type=code&redirect_uri=${redirectUri}&scope=openid profile email&prompt=login&max_age=0&login_hint=`;
-          window.location.href = fallbackLoginUrl;
-        });
-    });
-  }
+    console.log('[AuthService] Redirecting to Keycloak logout (clear SSO session)');
+    window.location.href = logoutUrl;
+  });
+}
 
 
   clearAuthData(): void {
