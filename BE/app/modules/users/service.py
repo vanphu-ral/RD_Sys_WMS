@@ -97,8 +97,8 @@ class UserService:
         return True
 
     @staticmethod
-    async def authenticate_user(db: AsyncSession, username: str, password: str) -> Optional[User]:
-        """Authenticate user with username and password"""
+    async def authenticate_user(db: AsyncSession, username: str, password: str) -> Optional[User]: # đang không sử dụng
+
         user = await UserService.get_user_by_username(db, username)
         if not user:
             return None

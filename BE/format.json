@@ -1,29 +1,49 @@
 {
-  "data": {
-    "inventoryDashboardGrouped": {
-      "data": [
-        {
-          "groupKey": "area_code",
-          "groupValue": "A003",
-          "totalAvailableQuantity": 2100,
-          "totalInitialQuantity": 2100,
-          "itemCount": 2,
-          "totalUniqueProducts": 0,
-          "totalClients": 0,
-          "totalPos": 2,
-          "totalPallets": 1,
-          "totalContainers": 2,
-          "totalLocations": 1,
-          "lastUpdated": null,
-          "lastReceived": null
-        }
-      ],
-      "meta": {
-        "page": 1,
-        "size": 20,
-        "totalItems": 1,
-        "totalPages": 1
-      }
+  "exp": 1763446915,
+  "iat": 1763446615,
+  "jti": "onrtro:47e826b1-5143-3751-2d55-fd5086b79c2d",
+  "iss": "https://ssosys.rangdong.com.vn:9002/realms/rangdong",
+  "aud": "account",
+  "sub": "95c6b3de-cde7-4f53-8b53-9fa696f11563",
+  "typ": "Bearer",
+  "azp": "RD_KHO",
+  "sid": "53fe3060-051f-477c-8d10-0466dc884e96",
+  "acr": "1",
+  "allowed-origins": [
+    "https://ral.wms-logistic.rangdong.com.vn:9004/",
+    "*"
+  ],
+  "realm_access": {
+    "roles": [
+      "offline_access",
+      "uma_authorization",
+      "default-roles-rangdong"
+    ]
+  },
+  "resource_access": {
+    "RD_KHO": {
+      "roles": [
+        "WMS_RD_STOCKOPS",
+        "WMS_RD_ADMIN",
+        "WMS_RD_AREALOC",
+        "WMS_RD_APPROVEIO",
+        "WMS_RD_VIEW",
+        "WMS_RD_PUTAWAY"
+      ]
+    },
+    "account": {
+      "roles": [
+        "manage-account",
+        "manage-account-links",
+        "view-profile"
+      ]
     }
-  }
+  },
+  "scope": "email profile",
+  "email_verified": false,
+  "name": "Khac Hieu",
+  "preferred_username": "rd03136",
+  "given_name": "Khac",
+  "family_name": "Hieu",
+  "email": "rd03136@ledrangdong.com"
 }

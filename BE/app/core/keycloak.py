@@ -9,6 +9,7 @@ def get_keycloak_openid():
         client_id=settings.KEYCLOAK_CLIENT_ID,
         realm_name=settings.KEYCLOAK_REALM,
         client_secret_key=settings.KEYCLOAK_CLIENT_SECRET,
+        verify=False  # Disable SSL verification for development
     )
 
 
