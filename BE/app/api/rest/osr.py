@@ -37,7 +37,7 @@ async def get_osr_from_external_apps(
     to_date: Optional[datetime] = Query(None, description="Filter to date"),
     card_code: Optional[str] = Query(None, description="Filter by customer code"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum records to fetch"),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -61,7 +61,7 @@ async def get_osr_from_external_apps(
 async def get_osr_by_doc_entry(
     doc_entry: int,
     external_apps_db: AsyncSession = Depends(get_external_apps_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -79,7 +79,7 @@ async def get_osr_by_doc_entry(
 async def get_open_osr_from_external_apps(
     external_apps_db: AsyncSession = Depends(get_external_apps_db),
     limit: int = Query(100, ge=1, le=1000, description="Maximum records to fetch"),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -93,7 +93,7 @@ async def get_open_osr_from_external_apps(
 async def get_full_osr_by_doc_entry(
     doc_entry: int,
     external_apps_db: AsyncSession = Depends(get_external_apps_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -110,7 +110,7 @@ async def get_full_osr_by_doc_entry(
 @router.get("/requests", response_model=List[dict])
 async def get_osr_requests(
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     """
     Get all OSR requests from WMS database
@@ -122,7 +122,7 @@ async def get_osr_requests(
 async def create_osr_request(
     osr_data: OSRCreateRequest,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -138,7 +138,7 @@ async def confirm_osr_location(
     request_id: int,
     location_id: int,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
 
     return await OSRService.confirm_osr_location(db, request_id, location_id)
@@ -149,7 +149,7 @@ async def scan_osr(
     request_id: int,
     scan_request: OSRScanDetailRequest,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -167,7 +167,7 @@ async def scan_osr(
 async def get_osr_scan_details(
     product_in_ors_id: int,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     """
     Get all scan details for a specific product in OSR by product_in_ors_id (no pagination)
@@ -185,7 +185,7 @@ async def get_osr_scan_details(
 async def create_osr_with_items(
     request_data: OSRCreateRequest,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -213,7 +213,7 @@ async def create_osr_inventories(
     request_id: int,
     request_data: OSRInventoriesCreateRequest,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -266,7 +266,7 @@ async def create_osr_inventories(
 async def get_osr_inventories_by_request_id(
     request_id: int,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     """
     Get all inventories for a specific OSR request by ID
@@ -285,7 +285,7 @@ async def get_osr_inventories_by_request_id(
 async def update_inventories_in_osr(
     request: BulkUpdateInventoriesInOSRRequest,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     updates = [
         {

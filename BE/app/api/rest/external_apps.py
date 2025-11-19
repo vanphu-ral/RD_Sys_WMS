@@ -22,7 +22,7 @@ router = APIRouter()
 @router.get("/import-requirements", response_model=List[dict])
 async def get_external_apps_import_requirements(
     db: Session = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     return External_Apps_Service.get_external_apps_import_requirements(db)
 
@@ -30,7 +30,7 @@ async def get_external_apps_import_requirements(
 @router.get("/iwtr", response_model=List[dict])
 async def get_external_apps_iwtr(
     external_apps_db: AsyncSession = Depends(get_external_apps_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     return await External_Apps_Service.get_external_apps_iwtr(external_apps_db)
 
@@ -38,7 +38,7 @@ async def get_external_apps_iwtr(
 async def get_external_apps_iwtr_by_doc_entry(
     doc_entry: int,
     external_apps_db: AsyncSession = Depends(get_external_apps_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
 
     from app.modules.inventory.external_apps_service import ExternalAppsIWTRService
@@ -55,7 +55,7 @@ async def get_external_apps_iwtr_by_doc_entry(
 async def get_external_apps_iwtr_header_by_doc_entry(
     doc_entry: int,
     external_apps_db: AsyncSession = Depends(get_external_apps_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     """
     Get IWTR header only (original format) - for backward compatibility
@@ -74,7 +74,7 @@ async def get_external_apps_iwtr_header_by_doc_entry(
 @router.get("/osr", response_model=List[dict])
 async def get_external_apps_osr(
     external_apps_db: AsyncSession = Depends(get_external_apps_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
 
     return await External_Apps_Service.get_external_apps_osr(external_apps_db)
@@ -84,7 +84,7 @@ async def get_external_apps_osr(
 async def get_external_apps_osr_by_doc_entry(
     doc_entry: int,
     external_apps_db: AsyncSession = Depends(get_external_apps_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     """
     Get OSR data in ORDR/RDR1 format by DocEntry from External Apps

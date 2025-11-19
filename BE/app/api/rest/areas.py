@@ -24,7 +24,7 @@ async def get_areas(
     address: Optional[str] = Query(None),
     is_active: Optional[bool] = Query(None),
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     return await AreaService.get_areas_paginated(
         db,
@@ -43,7 +43,7 @@ async def get_areas(
 async def create_areas(
     areas_data: List[dict],
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     if len(areas_data) != 1:
         raise HTTPException(status_code=400, detail="Chỉ gửi thông tin 1 kho")
@@ -55,7 +55,7 @@ async def update_area_status(
     area_id: int,
     is_active: int,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     return await AreaService.update_area_status(db, area_id, bool(is_active))
 
@@ -65,7 +65,7 @@ async def update_area(
     area_id: int,
     area_update: AreaUpdate,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     return await AreaService.update_area(db, area_id, area_update.model_dump(exclude_unset=True))
 
@@ -74,6 +74,6 @@ async def update_area(
 #     location_id: int,
 #     is_active: int,
 #     db: Session = Depends(get_db),
-#     # current_user: str = Depends(get_current_user)
+#     current_user: str = Depends(get_current_user)
 # ):
 #     return LocationService.update_location_status(db, location_id, bool(is_active))
