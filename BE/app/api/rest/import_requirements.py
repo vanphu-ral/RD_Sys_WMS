@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 @router.get("/", response_model=List[dict])
 async def get_import_requirements(
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     return await WarehouseImportService.get_import_requirements(db)
 
@@ -29,7 +29,7 @@ async def get_import_requirements(
 async def get_import_requirement_details(
     req_id: int,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     """Get detailed information for a specific import requirement including containers"""
     try:
@@ -90,7 +90,7 @@ async def get_import_requirement_details(
 async def create_warehouse_import(
     import_request: WarehouseImportRequest,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -144,7 +144,7 @@ async def create_warehouse_import(
 async def create_container_inventory(
     request: ContainerInventoryCreate,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     """Create a new container inventory record"""
     try:
@@ -162,7 +162,7 @@ async def get_container_inventories_by_import_container_id(
     page: int = 1,
     size: int = 20,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     """Get container inventories by import_container_id"""
     try:

@@ -46,7 +46,7 @@ async def get_locations(
 async def create_location(
     location_data: dict = Body(..., description="Location data for creation"),
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     """Create a new location with validation"""
     try:
@@ -93,7 +93,7 @@ async def create_location(
 @router.get("/minimal", response_model=List[dict])
 async def get_minimal_locations(
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     return await LocationService.get_minimal_locations(db)
 
@@ -102,7 +102,7 @@ async def get_minimal_locations(
 async def get_location(
     location_id: int,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     """Get full information of a location and its sub-locations"""
     from app.modules.locations.service import LocationService as LocationsLocationService
@@ -114,7 +114,7 @@ async def update_location(
     location_id: int,
     location_data: LocationUpdate,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     """Update location information by ID"""
     return await LocationService.update_location(db, location_id, location_data.model_dump(exclude_unset=True))
@@ -125,7 +125,7 @@ async def update_location_full_data(
     location_id: int,
     location_data: dict = Body(..., description="Full location data for update"),
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     """Update location with full data by ID - accepts the specified body format"""
     try:
@@ -155,7 +155,7 @@ async def update_location_full_data(
 async def clear_sub_locations(
     location_id: int,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     deleted_count = await LocationService.clear_sub_locations(db, location_id)
     return {"success": True, "deleted_count": deleted_count}
@@ -166,7 +166,7 @@ async def update_location_status(
     location_id: int,
     is_active: int,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     return await LocationService.update_location_status_async(db, location_id, bool(is_active))
 
@@ -176,7 +176,7 @@ async def bulk_create_sub_locations(
     location_id: int,
     sub_locations_data: List[SubLocationCreate],
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     from app.modules.locations.service import LocationService as LocationsLocationService
 

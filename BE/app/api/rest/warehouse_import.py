@@ -17,7 +17,7 @@ async def confirm_import_requirement_location(
     requirement_id: int,
     location_id: int,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     return await WarehouseImportService.confirm_import_requirement_location(db, requirement_id, location_id)
 
@@ -27,7 +27,7 @@ async def update_import_requirement_status(
     requirement_id: int,
     status: str,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     return await WarehouseImportService.update_import_requirement_status(db, requirement_id, status)
 
@@ -36,7 +36,7 @@ async def update_import_requirement_status(
 async def scan_inventories(
     scan_data: List[dict],
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     return WarehouseImportService.scan_inventories(db, scan_data)
 
@@ -46,7 +46,7 @@ async def get_inventory_by_identifier(
     serial_pallet: str,
     warehouse_import_requirement_id: int,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     try:
         result = await WarehouseImportService.scan_pallets(db, warehouse_import_requirement_id,serial_pallet)
@@ -62,7 +62,7 @@ async def update_import_wh_status(
     requirement_id: int,
     request: UpdateImportStatusRequest,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
     return await WarehouseImportService.update_import_requirement_status(db, requirement_id, request.status)
 
@@ -71,7 +71,7 @@ async def update_import_wh_status(
 async def update_container_inventory(
     request: BulkUpdateContainerInventoryRequest,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    current_user: str = Depends(get_current_user)
 ):
 
     updates = [
