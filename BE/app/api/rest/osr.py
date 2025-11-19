@@ -8,10 +8,10 @@ from app.core.database import get_db, get_external_apps_db
 from app.core.security import get_current_user
 from app.modules.inventory.service import OSRService
 from app.modules.inventory.external_apps_service import ExternalAppsOSRService, ExternalAppsDataMapper
+from app.modules.inventory.schemas import OSRResponse
 from app.modules.inventory.external_apps_schemas import (
     OSRHeaderResponse,
     OSRCreateRequest,
-    OSRResponse,
     OSRFullResponse,
     ExternalAppsSyncResponse,
     OSRCreateResponse,

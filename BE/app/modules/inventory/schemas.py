@@ -327,7 +327,7 @@ class IWTRResponse(BaseModel):
     so_phieu_xuat: Optional[str] = None
     so_chung_tu: Optional[str] = None
     series_pgh: Optional[str] = None
-    status: Optional[str] = None
+    status: Optional[bool] = None
     note: Optional[str] = None
     scan_status: bool
     updated_by: Optional[str] = None
@@ -384,7 +384,7 @@ class OSRResponse(BaseModel):
     so_phieu_xuat: Optional[str] = None
     so_chung_tu: Optional[str] = None
     series_pgh: Optional[str] = None
-    status: Optional[str] = None
+    status: Optional[bool] = None
     note: Optional[str] = None
     scan_status: Optional[str] = None
     updated_by: Optional[str] = None

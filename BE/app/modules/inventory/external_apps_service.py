@@ -338,7 +338,7 @@ class ExternalAppsDataMapper:
             "so_phieu_xuat": owtr.U_InvCode or "",
             "so_chung_tu": owtr.U_Docnum or "",
             "series_pgh": owtr.U_CodeSerial or "",
-            "status": "Mới tạo từ External Apps",
+            "status": False,
             "note": f"External Apps DocEntry: {owtr.DocEntry}, ToWhs: {owtr.ToWhsCode}, Comments: {owtr.Comments or ''}",
             "scan_status": False,
             "updated_by": updated_by
@@ -358,7 +358,7 @@ class ExternalAppsDataMapper:
             "so_phieu_xuat": ordr.U_InvCode or "",
             "so_chung_tu": ordr.U_Docnum or "",
             "series_pgh": ordr.U_CodeSerial or "",
-            "status": "Mới tạo từ External Apps",
+            "status": False,
             "note": f"External Apps DocEntry: {ordr.DocEntry}, Customer: {ordr.CardCode} - {ordr.CardName}, Comments: {ordr.Comments or ''}",
             "scan_status": False,
             "updated_by": updated_by

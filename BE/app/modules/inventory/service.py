@@ -948,7 +948,7 @@ class WarehouseImportService:
     async def confirm_import_requirement_location(db: AsyncSession, req_id: int, location_id: int) -> WarehouseImportRequirement:
         req = await WarehouseImportService.get_import_requirement_by_id(db, req_id)
         # Logic to confirm location
-        req.status = "Location Confirmed"
+        req.status = True
         await db.commit()
         await db.refresh(req)
         return req
@@ -1069,7 +1069,7 @@ class IWTRService:
             valid_keys = {c.key for c in InternalWarehouseTransferRequest.__table__.columns}
             filtered_data = {k: v for k, v in iwtr_data.items() if k in valid_keys}
             
-            # status and scan_status are now strings, no conversion needed
+            # status and scan_status are boolean, no conversion needed
             
             req = InternalWarehouseTransferRequest(**filtered_data)
             db.add(req)
@@ -1100,7 +1100,7 @@ class IWTRService:
         async with db.begin():
             req = await IWTRService.get_iwtr_request_by_id(db, req_id)
             # Logic to confirm location
-            req.status = "Location Confirmed"
+            req.status = True
             await db.flush()
             await db.refresh(req)
             return req
@@ -1452,7 +1452,7 @@ class OSRService:
         async with db.begin():
             req = await OSRService.get_osr_request_by_id(db, req_id)
             # Logic to confirm location
-            req.status = "Location Confirmed"
+            req.status = True
             await db.flush()
             await db.refresh(req)
             return req
@@ -1517,27 +1517,26 @@ class OSRService:
 
         from datetime import datetime
 
-        async with db.begin():
-            inventories = []
-            for inv_data in inventories_data:
-                inventory_item = ProductsInOSR(
-                    outbound_shipment_request_on_order_id=osr_id,
-                    product_code=inv_data.get('product_code'),
-                    product_name=inv_data.get('product_name'),
-                    total_quantity=inv_data.get('total_quantity'),
-                    dvt=inv_data.get('dvt'),
-                    updated_by=inv_data.get('updated_by'),
-                    updated_date=datetime.now()
-                )
-                db.add(inventory_item)
-                inventories.append(inventory_item)
+        inventories = []
+        for inv_data in inventories_data:
+            inventory_item = ProductsInOSR(
+                outbound_shipment_request_on_order_id=osr_id,
+                product_code=inv_data.get('product_code'),
+                product_name=inv_data.get('product_name'),
+                total_quantity=inv_data.get('total_quantity'),
+                dvt=inv_data.get('dvt'),
+                updated_by=inv_data.get('updated_by'),
+                updated_date=datetime.now()
+            )
+            db.add(inventory_item)
+            inventories.append(inventory_item)
 
-            await db.flush()
+        await db.flush()
 
-            # Refresh all inventory items to get their IDs
-            for inv in inventories:
-                await db.refresh(inv)
-            return inventories
+        # Refresh all inventory items to get their IDs
+        for inv in inventories:
+            await db.refresh(inv)
+        return inventories
 
     @staticmethod
     async def get_inventories_by_osr_request_id(

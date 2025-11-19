@@ -117,7 +117,7 @@ class IWTRCreateRequest(BaseModel):
     so_phieu_xuat: Optional[str] = Field(None, description="Số phiếu xuất")
     so_chung_tu: Optional[str] = Field(None, description="Số chứng từ")
     series_pgh: Optional[str] = Field(None, description="Series PGH")
-    status: str = Field(default="Mới tạo", description="Trạng thái")
+    status: Optional[bool] = Field(None, description="trạng thái")
     note: Optional[str] = Field(None, description="Ghi chú")
     scan_status: Optional[bool] = Field(None, description="Trạng thái scan")
     updated_by: Optional[str] = Field(None, description="Người cập nhật")
@@ -198,7 +198,7 @@ class OSRCreateRequest(BaseModel):
     don_vi_nhan: Optional[str] = Field(None, description="Đơn vị nhận")
     ly_do_xuat_nhap: Optional[str] = Field(None, description="Lý do xuất nhập")
     ngay_chung_tu: Optional[str] = Field(None, description="Ngày chứng từ")
-    status: Optional[str] = Field(default="Mới tạo", description="Trạng thái")
+    status: Optional[bool] = Field(None, description="Trạng thái")
     series_pgh: Optional[str] = Field(None, description="Series PGH")
     note: Optional[str] = Field(None, description="Ghi chú")
     updated_by: Optional[str] = Field(None, description="Người cập nhật")
@@ -219,7 +219,7 @@ class OSRCreateRequest(BaseModel):
                 "don_vi_nhan": "Phòng sản xuất",
                 "ly_do_xuat_nhap": "Chuyển kho nội bộ",
                 "ngay_chung_tu": "2024-01-15",
-                "status": "Mới tạo",
+                "status": False,
                 "series_pgh": "s",
                 "note": "notesss",
                 "updated_by": "admin"
@@ -404,7 +404,7 @@ class IWTRWithInventoriesRequest(BaseModel):
     don_vi_nhan: Optional[str] = Field(None, max_length=50, description="Đơn vị nhận")
     ly_do_xuat_nhap: Optional[str] = Field(None, max_length=50, description="Lý do xuất nhập")
     ngay_chung_tu: Optional[str] = Field(None, max_length=50, description="Ngày chứng từ")
-    status: Optional[str] = Field(default="Mới tạo", max_length=20, description="Trạng thái")
+    status: Optional[bool] = Field(None, description="Trạng thái")
     series_pgh: Optional[str] = Field(None, max_length=50, description="Series PGH")
     note: Optional[str] = Field(None, max_length=255, description="Ghi chú")
     updated_by: Optional[str] = Field(None, max_length=10, description="Người cập nhật")
@@ -419,7 +419,7 @@ class IWTRWithInventoriesRequest(BaseModel):
                 "don_vi_nhan": "Phòng sản xuất",
                 "ly_do_xuat_nhap": "Chuyển kho nội bộ",
                 "ngay_chung_tu": "2024-01-15",
-                "status": "Mới tạo",
+                "status": False,
                 "series_pgh": "s",
                 "note": "notesss",
                 "updated_by": "admin"
@@ -526,7 +526,7 @@ class IWTRWithInventoriesResponse(BaseModel):
                     "ma_yc_cknb": "IWTR-2024-001",
                     "tu_kho": 1,
                     "den_kho": 2,
-                    "status": "Mới tạo"
+                    "status": False
                 }
             }
         }
@@ -565,7 +565,7 @@ class OSRWithInventoriesRequest(BaseModel):
     ly_do_xuat_nhap: Optional[str] = Field(None, max_length=50, description="Lý do xuất nhập")
     ngay_chung_tu: Optional[str] = Field(None, max_length=50, description="Ngày chứng từ")
     series_pgh: Optional[str] = Field(None, max_length=50, description="Series PGH")
-    status: Optional[str] = Field(default="Mới tạo", max_length=20, description="Trạng thái")
+    status: Optional[bool] = Field(None, description="Trạng thái")
     note: Optional[str] = Field(None, max_length=255, description="Ghi chú")
     updated_by: Optional[str] = Field(None, max_length=10, description="Người cập nhật")
     # Inventories
@@ -584,7 +584,7 @@ class OSRWithInventoriesRequest(BaseModel):
                 "so_phieu_xuat": "PX-001",
                 "so_chung_tu": "CT-001",
                 "series_pgh": "PGH-001",
-                "status": "Mới tạo",
+                "status": False,
                 "note": "Xuất hàng theo đơn",
                 "scan_status": False,
                 "updated_by": "admin"

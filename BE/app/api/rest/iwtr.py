@@ -8,10 +8,10 @@ from app.core.database import get_db, get_external_apps_db
 from app.core.security import get_current_user
 from app.modules.inventory.service import IWTRService
 from app.modules.inventory.external_apps_service import ExternalAppsIWTRService, ExternalAppsDataMapper
+from app.modules.inventory.schemas import IWTRResponse
 from app.modules.inventory.external_apps_schemas import (
     IWTRHeaderResponse,
     IWTRCreateRequest,
-    IWTRResponse,
     IWTRFullResponse,
     IWTRFullOWTRWTR1Response,
     ExternalAppsSyncResponse,
@@ -183,7 +183,7 @@ async def create_products_in_iwtr(
     request_id: int,
     request_data: IWTRInventoriesCreateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    # current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -201,7 +201,7 @@ async def create_products_in_iwtr(
         ]
 
         # Create inventories
-        inventories_result = await IWTRService.create_products_in_iwtr(db, inventories_data)
+        inventories_result = await IWTRService.create_products_in_iwtr(db, request_id, inventories_data)
 
         return IWTRInventoriesCreateResponse(
             success=True,

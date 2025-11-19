@@ -107,7 +107,7 @@ class DashboardQuery:
         total_inventory_items = len(InventoryService.get_inventories(db))
 
         import_reqs = WarehouseImportService.get_import_requirements(db)
-        active_import_requirements = len([req for req in import_reqs if req.get('status') == 'Mới tạo'])
+        active_import_requirements = len([req for req in import_reqs if req.get('status') == 'False'])
 
         iwtr_requests = IWTRService.get_iwtr_requests(db)
         pending_iwtr = len([req for req in iwtr_requests if req.get('status') != 'Hoàn thành'])
