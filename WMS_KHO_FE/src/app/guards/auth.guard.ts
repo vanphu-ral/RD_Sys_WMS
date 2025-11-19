@@ -4,8 +4,6 @@ import { AuthService } from '../services/auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthGuard implements CanActivate {
-  private isRedirecting = false; // Flag để tránh redirect loop
-
   constructor(
     private router: Router,
     private authService: AuthService
@@ -14,43 +12,33 @@ export class AuthGuard implements CanActivate {
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     const isLoggedIn = this.authService.isAuthenticated();
     const requiredRoles: string[] = route.data['roles'] || [];
-    const userRoles: string[] = this.authService.getUserRoles(); // từ realm + client
+    const userRoles: string[] = this.authService.getUserRoles();
     
     console.log('[AuthGuard] Checking route:', state.url, 'isLoggedIn:', isLoggedIn);
 
+    // Chưa đăng nhập → Redirect về login
     if (!isLoggedIn) {
-      // Chỉ redirect nếu chưa đang trong quá trình redirect
-      if (!this.isRedirecting) {
-        this.isRedirecting = true;
-
-        // Lưu URL hiện tại để redirect sau khi login
-        localStorage.setItem('returnUrl', state.url);
-
-        const clientId = 'RD_KHO';
-        const realm = 'rangdong';
-        const redirectUri = encodeURIComponent(window.location.origin + '/home');
-        const loginUrl = `https://ssosys.rangdong.com.vn:9002/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
-
-        console.log('[AuthGuard] Redirecting to login:', loginUrl);
-
-        // Reset flag sau 2 giây để tránh stuck
-        setTimeout(() => {
-          this.isRedirecting = false;
-        }, 2000);
-
-        window.location.href = loginUrl;
-      }
-
+      console.log('[AuthGuard] Not authenticated, redirecting to login');
+      
+      //  Lưu returnUrl và gọi initiateLogin
+      this.authService.initiateLogin(state.url);
+      
       return false;
     }
+
+    //  Đã đăng nhập → Kiểm tra roles
     if (requiredRoles.length > 0) {
       const hasRole = requiredRoles.some(role => userRoles.includes(role));
+      
       if (!hasRole) {
-        console.warn('[AuthGuard] Access denied. Missing roles:', requiredRoles);
+        console.warn('[AuthGuard] Access denied. Required roles:', requiredRoles);
+        console.warn('[AuthGuard] User roles:', userRoles);
         this.router.navigate(['/unauthorized']);
         return false;
       }
     }
+
+    console.log('[AuthGuard]  Access granted');
     return true;
   }
 }

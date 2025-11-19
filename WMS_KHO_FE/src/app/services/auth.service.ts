@@ -94,42 +94,43 @@ export class AuthService {
 
   // ============= LOGIN FLOW =============
   async initiateLogin(returnUrl?: string): Promise<void> {
-    try {
-      if (returnUrl) {
-        sessionStorage.setItem('returnUrl', returnUrl);
-      }
-
-      const codeVerifier = this.generateCodeVerifier();
-      const codeChallenge = await this.generateCodeChallenge(codeVerifier);
-      const state = this.generateState();
-
-      sessionStorage.setItem('code_verifier', codeVerifier);
-      sessionStorage.setItem('auth_state', state);
-
-      const redirectUri = `${window.location.origin}/auth/callback`;
-
-      // THÊM max_age=0 để form login TRỐNG
-      const loginUrl =
-        `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/auth?` +
-        `client_id=${this.CLIENT_ID}&` +
-        `response_type=code&` +
-        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-        `scope=openid profile email&` +
-        `state=${state}&` +
-        `code_challenge=${codeChallenge}&` +
-        `code_challenge_method=S256&` +
-        `prompt=login&` +    // Bắt buộc form login
-        `max_age=0` +
-        `kc_action=logout`;
-
-      console.log('[AuthService] Redirecting to Keycloak login');
-      window.location.href = loginUrl;
-
-    } catch (error) {
-      console.error('[AuthService] Error initiating login:', error);
-      throw error;
+  try {
+    if (returnUrl) {
+      sessionStorage.setItem('returnUrl', returnUrl);
     }
+
+    const codeVerifier = this.generateCodeVerifier();
+    const codeChallenge = await this.generateCodeChallenge(codeVerifier);
+    const state = this.generateState();
+
+    sessionStorage.setItem('code_verifier', codeVerifier);
+    sessionStorage.setItem('auth_state', state);
+
+    const redirectUri = `${window.location.origin}/auth/callback`;
+
+    // ✅ FIXED: Thêm "&" sau max_age=0 và xóa kc_action
+    const loginUrl =
+      `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/auth?` +
+      `client_id=${this.CLIENT_ID}&` +
+      `response_type=code&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `scope=openid profile email&` +
+      `state=${state}&` +
+      `code_challenge=${codeChallenge}&` +
+      `code_challenge_method=S256&` +
+      `prompt=login&` +
+      `max_age=0`;  
+
+    console.log('[AuthService] Redirecting to Keycloak login');
+    console.log('[AuthService] Login URL:', loginUrl); // Debug URL
+    
+    window.location.href = loginUrl;
+
+  } catch (error) {
+    console.error('[AuthService] Error initiating login:', error);
+    throw error;
   }
+}
 
   // ============= HANDLE CALLBACK =============
   async handleCallback(code: string, state: string): Promise<string> {
