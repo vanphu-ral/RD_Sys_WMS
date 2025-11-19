@@ -748,7 +748,7 @@ class LocationService:
         from sqlalchemy import and_
 
         query = select(Location)
-        
+
         # Filter by parent location - if not specified, get only parent locations (parent_location_id is null)
         if parent_location_id is not None:
             query = query.where(Location.parent_location_id == parent_location_id)
@@ -774,9 +774,7 @@ class LocationService:
             query = query.where(and_(*filters))
 
         # Get total count
-        count_query = select(func.count()).select_from(Location)
-        if filters:
-            count_query = count_query.where(and_(*filters))
+        count_query = select(func.count()).select_from(query.subquery())
         count_result = await db.execute(count_query)
         total_items = count_result.scalar() or 0
 
