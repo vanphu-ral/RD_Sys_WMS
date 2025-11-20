@@ -2,6 +2,7 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ChuyenKhoService } from '../service/chuyen-kho.service.component';
+import { AuthService } from '../../../../services/auth.service';
 
 export interface ScannedItem {
   id?: number;
@@ -14,6 +15,7 @@ export interface ScannedItem {
   scanTime?: string;
   warehouse: string;
   confirmed?: boolean;
+  isNew?: boolean; // Flag để đánh dấu item mới scan (chưa lưu DB)
 }
 
 export interface DetailItem {
@@ -22,26 +24,32 @@ export interface DetailItem {
   product_code: string;
   product_name: string;
   total_quantity: number;
-  DVT: string;
+  dvt: string;
   scanned_quantity?: number;
   status?: 'pending' | 'partial' | 'completed';
 }
 
 @Component({
-  selector: 'app-nhap-kho-component',
+  selector: 'app-scan-detail',
   standalone: false,
   templateUrl: './scan-detail.component.html',
   styleUrl: './scan-detail.component.scss',
 })
 export class ScanDetailComponent implements OnInit {
+  // ===== ROUTE PARAMS =====
   requestId: number | undefined;
-  currentPage = 1;
-  totalPages = 9;
-  
-  // Biến scan
+
+  // ===== SCAN INPUTS =====
   scanPallet: string = '';
   scanLocation: string = '';
+  selectedMode: 'pallet' | 'thung' | null = null;
+  globalQuantity: number | null = null;
 
+  // ===== DATA =====
+  scannedList: ScannedItem[] = [];
+  detailList: DetailItem[] = [];
+
+  // ===== TABLE =====
   displayedColumns: string[] = [
     'stt',
     'productId',
@@ -51,12 +59,15 @@ export class ScanDetailComponent implements OnInit {
     'scanTime',
     'warehouse',
   ];
-  
-  scannedList: ScannedItem[] = [];
-  detailList: DetailItem[] = [];
-  selectedMode: 'pallet' | 'thung' | null = null;
-  globalQuantity: number | null = null;
-  
+
+  // ===== PAGINATION =====
+  currentPage = 1;
+  totalPages = 9;
+
+  // ===== UI STATE =====
+  isLoading = false;
+
+  // ===== VIEWCHILD =====
   @ViewChild('palletInput') palletInput!: ElementRef;
   @ViewChild('locationInput') locationInput!: ElementRef;
 
@@ -64,28 +75,31 @@ export class ScanDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar,
-    private chuyenKhoService: ChuyenKhoService
+    private chuyenKhoService: ChuyenKhoService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     const state = history.state;
     this.requestId = state.requestId || this.route.snapshot.params['id'];
-    
+
     if (this.requestId) {
       this.loadDetailList();
       this.loadScannedData();
     }
   }
 
-  // Load danh sách chi tiết sản phẩm cần xuất
+  // ===== LOAD DETAIL LIST =====
   loadDetailList(): void {
+    this.isLoading = true;
     this.chuyenKhoService.getTransferItemsById(this.requestId!).subscribe({
       next: (res) => {
-        this.detailList = res.map(item => ({
+        this.detailList = res.map((item) => ({
           ...item,
           scanned_quantity: 0,
-          status: 'pending'
+          status: 'pending' as const,
         }));
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Lỗi khi tải danh sách chi tiết:', err);
@@ -93,27 +107,28 @@ export class ScanDetailComponent implements OnInit {
           duration: 3000,
           panelClass: ['snackbar-error'],
         });
+        this.isLoading = false;
       },
     });
   }
 
-  // Load dữ liệu đã scan trước đó
+  // ===== LOAD SCANNED DATA (Đã lưu trong DB) =====
   loadScannedData(): void {
     this.chuyenKhoService.getScannedData(this.requestId!).subscribe({
       next: (res) => {
         this.scannedList = res.map((item: any) => ({
           id: item.id,
-          productId: item.product_in_iwtr_id,
+          productId: item.products_in_IWTR_id,
           inventoryCode: item.inventory_identifier,
           serialPallet: item.serial_pallet,
           quantity: item.quantity_dispatched,
           originalQuantity: item.quantity_dispatched,
           scanTime: this.formatDateTime(item.scan_time),
-          warehouse: item.new_location_id || 'N/A',
-          confirmed: item.confirmed,
+          warehouse: item.scan_by || 'N/A', // Hoặc location nếu có
+          confirmed: true, // Đã lưu trong DB
+          isNew: false,
         }));
-        
-        // Cập nhật trạng thái cho detailList
+
         this.updateDetailStatus();
       },
       error: (err) => {
@@ -122,24 +137,31 @@ export class ScanDetailComponent implements OnInit {
     });
   }
 
+  // ===== SELECT MODE =====
   onSelectMode(mode: 'pallet' | 'thung'): void {
     this.selectedMode = mode;
     setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
   }
 
+  // ===== GET PLACEHOLDER TEXT =====
+  getPalletPlaceholder(): string {
+    return this.selectedMode === 'pallet' ? 'Scan mã Pallet...' : 'Scan mã Thùng...';
+  }
+
+  // ===== ENTER HANDLERS =====
   onPalletScanEnter(): void {
     this.locationInput?.nativeElement?.focus();
   }
 
-  applyGlobalQuantity(): void {
-    if (this.globalQuantity == null || this.globalQuantity < 0) return;
-
-    this.scannedList.forEach((item) => {
-      item.quantity = this.globalQuantity!;
-    });
-  }
-
   onLocationScanEnter(): void {
+    if (!this.selectedMode) {
+      this.snackBar.open('Vui lòng chọn mode scan!', 'Đóng', {
+        duration: 3000,
+        panelClass: ['snackbar-warning'],
+      });
+      return;
+    }
+
     if (!this.scanPallet || !this.scanLocation) {
       this.snackBar.open('Vui lòng nhập đầy đủ thông tin scan!', 'Đóng', {
         duration: 3000,
@@ -148,127 +170,197 @@ export class ScanDetailComponent implements OnInit {
       return;
     }
 
-    // Kiểm tra mode scan
     if (this.selectedMode === 'pallet') {
       this.scanPalletMode();
-    } else if (this.selectedMode === 'thung') {
+    } else {
       this.scanThungMode();
     }
   }
 
-  // Scan mode Pallet - lấy tất cả thùng trong pallet
-  
+  // ===== SCAN MODE PALLET =====
   scanPalletMode(): void {
-    this.chuyenKhoService.scanPallet(this.scanPallet).subscribe({
+    const palletCode = this.scanPallet.trim().toUpperCase();
+
+    this.isLoading = true;
+    this.chuyenKhoService.scanPallet(palletCode).subscribe({
       next: (inventories) => {
         if (!inventories || inventories.length === 0) {
           this.snackBar.open('Không tìm thấy thùng nào trong pallet này!', 'Đóng', {
             duration: 3000,
             panelClass: ['snackbar-warning'],
           });
+          this.isLoading = false;
           return;
         }
 
-        // Kiểm tra và thêm từng thùng
+        let addedCount = 0;
         inventories.forEach((inventory: any) => {
-          this.addScannedItem(inventory);
+          const added = this.addScannedItem(inventory);
+          if (added) addedCount++;
         });
 
+        if (addedCount > 0) {
+          this.snackBar.open(
+            `✓ Đã thêm ${addedCount} thùng từ pallet vào danh sách!`,
+            '',
+            {
+              duration: 2000,
+              panelClass: ['snackbar-success'],
+            }
+          );
+        }
+
         this.clearScanInputs();
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Lỗi khi scan pallet:', err);
-        this.snackBar.open('Không tìm thấy pallet này!', 'Đóng', {
+        this.snackBar.open('Không tìm thấy pallet này trong hệ thống!', 'Đóng', {
           duration: 3000,
           panelClass: ['snackbar-error'],
         });
+        this.isLoading = false;
       },
     });
   }
 
-  // Scan mode Thùng - lấy thông tin 1 thùng
+  // ===== SCAN MODE THÙNG =====
   scanThungMode(): void {
-    this.chuyenKhoService.getInventoryByIdentifier(this.scanPallet).subscribe({
+    const thungCode = this.scanPallet.trim().toUpperCase();
+
+    this.isLoading = true;
+    this.chuyenKhoService.getInventoryByIdentifier(thungCode).subscribe({
       next: (inventory) => {
-        this.addScannedItem(inventory);
+        const added = this.addScannedItem(inventory);
+        
+        if (added) {
+          this.snackBar.open('✓ Đã thêm thùng vào danh sách!', '', {
+            duration: 1500,
+            panelClass: ['snackbar-success'],
+          });
+        }
+
         this.clearScanInputs();
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Lỗi khi scan thùng:', err);
-        this.snackBar.open('Không tìm thấy thùng này!', 'Đóng', {
+        this.snackBar.open('Không tìm thấy thùng này trong hệ thống!', 'Đóng', {
           duration: 3000,
           panelClass: ['snackbar-error'],
         });
+        this.isLoading = false;
       },
     });
   }
 
-  // Thêm item đã scan vào danh sách
-  addScannedItem(inventory: any): void {
-    // Kiểm tra xem mã này đã được scan chưa
+  // ===== ADD SCANNED ITEM (CHƯA LƯU DB) =====
+  addScannedItem(inventory: any): boolean {
+    // CHECK TRÙNG MÃ THÙNG
     const existingItem = this.scannedList.find(
-      (item) => item.inventoryCode === inventory.identifier
+      (item) => item.inventoryCode.toUpperCase() === inventory.identifier.toUpperCase()
     );
 
     if (existingItem) {
-      this.snackBar.open('Mã này đã được scan trước đó!', 'Đóng', {
-        duration: 2000,
-        panelClass: ['snackbar-warning'],
-      });
-      return;
+      // Đã confirmed → Không cho scan lại
+      if (existingItem.confirmed) {
+        this.snackBar.open(
+          `Thùng ${inventory.identifier} đã được scan và xác nhận trước đó!`,
+          'Đóng',
+          {
+            duration: 3000,
+            panelClass: ['snackbar-warning'],
+          }
+        );
+        return false;
+      }
+
+      // Chưa confirmed → Cập nhật location
+      existingItem.warehouse = this.scanLocation;
+      existingItem.scanTime = this.formatDateTime(new Date().toISOString());
+
+      this.snackBar.open(
+        `Thùng ${inventory.identifier} đã có trong danh sách! Đã cập nhật kho.`,
+        '',
+        {
+          duration: 2000,
+          panelClass: ['snackbar-info'],
+        }
+      );
+      return false;
     }
 
-    // Kiểm tra mã có trong danh sách detail không
+    // KIỂM TRA MÃ CÓ TRONG DETAIL LIST KHÔNG
     const detailItem = this.detailList.find(
       (item) => item.product_code === inventory.sap_code
     );
 
     if (!detailItem) {
-      this.snackBar.open('Mã sản phẩm không nằm trong yêu cầu chuyển kho!', 'Đóng', {
-        duration: 3000,
-        panelClass: ['snackbar-error'],
-      });
-      return;
+      this.snackBar.open(
+        `Sản phẩm ${inventory.sap_code} không nằm trong yêu cầu chuyển kho!`,
+        'Đóng',
+        {
+          duration: 3000,
+          panelClass: ['snackbar-error'],
+        }
+      );
+      return false;
     }
 
-    const now = new Date();
-    const formattedTime = this.formatDateTime(now.toISOString());
+    //KIỂM TRA TỔNG SỐ LƯỢNG SCAN
+    const currentScannedQty = this.scannedList
+      .filter((item) => item.productId === detailItem.id)
+      .reduce((sum, item) => sum + item.quantity, 0);
 
+    const newTotalQty = currentScannedQty + (inventory.available_quantity || 0);
+
+    if (newTotalQty > detailItem.total_quantity) {
+      this.snackBar.open(
+        `Vượt quá số lượng yêu cầu! Còn lại: ${
+          detailItem.total_quantity - currentScannedQty
+        } ${detailItem.dvt}`,
+        'Đóng',
+        {
+          duration: 4000,
+          panelClass: ['snackbar-error'],
+        }
+      );
+      return false;
+    }
+
+    // THÊM ITEM MỚI VÀO DANH SÁCH
+    const now = new Date();
     const newItem: ScannedItem = {
+      id: undefined,
       productId: detailItem.id,
       inventoryCode: inventory.identifier,
-      serialPallet: inventory.serial_pallet,
-      quantity: inventory.quantity,
-      originalQuantity: inventory.initial_quantity,
+      serialPallet: inventory.serial_pallet || 'N/A',
+      quantity: inventory.available_quantity || 0,
+      originalQuantity: inventory.initial_quantity || 0,
       productName: inventory.name || detailItem.product_name,
-      scanTime: formattedTime,
+      scanTime: this.formatDateTime(now.toISOString()),
       warehouse: this.scanLocation,
       confirmed: false,
+      isNew: true, // Đánh dấu item mới
     };
 
     this.scannedList = [...this.scannedList, newItem];
     this.updateDetailStatus();
 
-    this.snackBar.open('Scan thành công!', 'Đóng', {
-      duration: 2000,
-      panelClass: ['snackbar-success'],
-    });
+    return true;
   }
 
-  // Cập nhật trạng thái cho detail list
+  // ===== UPDATE DETAIL STATUS =====
   updateDetailStatus(): void {
     this.detailList.forEach((detail) => {
       const scannedItems = this.scannedList.filter(
         (scan) => scan.productId === detail.id
       );
-      
-      const totalScanned = scannedItems.reduce(
-        (sum, item) => sum + item.quantity,
-        0
-      );
-      
+
+      const totalScanned = scannedItems.reduce((sum, item) => sum + item.quantity, 0);
+
       detail.scanned_quantity = totalScanned;
-      
+
       if (totalScanned === 0) {
         detail.status = 'pending';
       } else if (totalScanned < detail.total_quantity) {
@@ -279,68 +371,71 @@ export class ScanDetailComponent implements OnInit {
     });
   }
 
+  // ===== APPLY GLOBAL QUANTITY =====
+  applyGlobalQuantity(): void {
+    if (this.globalQuantity == null || this.globalQuantity < 0) return;
+
+    this.scannedList.forEach((item) => {
+      if (!item.confirmed) {
+        item.quantity = this.globalQuantity!;
+      }
+    });
+
+    this.snackBar.open('Đã áp dụng số lượng cho tất cả!', '', { duration: 1500 });
+  }
+
+  // ===== CLEAR INPUTS =====
   clearScanInputs(): void {
     this.scanPallet = '';
     this.scanLocation = '';
     setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
   }
 
+  // ===== FORMAT DATETIME =====
   formatDateTime(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    const hh = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
   }
 
-  onPageChange(page: number): void {
-    this.currentPage = page;
-  }
-
-  previousPage(): void {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.onPageChange(this.currentPage);
-    }
-  }
-
-  nextPage(): void {
-    if (this.currentPage < this.totalPages) {
-      this.currentPage++;
-      this.onPageChange(this.currentPage);
-    }
-  }
-
-  // Lưu thông tin scan
+  // ===== SUBMIT SCAN (LƯU VÀO DB) =====
   submitScan(): void {
-    if (this.scannedList.length === 0) {
-      this.snackBar.open('Chưa có dữ liệu scan để gửi!', 'Đóng', {
+    const newItems = this.scannedList.filter((item) => item.isNew === true);
+
+    if (newItems.length === 0) {
+      this.snackBar.open('Không có dữ liệu mới để lưu!', 'Đóng', {
         duration: 3000,
-        panelClass: ['snackbar-error'],
+        panelClass: ['snackbar-warning'],
       });
       return;
     }
 
+    const username = this.authService.getUsername();
+
     const payload = {
-      scan_details: this.scannedList.map((item) => ({
+      scan_details: newItems.map((item) => ({
         products_in_IWTR_id: item.productId,
         inventory_identifier: item.inventoryCode,
         serial_pallet: item.serialPallet,
         quantity_dispatched: item.quantity,
         scan_time: new Date().toISOString().slice(0, 19),
-        scan_by: 'admin', // TODO: Lấy từ user hiện tại
+        scan_by: username,
       })),
     };
 
+    this.isLoading = true;
+
     this.chuyenKhoService.submitScan(this.requestId!, payload).subscribe({
       next: () => {
-        this.snackBar.open('Lưu thông tin scan thành công!', 'Đóng', {
-          duration: 3000,
+        this.snackBar.open('✓ Lưu thông tin scan thành công!', '', {
+          duration: 2000,
           panelClass: ['snackbar-success'],
         });
+
         setTimeout(() => {
           this.router.navigate([
             '/kho-thanh-pham/chuyen-kho-noi-bo/detail/',
@@ -350,14 +445,37 @@ export class ScanDetailComponent implements OnInit {
       },
       error: (err) => {
         console.error('Lỗi khi gửi scan:', err);
-        this.snackBar.open('Lỗi khi gửi dữ liệu scan!', 'Đóng', {
-          duration: 3000,
-          panelClass: ['snackbar-error'],
-        });
+        this.snackBar.open(
+          err.error?.message || 'Lỗi khi gửi dữ liệu scan!',
+          'Đóng',
+          {
+            duration: 3000,
+            panelClass: ['snackbar-error'],
+          }
+        );
+        this.isLoading = false;
       },
     });
   }
 
+  // ===== PAGINATION =====
+  onPageChange(page: number): void {
+    this.currentPage = page;
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  // ===== BACK =====
   back(): void {
     this.router.navigate([
       '/kho-thanh-pham/chuyen-kho-noi-bo/detail/',

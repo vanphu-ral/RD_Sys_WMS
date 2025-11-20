@@ -197,4 +197,10 @@ export class NhapKhoService {
       })
     );
   }
+
+  // Hàm đổi trạng thái yêu cầu nhập kho
+  updateStatus(id: number, status: boolean): Observable<any> {
+    const url = `${this.baseUrl}/warehouse-import/requirements/${id}/status?status=${status}`;
+    return this.http.patch(url, {}); 
+  }
 }

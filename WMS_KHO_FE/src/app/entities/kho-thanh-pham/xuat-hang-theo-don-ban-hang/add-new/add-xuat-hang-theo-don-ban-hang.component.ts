@@ -4,6 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { XuatHangTheoDonBanService } from '../service/xuat-hang-theo-don-ban.service.component';
 import { ConfirmDialogXuatHangComponent } from '../dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { AuthService } from '../../../../services/auth.service';
 export interface MainInfo {
   donViLinh: string;
   soPhieuGiaoHang: string;
@@ -80,7 +81,8 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
     private router: Router,
     private snackBar: MatSnackBar,
     private xuatHangServie: XuatHangTheoDonBanService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -215,7 +217,7 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
     this.currentPage = 1;
   }
   onCancel(): void {
-    this.router.navigate(['kho-thanh-pham/chuyen-kho-noi-bo']);
+    this.router.navigate(['kho-thanh-pham/xuat-don-ban-hang']);
   }
 
   onSelectWarehouse(): void {
@@ -241,6 +243,7 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
   saveOutOfStockRequest(): void {
     const fromWarehouse = this.fromWarehouseId;
     const toWarehouse = this.toWarehouseId;
+    const username = this.authService.getUsername();
 
     if (!fromWarehouse || !toWarehouse) {
       this.snackBar.open('Vui lòng chọn đầy đủ Từ kho và Đến kho!', 'Đóng', {
@@ -251,18 +254,18 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
     }
 
     const headerPayload = {
-      don_vi_linh: this.mainInfo.donViLinh || 'Phòng kỹ thuật',
-      don_vi_nhan: this.mainInfo.tenKhachHang || 'Phòng sản xuất',
+      don_vi_linh: this.mainInfo.donViLinh,
+      don_vi_nhan: this.mainInfo.tenKhachHang,
       kho_xuat: fromWarehouse,
       xuat_toi: toWarehouse,
-      ly_do_xuat_nhap: this.mainInfo.lyDoNhapXuat || 'Chuyển kho nội bộ',
-      ma_yc_xk: this.mainInfo.soChungTu || 'ORS-2024-001',
+      ly_do_xuat_nhap: this.mainInfo.lyDoNhapXuat ,
+      ma_yc_xk: this.mainInfo.soChungTu,
       ngay_chung_tu:
         this.mainInfo.ngayGiaoHang || new Date().toISOString().slice(0, 10),
       note: this.mainInfo.ghiChu || '',
-      series_pgh: 's',
+      series_pgh: '',
       status: "false",
-      updated_by: 'admin',
+      updated_by: username,
     };
 
     this.xuatHangServie.saveSalesExportRequest(headerPayload).subscribe({
@@ -273,7 +276,7 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
             product_code: item.maHangHoa,
             product_name: item.tenHangHoa,
             total_quantity: item.soLuong,
-            updated_by: 'admin',
+            updated_by: username,
           }));
 
           this.xuatHangServie
@@ -311,6 +314,6 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']);
+    this.router.navigate(['/kho-thanh-pham/xuat-don-ban-hang']);
   }
 }

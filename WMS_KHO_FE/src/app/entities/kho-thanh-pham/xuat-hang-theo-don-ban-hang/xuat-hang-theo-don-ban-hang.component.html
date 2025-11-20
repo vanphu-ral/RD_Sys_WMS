@@ -132,7 +132,7 @@
                 <ng-container matColumnDef="so_phieu_xuat">
                     <th mat-header-cell *matHeaderCellDef>
                         <div>Số phiếu xuất</div>
-                        <mat-form-field class="search-field" appearance="outline">
+                        <mat-form-field class="search-field" appearance="outline" style="width: 5rem;">
                             <input matInput [(ngModel)]="filterValues.so_phieu_xuat" [(ngModel)]="searchTerm"
                                 (keyup.enter)="applyFilter()">
                         </mat-form-field>
@@ -143,7 +143,7 @@
                 <ng-container matColumnDef="so_chung_tu">
                     <th mat-header-cell *matHeaderCellDef>
                         <div>Số chứng từ</div>
-                        <mat-form-field class="search-field" appearance="outline">
+                        <mat-form-field class="search-field" appearance="outline" style="width: 5rem;">
                             <input matInput [(ngModel)]="filterValues.so_chung_tu" [(ngModel)]="searchTerm"
                                 (keyup.enter)="applyFilter()">
                         </mat-form-field>

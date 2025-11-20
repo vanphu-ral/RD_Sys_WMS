@@ -4,6 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ChuyenKhoService } from '../service/chuyen-kho.service.component';
 import { ConfirmDialogComponent } from '../dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { AuthService } from '../../../../services/auth.service';
 export interface MainInfo {
   maPO: string;
   maChungTu: string;
@@ -85,7 +86,8 @@ export class AddYeuCauChuyenKhoComponent implements OnInit {
     private router: Router,
     private snackBar: MatSnackBar,
     private chuyenKhoService: ChuyenKhoService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -215,6 +217,7 @@ export class AddYeuCauChuyenKhoComponent implements OnInit {
   saveTransferRequest(): void {
     const tuKhoObj = this.warehouses.find((w) => w.id === this.fromWarehouseId);
     const denKhoObj = this.warehouses.find((w) => w.id === this.toWarehouseId);
+    const username = this.authService.getUsername();
 
     if (!tuKhoObj || !denKhoObj) {
       this.snackBar.open('Vui lòng chọn đầy đủ Từ kho và Đến kho!', 'Đóng', {
@@ -235,9 +238,9 @@ export class AddYeuCauChuyenKhoComponent implements OnInit {
       so_chung_tu: this.mainInfo.maChungTu, 
       ngay_chung_tu: this.mainInfo.ngayNhap,
       note: this.mainInfo.ghiChu,
-      series_pgh: 's',
-      status: false,
-      updated_by: 'admin',
+      series_pgh: '',
+      // status: false,
+      updated_by: username,
     };
 
     this.chuyenKhoService.saveRequestHeader(headerPayload).subscribe({
@@ -249,7 +252,7 @@ export class AddYeuCauChuyenKhoComponent implements OnInit {
           product_code: item.maHangHoa,
           product_name: item.tenHangHoa,
           total_quantity: item.soLuongSP,
-          updated_by: 'admin',
+          updated_by: username,
         }));
 
         this.chuyenKhoService
@@ -325,6 +328,6 @@ export class AddYeuCauChuyenKhoComponent implements OnInit {
   //   });
   // }
   goBack(): void {
-    this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']);
+    this.router.navigate(['/kho-thanh-pham/chuyen-kho-noi-bo']);
   }
 }

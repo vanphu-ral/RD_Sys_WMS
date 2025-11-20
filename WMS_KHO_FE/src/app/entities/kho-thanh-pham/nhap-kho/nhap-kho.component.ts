@@ -37,7 +37,7 @@ export class NhapKhoComponent {
     'number_of_box',
     'quantity',
     'wo_code',
-    'import_date',
+    'updated_date',
     'status',
     'actions',
   ];

@@ -103,18 +103,18 @@ export class PheDuyetComponent implements OnInit {
 
         // Tính toán từ containers
         const uniquePallets = new Set(containers.map((c: any) => c.serial_pallet));
-        const soPallet = uniquePallets.size; 
-        const soThung = containers.length; 
-        const soLuongSP = containers.reduce((sum: number, c: any) => sum + (c.box_quantity || 0), 0); 
+        const soPallet = uniquePallets.size;
+        const soThung = containers.length;
+        const soLuongSP = containers.reduce((sum: number, c: any) => sum + (c.box_quantity || 0), 0);
 
         this.mainInfo = {
           maPO: info.po_code || '',
-          maSanPham: '', 
+          maSanPham: '',
           maKhachHang: String(info.client_id),
           tenSanPham: info.inventory_name || '',
-          soPallet: soPallet,          
-          soThung: soThung,             
-          soLuongSP: soLuongSP,        
+          soPallet: soPallet,
+          soThung: soThung,
+          soLuongSP: soLuongSP,
           maWO: Number(info.wo_code) || 0,
           soLOT: info.lot_number || '',
           ngayNhap: this.formatDate(info.updated_date),
@@ -243,8 +243,33 @@ export class PheDuyetComponent implements OnInit {
   }
 
   onConfirm(): void {
-    // Xử lý xác nhận
+    if (this.importId !== undefined) {
+      this.nhapKhoService.updateStatus(this.importId, true).subscribe({
+        next: () => {
+          this.snackBar.open('Phê duyệt thành công!', 'Đóng', {
+            duration: 3000,
+            panelClass: ['snackbar-success'],
+          });
+          this.loadData(this.importId!); 
+        },
+        error: (err) => {
+          console.error('Lỗi khi phê duyệt:', err);
+          this.snackBar.open('Phê duyệt thất bại!', 'Đóng', {
+            duration: 3000,
+            panelClass: ['snackbar-error'],
+          });
+        }
+      });
+    } else {
+      this.snackBar.open('Không tìm thấy ID yêu cầu nhập kho!', 'Đóng', {
+        duration: 3000,
+        panelClass: ['snackbar-error'],
+      });
+    }
   }
+
+
+
   goBack(): void {
     this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']);
   }

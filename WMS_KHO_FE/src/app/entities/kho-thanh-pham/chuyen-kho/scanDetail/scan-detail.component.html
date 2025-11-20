@@ -37,9 +37,9 @@
             <!-- Scan Input Fields -->
             <div class="scan-inputs">
                 <mat-form-field class="scan-field" appearance="outline">
-                    <mat-label>Pallet scan...</mat-label>
-                    <input matInput [(ngModel)]="scanPallet" placeholder="Pallet scan..." #palletInput
-                        (keydown.enter)="onPalletScanEnter()" />
+                    <mat-label>{{ getPalletPlaceholder() }}</mat-label>
+                    <input matInput [(ngModel)]="scanPallet" [placeholder]="getPalletPlaceholder()" #palletInput
+                        (keydown.enter)="onPalletScanEnter()" [disabled]="!selectedMode || isLoading" />
                 </mat-form-field>
 
                 <mat-form-field class="scan-field" appearance="outline">
@@ -147,7 +147,7 @@
                             <span class="info-label">Serial pallet:</span>
                             <span class="info-value serial-badge">{{item.serialPallet}}</span>
                         </div>
--->
+                        -->
                         <div class="info-row">
                             <span class="info-label">Kho:</span>
                             <span class="info-value location-badge">{{item.warehouse}}</span>
