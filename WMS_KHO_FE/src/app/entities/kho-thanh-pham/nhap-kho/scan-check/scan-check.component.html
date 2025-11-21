@@ -40,14 +40,14 @@
                     <mat-label>{{ selectedMode === 'pallet' ? 'Pallet scan...' : 'Thùng scan...' }}</mat-label>
                     <input matInput [(ngModel)]="scanPallet"
                         [placeholder]="selectedMode === 'pallet' ? 'Pallet scan...' : 'Thùng scan...'" #palletInput
-                        (keydown.enter)="onPalletScanEnter()" />
+                        (keydown.enter)="onPalletScanEnter()" inputmode="none" />
                 </mat-form-field>
 
 
                 <mat-form-field class="scan-field" appearance="outline">
                     <mat-label>Location scan...</mat-label>
                     <input matInput [(ngModel)]="scanLocation" placeholder="Location scan..." #locationInput
-                        (keydown.enter)="onLocationScanEnter()" />
+                        (keydown.enter)="onLocationScanEnter()"  inputmode="none"/>
                 </mat-form-field>
             </div>
         </div>

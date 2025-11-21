@@ -39,13 +39,13 @@
                 <mat-form-field class="scan-field" appearance="outline">
                     <mat-label>{{ getPalletPlaceholder() }}</mat-label>
                     <input matInput [(ngModel)]="scanPallet" [placeholder]="getPalletPlaceholder()" #palletInput
-                        (keydown.enter)="onPalletScanEnter()" [disabled]="!selectedMode || isLoading" />
+                        (keydown.enter)="onPalletScanEnter()" [disabled]="!selectedMode || isLoading" inputmode="none" />
                 </mat-form-field>
 
                 <mat-form-field class="scan-field" appearance="outline">
                     <mat-label>Location scan...</mat-label>
                     <input matInput [(ngModel)]="scanLocation" placeholder="Location scan..." #locationInput
-                        (keydown.enter)="onLocationScanEnter()" />
+                        (keydown.enter)="onLocationScanEnter()" inputmode="none" />
                 </mat-form-field>
             </div>
         </div>
