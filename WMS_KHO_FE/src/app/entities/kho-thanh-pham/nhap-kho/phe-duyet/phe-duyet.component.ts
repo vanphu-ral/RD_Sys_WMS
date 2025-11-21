@@ -38,7 +38,6 @@ export interface MainInfo {
 export class PheDuyetComponent implements OnInit {
   importId: number | undefined;
   // nhapKhoData: ScannedItem | undefined;
-  currentPage = 1;
   //bien scan
   scanPallet: string = '';
   scanLocation: string = '';
@@ -70,6 +69,12 @@ export class PheDuyetComponent implements OnInit {
     ngayNhap: '',
     ghiChu: '',
   };
+
+  pageSize: number = 10;
+  currentPage: number = 1;
+  totalItems: number = 0;
+  totalPages: number = 0;
+  pagedDetailList: DetailItem[] = [];
 
   detailList: DetailItem[] = [];
   selectedMode: 'pallet' | 'thung' | null = null;
@@ -137,6 +142,11 @@ export class PheDuyetComponent implements OnInit {
           updatedDate: this.formatDate(c.updated_date),
           scanStatus: 'Chưa scan',
         }));
+        this.totalItems = this.detailList.length;
+        this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+
+        // Lấy dữ liệu trang đầu tiên
+        this.setPagedData();
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu nhập kho:', err);
@@ -230,8 +240,16 @@ export class PheDuyetComponent implements OnInit {
   //   setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
   // }
 
+  setPagedData(): void {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.pagedDetailList = this.detailList.slice(startIndex, endIndex);
+  }
+
   onPageChange(page: number): void {
-    // Load data for new page
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.setPagedData();
   }
 
   onCancel(): void {

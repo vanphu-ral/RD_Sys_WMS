@@ -137,7 +137,7 @@
         </div>
 
         <div class="table-container">
-            <table mat-table [dataSource]="detailList" class="detail-table">
+            <table mat-table [dataSource]="pagedDetailList" class="detail-table">
                 <!-- STT Column -->
                 <ng-container matColumnDef="stt">
                     <th mat-header-cell *matHeaderCellDef>STT</th>
@@ -255,25 +255,14 @@
 
         <!-- Pagination -->
         <div class="pagination">
-            <!-- <button mat-button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
-                <mat-icon>chevron_left</mat-icon>
-                Previous
-            </button> -->
-
             <div class="pagination-numbers">
-                <button mat-button [class.active]="currentPage === 1" (click)="onPageChange(1)">1</button>
-                <button mat-button [class.active]="currentPage === 2" (click)="onPageChange(2)">2</button>
-                <button mat-button [class.active]="currentPage === 3" (click)="onPageChange(3)">3</button>
-                <span class="dots">...</span>
-                <button mat-button (click)="onPageChange(8)">8</button>
-                <button mat-button (click)="onPageChange(9)">9</button>
+                <button mat-button *ngFor="let page of [].constructor(totalPages); let i = index"
+                    [class.active]="currentPage === (i+1)" (click)="onPageChange(i+1)">
+                    {{ i+1 }}
+                </button>
             </div>
-            <!-- 
-            <button mat-button class="pagination-btn" (click)="nextPage()">
-                Next
-                <mat-icon>chevron_right</mat-icon>
-            </button> -->
         </div>
+
     </mat-card>
 
     <!-- Action Buttons -->

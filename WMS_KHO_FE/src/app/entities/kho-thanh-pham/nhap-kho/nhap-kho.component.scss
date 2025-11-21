@@ -723,6 +723,7 @@ td.actions-column {
                     background: #14AE5C;
                     color: white;
                     border: none;
+                    padding: 5px;
 
                     &:active {
                         background: #0f8b49;
@@ -733,6 +734,7 @@ td.actions-column {
                     background: white;
                     color: #0369a1;
                     border: 1.5px solid #0369a1;
+                    padding: 5px;
 
                     &:active {
                         background: #f0f9ff;
@@ -743,6 +745,7 @@ td.actions-column {
                     background: white;
                     color: #7c3aed;
                     border: 1.5px solid #7c3aed;
+                    padding: 5px;
 
                     &:active {
                         background: #faf5ff;

@@ -320,9 +320,11 @@
 .mobile-detail-list {
     display: none;
 }
-.expand-toggle{
+
+.expand-toggle {
     display: none;
 }
+
 @media (max-width: 768px) {
 
     .mobile-main-info,
@@ -697,6 +699,25 @@
     // ==========================================
     // ACTION FOOTER - Fixed Bottom
     // ==========================================
+    .expand-toggle {
+        display: block;
+        position: fixed;
+        bottom: 12px;
+        right: 12px;
+        z-index: 101;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        padding: 6px;
+
+        .expand-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
 
     .action-footer {
         position: fixed;
@@ -903,7 +924,7 @@
     .expand-toggle {
         display: block;
         position: fixed;
-        bottom: 0;
+        bottom: 12px;
         right: 12px;
         z-index: 101;
         background: white;

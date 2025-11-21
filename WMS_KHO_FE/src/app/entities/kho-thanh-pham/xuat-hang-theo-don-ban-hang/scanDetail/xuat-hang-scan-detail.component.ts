@@ -22,9 +22,6 @@ export interface ScannedItem {
 })
 export class ScanDetailXuatHangComponent implements OnInit {
   id: number | undefined;
-  currentPage = 1;
-  totalPages = 9;
-  
   // Biến scan
   scanPallet: string = '';
   scanLocation: string = '';
@@ -38,28 +35,37 @@ export class ScanDetailXuatHangComponent implements OnInit {
     'scanTime',
     'warehouse',
   ];
-  
+
   scannedList: ScannedItem[] = [];
   selectedMode: 'pallet' | 'thung' | null = null;
   chuyenKhoId: number | undefined;
   requestId: any;
   detailList: any;
-  
+
+
+
+  pageSize: number = 10;
+  pageSizeOptions: number[] = [5, 10, 15, 20];
+  currentPage: number = 1;
+  totalItems: number = 0;
+  totalPages: number = 0;
+  pagedList: any[] = [];
+
   @ViewChild('palletInput') palletInput!: ElementRef;
   @ViewChild('locationInput') locationInput!: ElementRef;
-  
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar,
     private xuatKhoService: XuatHangTheoDonBanService
-  ) {}
-  
+  ) { }
+
   ngOnInit(): void {
     const state = history.state;
     this.requestId = state.requestId;
     this.detailList = state.detailList || [];
-    
+
     // Load danh sách đã scan trước đó (nếu có)
     this.loadExistingScans();
   }
@@ -83,6 +89,10 @@ export class ScanDetailXuatHangComponent implements OnInit {
             scanTime: this.formatScanTime(item.scan_time),
             warehouse: item.inventory_identifier,
           }));
+          this.totalItems = this.scannedList.length;
+          this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+
+          this.setPagedData();
         }
       },
       error: (err) => {
@@ -270,8 +280,23 @@ export class ScanDetailXuatHangComponent implements OnInit {
   /**
    * Xử lý phân trang
    */
+  setPagedData(): void {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.pagedList = this.scannedList.slice(startIndex, endIndex);
+  }
+
   onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
+    this.setPagedData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 1;
+    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    this.setPagedData();
   }
 
   previousPage(): void {

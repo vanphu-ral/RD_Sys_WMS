@@ -75,10 +75,12 @@ export class ScanCheckComponent implements OnInit {
   ];
 
   // Pagination
-  currentPage = 1;
-  pageSize = 20;
-  totalItems = 0;
-  totalPages = 1;
+  pageSize: number = 10;
+  pageSizeOptions: number[] = [5, 10, 15, 20];
+  currentPage: number = 1;
+  totalItems: number = 0;
+  totalPages: number = 0;
+  pagedList: any[] = [];
 
   // Loading
   isScanning: boolean = false;
@@ -731,9 +733,16 @@ export class ScanCheckComponent implements OnInit {
 
   // Phân trang
   onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
     this.loadScannedList();
   }
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 1; // reset về trang đầu
+    this.loadScannedList();
+  }
+  
 
   // Hủy
   onCancel(): void {

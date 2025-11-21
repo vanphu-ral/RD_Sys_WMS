@@ -62,8 +62,12 @@ export class ScanDetailComponent implements OnInit {
   ];
 
   // ===== PAGINATION =====
-  currentPage = 1;
-  totalPages = 9;
+  pageSize: number = 10;
+  pageSizeOptions: number[] = [5, 10, 15, 20];
+  currentPage: number = 1;
+  totalItems: number = 0;
+  totalPages: number = 0;
+  pagedList: any[] = [];
 
   // ===== UI STATE =====
   isLoading = false;
@@ -79,7 +83,7 @@ export class ScanDetailComponent implements OnInit {
     private chuyenKhoService: ChuyenKhoService,
     private authService: AuthService,
     private dialog: MatDialog
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const state = history.state;
@@ -126,11 +130,14 @@ export class ScanDetailComponent implements OnInit {
           quantity: item.quantity_dispatched,
           originalQuantity: item.quantity_dispatched,
           scanTime: this.formatDateTime(item.scan_time),
-          warehouse: item.scan_by || 'N/A', 
-          confirmed: true, 
+          warehouse: item.scan_by || 'N/A',
+          confirmed: true,
           isNew: false,
         }));
+        this.totalItems = this.scannedList.length;
+        this.totalPages = Math.ceil(this.totalItems / this.pageSize);
 
+        this.setPagedData();
         this.updateDetailStatus();
       },
       error: (err) => {
@@ -138,7 +145,6 @@ export class ScanDetailComponent implements OnInit {
       },
     });
   }
-
   // ===== SELECT MODE =====
   onSelectMode(mode: 'pallet' | 'thung'): void {
     this.selectedMode = mode;
@@ -234,7 +240,7 @@ export class ScanDetailComponent implements OnInit {
     this.chuyenKhoService.getInventoryByIdentifier(thungCode).subscribe({
       next: (inventory) => {
         const added = this.addScannedItem(inventory);
-        
+
         if (added) {
           this.snackBar.open('✓ Đã thêm thùng vào danh sách!', '', {
             duration: 1500,
@@ -318,8 +324,7 @@ export class ScanDetailComponent implements OnInit {
 
     if (newTotalQty > detailItem.total_quantity) {
       this.snackBar.open(
-        `Vượt quá số lượng yêu cầu! Còn lại: ${
-          detailItem.total_quantity - currentScannedQty
+        `Vượt quá số lượng yêu cầu! Còn lại: ${detailItem.total_quantity - currentScannedQty
         } ${detailItem.dvt}`,
         'Đóng',
         {
@@ -461,10 +466,24 @@ export class ScanDetailComponent implements OnInit {
   }
 
   // ===== PAGINATION =====
-  onPageChange(page: number): void {
-    this.currentPage = page;
+  setPagedData(): void {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.pagedList = this.scannedList.slice(startIndex, endIndex);
   }
 
+  onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.setPagedData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 1;
+    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    this.setPagedData();
+  }
   previousPage(): void {
     if (this.currentPage > 1) {
       this.currentPage--;

@@ -58,7 +58,7 @@
             </div>
 
             <div class="table-container">
-                <table mat-table [dataSource]="scannedList" class="scan-table">
+                <table mat-table [dataSource]="pagedList" class="scan-table">
                     <!-- STT Column -->
                     <ng-container matColumnDef="stt">
                         <th mat-header-cell *matHeaderCellDef>STT</th>
@@ -163,25 +163,27 @@
 
             <!-- Pagination -->
             <div class="pagination">
-                <button mat-button class="pagination-btn" [disabled]="currentPage === 1">
-                    <mat-icon>chevron_left</mat-icon>
-                    Previous
-                </button>
-
-                <div class="pagination-numbers">
-                    <button mat-button [class.active]="currentPage === 1" (click)="onPageChange(1)">1</button>
-                    <button mat-button [class.active]="currentPage === 2" (click)="onPageChange(2)">2</button>
-                    <button mat-button [class.active]="currentPage === 3" (click)="onPageChange(3)">3</button>
-                    <span class="dots">...</span>
-                    <button mat-button (click)="onPageChange(8)">8</button>
-                    <button mat-button (click)="onPageChange(9)">9</button>
+                <!-- Select số bản ghi -->
+                <div class="page-size-select">
+                    <mat-form-field appearance="outline" class="page-size-field">
+                        <mat-label>Số bản ghi / trang</mat-label>
+                        <mat-select [(value)]="pageSize" (selectionChange)="onPageSizeChange($event.value)">
+                            <mat-option *ngFor="let size of pageSizeOptions" [value]="size">
+                                {{ size }}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
                 </div>
 
-                <button mat-button class="pagination-btn">
-                    Next
-                    <mat-icon>chevron_right</mat-icon>
-                </button>
+                <!-- Nút số trang -->
+                <div class="pagination-numbers">
+                    <button mat-button *ngFor="let page of [].constructor(totalPages); let i = index"
+                        [class.active]="currentPage === (i+1)" (click)="onPageChange(i+1)">
+                        {{ i+1 }}
+                    </button>
+                </div>
             </div>
+
         </mat-card>
     </mat-card>
     <div class="action-footer">
