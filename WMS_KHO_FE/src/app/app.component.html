@@ -1,4 +1,5 @@
 <div class="layout-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed">
+  <!-- Desktop Sidebar -->
   <div class="sidebar-container" [class.collapsed]="isSidebarCollapsed">
     <app-sidebar [isCollapsed]="isSidebarCollapsed" (collapseSidebar)="toggleSidebar()"></app-sidebar>
     <div class="sidebar-toggle sidebar-toggle-mobile" (click)="toggleSidebar()">
@@ -10,12 +11,29 @@
   </div>
 
   <div>
+    <!-- Top Navigation -->
     <div class="topnav" style="display: flex;">
+      <!-- Desktop Toggle -->
       <div class="topnav-toggle topnav-toggle-desktop" (click)="toggleSidebar()">
         <button class="btn-toggle-sidebar">
           <mat-icon>menu</mat-icon>
         </button>
       </div>
+
+      <!-- Mobile Toggle -->
+      <div class="topnav-toggle topnav-toggle-mobile" (click)="toggleMobileMenu()">
+        <button class="btn-toggle-sidebar">
+          <mat-icon>{{ showMobileMenu ? 'close' : 'menu' }}</mat-icon>
+        </button>
+      </div>
+
+      <!-- Logo/Title (optional for mobile) -->
+      <div class="wms-navbar" style="display: flex; align-items: center; gap: 8px;">
+        <img src="assets/logo-rang-dong-icon.svg" style="width: 32px; height: 32px;" alt="Logo">
+        <span style="color: #2C3E50;">WMS</span>
+      </div>
+
+      <!-- User Menu -->
       <div class="user" *ngIf="isLoggedIn">
         <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
           <mat-icon>person_outline</mat-icon>
@@ -48,7 +66,7 @@
         </mat-menu>
       </div>
 
-      <!-- Nếu chưa đăng nhập -->
+      <!-- Login Button -->
       <div class="user" *ngIf="!isLoggedIn">
         <button mat-button (click)="login()" class="login-button">
           <mat-icon>login</mat-icon>
@@ -56,20 +74,97 @@
         </button>
       </div>
     </div>
-</div>
 
-<div class="main-container">
-  <div class="main-content-container">
-    <div class="main-content">
-      <mat-tab-nav-panel #tabPanel></mat-tab-nav-panel>
-      <main class="main-content-area">
-        <div>
-          <router-outlet></router-outlet>
+    <!-- Mobile Menu Dropdown -->
+    <div class="mobile-menu-dropdown" [class.show]="showMobileMenu" *ngIf="isLoggedIn">
+      <div class="mobile-menu-header">
+        <img src="assets/logo-rang-dong-icon.svg" alt="Logo">
+        <div class="header-text">
+          <h3>WMS RangDong</h3>
+          <p>Warehouse Management System</p>
         </div>
-      </main>
+      </div>
+
+      <ul class="mobile-menu-list">
+        <!-- Quản lý Area -->
+        <li class="mobile-menu-item">
+          <a class="mobile-menu-link" (click)="navigateToMobile('/areas')">
+            <mat-icon>map</mat-icon>
+            <span>Quản lý Area</span>
+          </a>
+        </li>
+
+        <!-- Quản lý Vị trí -->
+        <li class="mobile-menu-item">
+          <a class="mobile-menu-link" (click)="navigateToMobile('/location')">
+            <mat-icon>place</mat-icon>
+            <span>Quản lý Vị trí</span>
+          </a>
+        </li>
+
+        <!-- Quản lý Kho Thành Phẩm (Dropdown) -->
+        <li class="mobile-menu-item">
+          <a class="mobile-menu-link" (click)="toggleMobileSubmenu($event, 'kho')">
+            <mat-icon>home_work</mat-icon>
+            <span>Quản lý Kho Thành Phẩm</span>
+            <mat-icon class="expand-icon" [class.expanded]="mobileSubmenuStates['kho']">
+              expand_more
+            </mat-icon>
+          </a>
+          <div class="mobile-submenu" [class.show]="mobileSubmenuStates['kho']">
+            <div class="mobile-submenu-item" (click)="navigateToMobile('/kho-thanh-pham/nhap-kho-sx')">
+              Yêu cầu nhập kho từ SX
+            </div>
+            <div class="mobile-submenu-item" (click)="navigateToMobile('/kho-thanh-pham/chuyen-kho-noi-bo')">
+              Yêu cầu chuyển kho nội bộ
+            </div>
+            <div class="mobile-submenu-item" (click)="navigateToMobile('/kho-thanh-pham/quan-ly-kho')">
+              Quản lý kho
+            </div>
+            <div class="mobile-submenu-item" (click)="navigateToMobile('/kho-thanh-pham/xuat-don-ban-hang')">
+              Xuất hàng theo đơn bán
+            </div>
+          </div>
+        </li>
+
+        <!-- Báo cáo (Dropdown) -->
+        <li class="mobile-menu-item">
+          <a class="mobile-menu-link" (click)="toggleMobileSubmenu($event, 'baocao')">
+            <mat-icon>bar_chart</mat-icon>
+            <span>Báo cáo</span>
+            <mat-icon class="expand-icon" [class.expanded]="mobileSubmenuStates['baocao']">
+              expand_more
+            </mat-icon>
+          </a>
+          <div class="mobile-submenu" [class.show]="mobileSubmenuStates['baocao']">
+            <div class="mobile-submenu-item" (click)="navigateToMobile('/bao-cao-thong-ke/tong-hop-xuat-nhap-ton')">
+              Tổng hợp xuất/nhập tồn
+            </div>
+            <div class="mobile-submenu-item" (click)="navigateToMobile('/bao-cao-thong-ke/thong-ke-ton-kho')">
+              Thống kê tồn kho
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" [class.show]="showMobileMenu" (click)="toggleMobileMenu()"></div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-container">
+    <div class="main-content-container">
+      <div class="main-content">
+        <mat-tab-nav-panel #tabPanel></mat-tab-nav-panel>
+        <main class="main-content-area">
+          <div>
+            <router-outlet></router-outlet>
+          </div>
+        </main>
+      </div>
     </div>
   </div>
-</div>
 </div>
 <!-- token bên user-info nếu cần hiển thị cop sang bên user info -->
 <!-- <div class="token-section">

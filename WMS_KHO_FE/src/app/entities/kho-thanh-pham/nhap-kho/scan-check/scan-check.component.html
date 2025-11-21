@@ -37,10 +37,12 @@
             <!-- Scan Input Fields -->
             <div class="scan-inputs">
                 <mat-form-field class="scan-field" appearance="outline">
-                    <mat-label>Pallet scan...</mat-label>
-                    <input matInput [(ngModel)]="scanPallet" placeholder="Pallet scan..." #palletInput
+                    <mat-label>{{ selectedMode === 'pallet' ? 'Pallet scan...' : 'Thùng scan...' }}</mat-label>
+                    <input matInput [(ngModel)]="scanPallet"
+                        [placeholder]="selectedMode === 'pallet' ? 'Pallet scan...' : 'Thùng scan...'" #palletInput
                         (keydown.enter)="onPalletScanEnter()" />
                 </mat-form-field>
+
 
                 <mat-form-field class="scan-field" appearance="outline">
                     <mat-label>Location scan...</mat-label>

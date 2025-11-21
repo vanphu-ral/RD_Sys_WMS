@@ -31,16 +31,23 @@ export class NhapKhoComponent {
   showMobileFilters: boolean = false;
   displayedColumns: string[] = [
     'id',
+    'order_id',
+    'client_id',
     'inventory_name',
-    'lot_number',
-    'number_of_pallet',
-    'number_of_box',
-    'quantity',
     'wo_code',
+    'lot_number',
+    'industry',
+    'production_team',
+    'production_decision_number',
+    'item_no_sku',
+    'approved_by',
+    'note',
+    'updated_by',
     'updated_date',
     'status',
     'actions',
   ];
+
 
   filterValues = {
     inventory_name: '',

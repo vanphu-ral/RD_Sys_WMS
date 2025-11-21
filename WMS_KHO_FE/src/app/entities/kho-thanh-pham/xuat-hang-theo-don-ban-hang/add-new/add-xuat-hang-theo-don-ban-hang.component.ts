@@ -39,6 +39,7 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
   totalPages = 9;
 
   maYeuCau: string = '';
+  isFooterExpanded: boolean = false;
 
   //chon kho nhap
   warehouses: { id: number; name: string }[] = [];
@@ -59,7 +60,7 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
     'donViTinh',
   ];
   mainInfo: MainInfo = {
-    donViLinh:'',
+    donViLinh: '',
     soPhieuGiaoHang: '',
     maKhachHang: '',
     tenKhachHang: '',
@@ -83,7 +84,7 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
     private xuatHangServie: XuatHangTheoDonBanService,
     private dialog: MatDialog,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
@@ -258,7 +259,7 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
       don_vi_nhan: this.mainInfo.tenKhachHang,
       kho_xuat: fromWarehouse,
       xuat_toi: toWarehouse,
-      ly_do_xuat_nhap: this.mainInfo.lyDoNhapXuat ,
+      ly_do_xuat_nhap: this.mainInfo.lyDoNhapXuat,
       ma_yc_xk: this.mainInfo.soChungTu,
       ngay_chung_tu:
         this.mainInfo.ngayGiaoHang || new Date().toISOString().slice(0, 10),

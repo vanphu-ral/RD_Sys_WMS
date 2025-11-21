@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ChuyenKhoService } from '../service/chuyen-kho.service.component';
 import { AuthService } from '../../../../services/auth.service';
+import { MatDialog } from '@angular/material/dialog';
 
 export interface ScannedItem {
   id?: number;
@@ -76,7 +77,8 @@ export class ScanDetailComponent implements OnInit {
     private router: Router,
     private snackBar: MatSnackBar,
     private chuyenKhoService: ChuyenKhoService,
-    private authService: AuthService
+    private authService: AuthService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -124,8 +126,8 @@ export class ScanDetailComponent implements OnInit {
           quantity: item.quantity_dispatched,
           originalQuantity: item.quantity_dispatched,
           scanTime: this.formatDateTime(item.scan_time),
-          warehouse: item.scan_by || 'N/A', // Hoặc location nếu có
-          confirmed: true, // Đã lưu trong DB
+          warehouse: item.scan_by || 'N/A', 
+          confirmed: true, 
           isNew: false,
         }));
 

@@ -50,8 +50,8 @@ $mobile-breakpoint: 768px;
   align-items: center;
   z-index: 998;
   position: fixed;
-  width: calc(100% - #{$sidebar-width-open}); // Không full width
-  margin-left: $sidebar-width-open; // Bắt đầu sau sidebar
+  width: calc(100% - #{$sidebar-width-open});
+  margin-left: $sidebar-width-open;
   transition: all $transition-duration ease;
   box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 
@@ -69,12 +69,11 @@ $mobile-breakpoint: 768px;
     border-radius: 0 8px 8px 0;
     cursor: pointer;
     transition: all $transition-duration ease;
-    // box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 
     &:hover {
       background-color: #2C3E50;
-      .btn-toggle-sidebar{
-        mat-icon{
+      .btn-toggle-sidebar {
+        mat-icon {
           color: #fff;
         }
       }
@@ -96,7 +95,6 @@ $mobile-breakpoint: 768px;
         height: 24px;
       }
     }
-
   }
 
   .wms-navbar {
@@ -160,6 +158,162 @@ $mobile-breakpoint: 768px;
   }
 }
 
+// Mobile Menu Dropdown Styles
+.mobile-menu-dropdown {
+  position: fixed;
+  top: $topnav-height;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #2C3E50;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  display: none;
+  -webkit-overflow-scrolling: touch;
+
+  &.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .mobile-menu-header {
+    padding: 16px;
+    background: #1A252F;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+
+    img {
+      width: 40px;
+      height: 40px;
+    }
+
+    .header-text {
+      color: white;
+
+      h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      p {
+        margin: 4px 0 0 0;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+        font-style: italic;
+      }
+    }
+  }
+
+  .mobile-menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    .mobile-menu-item {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+      .mobile-menu-link {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        color: white;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        mat-icon {
+          margin-right: 12px;
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+        }
+
+        span {
+          flex: 1;
+          font-size: 16px;
+        }
+
+        .expand-icon {
+          margin-left: auto;
+          margin-right: 0;
+          transition: transform 0.3s ease;
+
+          &.expanded {
+            transform: rotate(180deg);
+          }
+        }
+      }
+
+      .mobile-submenu {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        background: rgba(0, 0, 0, 0.2);
+
+        &.show {
+          max-height: 1000px; // Tăng lên để chứa đủ items
+        }
+
+        .mobile-submenu-item {
+          padding: 14px 16px 14px 56px;
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 15px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+          &:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+          }
+
+          &:active {
+            background-color: rgba(255, 255, 255, 0.2);
+          }
+
+          &:last-child {
+            border-bottom: none;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Overlay for mobile menu
+.mobile-menu-overlay {
+  position: fixed;
+  top: $topnav-height;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+
+  &.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
 ::ng-deep .user-menu {
   min-width: 250px;
   margin-top: 8px;
@@ -204,7 +358,6 @@ $mobile-breakpoint: 768px;
   }
 }
 
-// Khi sidebar collapsed, topnav mở rộng
 .sidebar-container.collapsed~div .topnav {
   width: calc(100% - #{$sidebar-width-closed});
   margin-left: $sidebar-width-closed;
@@ -215,15 +368,15 @@ $mobile-breakpoint: 768px;
   flex-direction: row;
   width: 100%;
   height: 100%;
-  padding-top: 0; // Không cần margin-top
+  padding-top: 0;
 }
 
 .sidebar-container {
   width: $sidebar-width-open;
   transition: width $transition-duration ease;
-  height: 100vh; // Full height từ top
+  height: 100vh;
   position: fixed;
-  top: 0; // Bắt đầu từ top màn hình
+  top: 0;
   left: 0;
   z-index: 999;
   background-color: #2C3E50;
@@ -238,10 +391,6 @@ $mobile-breakpoint: 768px;
     app-sidebar {
       overflow-x: hidden;
     }
-
-    // .sidebar-toggle mat-icon {
-    //   transform: rotate(180deg);
-    // }
   }
 
   app-sidebar {
@@ -268,7 +417,6 @@ $mobile-breakpoint: 768px;
       color: white;
     }
   }
-
 }
 
 .main-content-container {
@@ -301,66 +449,98 @@ $mobile-breakpoint: 768px;
   min-height: calc(100vh - #{$topnav-height} - 90px);
 }
 
+// ===== MOBILE STYLES =====
 @media (max-width: $mobile-breakpoint) {
+  // Hide desktop toggle
   .topnav .topnav-toggle-desktop {
     display: none !important;
   }
 
-  .sidebar-container .sidebar-toggle-mobile {
-    display: block !important;
+  // Show mobile menu dropdown toggle in topnav
+  .topnav .topnav-toggle-mobile {
+    display: flex !important;
+    position: relative;
+    left: auto;
+    transform: none;
+    border-radius: 8px;
+    margin-left: 8px;
+    top: 1px;
   }
 
+  // Hide sidebar completely on mobile
+  .sidebar-container {
+    display: none !important;
+  }
+
+  // Show mobile dropdown menu
+  .mobile-menu-dropdown {
+    display: block;
+  }
+
+  // Adjust topnav for mobile
   .topnav {
     width: 100% !important;
     margin-left: 0 !important;
-  }
+    padding: 0 8px;
 
-  .sidebar-container {
-    transform: translateX(-100%);
-    transition: transform $transition-duration ease;
-    left: 0;
-    z-index: 1001;
-
-    &.collapsed {
-      transform: translateX(0);
-      width: $sidebar-width-closed;
+    .wms-navbar {
+      font-size: 16px !important;
+      padding: 0 8px;
+      
+      span {
+        display: inline-block;
+      }
     }
 
-    &:not(.collapsed) {
-      transform: translateX(0);
-      width: 260px;
-    }
-  }
+    .user {
+      margin-right: 8px;
 
-  .sidebar-container:not(.collapsed)+.main-content-container {
-    position: relative;
+      .user-button {
+        padding: 6px 12px;
 
-    &::after {
-      content: "";
-      position: fixed;
-      top: $topnav-height;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 1000;
+        .username {
+          display: none; // Hide username text on very small screens
+        }
+        
+        mat-icon:first-child {
+          margin-right: 0;
+        }
+      }
     }
   }
 
-  .wms-navbar {
-    font-size: 20px !important;
+  // Adjust main content for mobile
+  .main-content-container {
+    margin-left: 0 !important;
+    width: 100%;
+    padding: 8px;
+  }
+
+  .main-content {
+    height: calc(100vh - #{$topnav-height} - 16px);
+  }
+
+  .main-content-area {
+    min-height: calc(100vh - #{$topnav-height} - 70px);
   }
 }
 
+// Tablet and small desktop
 @media (min-width: #{$mobile-breakpoint + 1px}) {
-
-  // Hiển thị toggle ở topnav trên desktop
   .topnav .topnav-toggle-desktop {
     display: flex !important;
   }
 
-  // Ẩn toggle trong sidebar trên desktop
+  .topnav .topnav-toggle-mobile {
+    display: none !important;
+  }
+
   .sidebar-container .sidebar-toggle-mobile {
+    display: none !important;
+  }
+
+  .mobile-menu-dropdown,
+  .mobile-menu-overlay {
     display: none !important;
   }
 }
@@ -401,7 +581,6 @@ nav.mat-tab-nav-bar {
   background: #f5f5f5;
   border-bottom: 1px solid #e0e0e0;
   padding: 0 10px;
-
 
   .custom-tab-link {
     position: relative;

@@ -75,6 +75,7 @@ export class AddYeuCauChuyenKhoComponent implements OnInit {
   };
 
   detailList: DetailItem[] = [];
+  isFooterExpanded: boolean = false;
 
   //phan trang
   pageSizeOptions = [5, 10, 20];
@@ -88,7 +89,7 @@ export class AddYeuCauChuyenKhoComponent implements OnInit {
     private chuyenKhoService: ChuyenKhoService,
     private dialog: MatDialog,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
@@ -234,8 +235,8 @@ export class AddYeuCauChuyenKhoComponent implements OnInit {
       don_vi_nhan: this.mainInfo.tenKhachHang,
       ly_do_xuat_nhap: this.mainInfo.lyDoNhapXuat,
       ma_yc_cknb: this.mainInfo.maChungTu,
-      so_phieu_xuat: this.mainInfo.maPO, 
-      so_chung_tu: this.mainInfo.maChungTu, 
+      so_phieu_xuat: this.mainInfo.maPO,
+      so_chung_tu: this.mainInfo.maChungTu,
       ngay_chung_tu: this.mainInfo.ngayNhap,
       note: this.mainInfo.ghiChu,
       series_pgh: '',

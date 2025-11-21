@@ -33,6 +33,7 @@ import { AddXuatHangTheoDonBanHangComponent } from './xuat-hang-theo-don-ban-han
 import { ConfirmDialogComponent } from './chuyen-kho/dialog/confirm-dialog.component';
 import { ConfirmDialogXuatHangComponent } from './xuat-hang-theo-don-ban-hang/dialog/confirm-dialog.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { AlertDialogComponent } from './nhap-kho/dialog/alert-dialog.component';
 
 @NgModule({
   declarations: [
@@ -40,6 +41,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     NhapKhoComponent,
     XuatHangTheoDonBanHangComponent,
     PheDuyetComponent,
+    AlertDialogComponent,
     ChiTietNhapKhoComponent,
     // ScanCheckDialogComponent,
     QuanLyKhoComponent,

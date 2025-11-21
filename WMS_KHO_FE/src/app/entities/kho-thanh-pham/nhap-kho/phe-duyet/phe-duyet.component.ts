@@ -43,15 +43,19 @@ export class PheDuyetComponent implements OnInit {
   scanPallet: string = '';
   scanLocation: string = '';
 
+  showApproveButton: boolean = true;
+
   displayedColumns: string[] = [
     'stt',
     'palletCode',
     'boxCode',
     'boxQuantity',
+    'updatedBy',
     'updatedDate',
     // 'scanStatus',
     'actions'
   ];
+
 
   mainInfo: MainInfo = {
     maPO: '',
@@ -99,6 +103,8 @@ export class PheDuyetComponent implements OnInit {
     this.nhapKhoService.getImportRequirement(id).subscribe({
       next: (res) => {
         const info = res.data.import_requirement;
+        this.showApproveButton = !info.status;
+
         const containers = res.data.containers || [];
 
         // Tính toán từ containers
@@ -131,12 +137,6 @@ export class PheDuyetComponent implements OnInit {
           updatedDate: this.formatDate(c.updated_date),
           scanStatus: 'Chưa scan',
         }));
-
-        // console.log(' Calculated:', {
-        //   soPallet,
-        //   soThung,
-        //   soLuongSP,
-        // });
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu nhập kho:', err);
@@ -250,7 +250,7 @@ export class PheDuyetComponent implements OnInit {
             duration: 3000,
             panelClass: ['snackbar-success'],
           });
-          this.loadData(this.importId!); 
+          this.loadData(this.importId!);
         },
         error: (err) => {
           console.error('Lỗi khi phê duyệt:', err);

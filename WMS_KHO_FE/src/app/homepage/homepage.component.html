@@ -1,22 +1,43 @@
 <div class="welcome-container">
-  <img src="assets/logo-rang-dong-icon.svg" alt="Logo" class="logo" />
+  <div class="header">
+    <img src="assets/logo-rang-dong-icon.svg" alt="Logo" class="logo" />
+    <h1>Hệ thống quản lý kho</h1>
+  </div>
 
-  <h1>Chào mừng đến với hệ thống quản lý kho</h1>
-  
-  <div *ngIf="!isLoggedIn" #loginButton>
+  <!-- Login Section -->
+  <div *ngIf="!isLoggedIn" class="login-section">
     <p>Vui lòng đăng nhập để sử dụng các chức năng của hệ thống.</p>
     <button mat-raised-button color="primary" (click)="login()">
+      <mat-icon>login</mat-icon>
       Đăng nhập
     </button>
   </div>
 
-  <div *ngIf="isLoggedIn">
-    <p>Xin chào, <b>{{ username$ | async }}</b></p>
-    <button mat-raised-button color="primary" (click)="redirectToArea()" style="margin-right: 1.5rem;">
-      Vào hệ thống
-    </button>
-    <button mat-raised-button color="accent" (click)="logout()">
-      Đăng xuất
-    </button>
+  <!-- Menu Section -->
+  <div *ngIf="isLoggedIn" class="menu-section">
+    <div class="user-greeting">
+      <p>Xin chào, <b>{{ username$ | async }}</b></p>
+      <button mat-icon-button color="accent" (click)="logout()" class="logout-btn">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+
+    <h2 class="menu-title">Chức năng chính</h2>
+
+    <div class="menu-grid">
+      <mat-card 
+        *ngFor="let item of menuItems" 
+        class="menu-card"
+        (click)="navigateTo(item.route)"
+        [style.border-left-color]="item.color">
+        <mat-card-content>
+          <div class="card-icon" [style.background-color]="item.color">
+            <mat-icon>{{ item.icon }}</mat-icon>
+          </div>
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.description }}</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
 </div>

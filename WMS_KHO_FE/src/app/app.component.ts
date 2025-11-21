@@ -17,7 +17,7 @@ import {
   MAT_RIPPLE_GLOBAL_OPTIONS,
 } from '@angular/material/core';
 import { KhoThanhPhamModule } from './entities/kho-thanh-pham/kho-thanh-pham.module';
-import { AuthService } from './services/auth.service'; 
+import { AuthService } from './services/auth.service';
 import { Observable } from 'rxjs';
 
 export interface TabLink {
@@ -55,6 +55,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   username = '';
   isLoggedIn = false;
+  showMobileMenu = false;
+  mobileSubmenuStates: { [key: string]: boolean } = {
+    kho: false,
+    baocao: false
+  };
 
   private routerSubscription: Subscription | undefined;
   private authSubscription?: Subscription;
@@ -214,7 +219,40 @@ export class AppComponent implements OnInit, OnDestroy {
   toggleSidebar(): void {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
+  toggleMobileMenu() {
+    this.showMobileMenu = !this.showMobileMenu;
 
+    // Reset submenu states when closing
+    if (!this.showMobileMenu) {
+      this.resetMobileSubmenuStates();
+    }
+
+    // Prevent body scroll when menu is open
+    if (this.showMobileMenu) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }
+  toggleMobileSubmenu(event: Event, key: string) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.mobileSubmenuStates[key] = !this.mobileSubmenuStates[key];
+  }
+
+
+  resetMobileSubmenuStates() {
+    Object.keys(this.mobileSubmenuStates).forEach(key => {
+      this.mobileSubmenuStates[key] = false;
+    });
+  }
+
+  navigateToMobile(route: string) {
+    this.router.navigate([route]);
+    this.showMobileMenu = false;
+    this.resetMobileSubmenuStates();
+    document.body.style.overflow = '';
+  }
   setActiveTabAndNavigate(tab: TabLink): void {
     this.activeLink = tab;
     this.router.navigate([tab.path]);
@@ -249,7 +287,7 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     }
   }
-  info():void{
+  info(): void {
     this.router.navigate(['/user-info']);
   }
 }

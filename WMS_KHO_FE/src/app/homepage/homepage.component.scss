@@ -1,9 +1,264 @@
 .welcome-container {
-  text-align: center;
-  margin-top: 100px;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .header {
+    text-align: center;
+    margin-bottom: 2rem;
+    animation: fadeInDown 0.6s ease-out;
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+    }
+
+    h1 {
+      color: white;
+      font-size: 2rem;
+      font-weight: 600;
+      margin: 0;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .login-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+    animation: fadeIn 0.8s ease-out;
+
+    p {
+      margin-bottom: 1.5rem;
+      color: #666;
+      font-size: 1rem;
+    }
+
+    button {
+      min-width: 200px;
+      height: 48px;
+      font-size: 1rem;
+      font-weight: 500;
+
+      mat-icon {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+
+  .menu-section {
+    width: 100%;
+    max-width: 1200px;
+    animation: fadeIn 0.8s ease-out;
+
+    .user-greeting {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+      p {
+        margin: 0;
+        color: #333;
+        font-size: 1.1rem;
+      }
+
+      .logout-btn {
+        mat-icon {
+          font-size: 24px;
+        }
+      }
+    }
+
+    .menu-title {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+      padding-bottom: 2rem;
+
+      .menu-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-left: 4px solid;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        animation: fadeInUp 0.6s ease-out;
+        animation-fill-mode: both;
+
+        @for $i from 1 through 10 {
+          &:nth-child(#{$i}) {
+            animation-delay: #{$i * 0.1}s;
+          }
+        }
+
+        &:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        &:active {
+          transform: translateY(-4px);
+        }
+
+        mat-card-content {
+          padding: 1.5rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+
+          .card-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+            mat-icon {
+              color: white;
+              font-size: 32px;
+              width: 32px;
+              height: 32px;
+            }
+          }
+
+          h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+          }
+
+          p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+          }
+        }
+      }
+    }
+  }
 }
 
-.logo {
-  width: 120px;
-  margin-bottom: 20px;
+// Responsive Design
+@media (max-width: 768px) {
+  .welcome-container {
+    padding: 1rem 0.75rem;
+
+    .header {
+      .logo {
+        width: 80px;
+        height: 80px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+
+    .login-section {
+      padding: 1.5rem;
+    }
+
+    .menu-section {
+      .menu-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+
+        .menu-card {
+          mat-card-content {
+            padding: 1rem;
+
+            .card-icon {
+              width: 48px;
+              height: 48px;
+
+              mat-icon {
+                font-size: 24px;
+                width: 24px;
+                height: 24px;
+              }
+            }
+
+            h3 {
+              font-size: 1rem;
+            }
+
+            p {
+              font-size: 0.8rem;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-container {
+    .menu-section {
+      .menu-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

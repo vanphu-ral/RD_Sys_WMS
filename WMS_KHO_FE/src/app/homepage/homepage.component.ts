@@ -1,13 +1,24 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
 
+interface MenuItem {
+  title: string;
+  icon: string;
+  route: string;
+  description: string;
+  roles: string[];
+  color: string;
+}
+
 @Component({
   selector: 'app-homepage',
-  imports: [MatButtonModule, CommonModule],
+  imports: [MatButtonModule, MatIconModule, MatCardModule, CommonModule],
   templateUrl: './homepage.component.html',
   styleUrl: './homepage.component.scss',
 })
@@ -16,6 +27,74 @@ export class HomepageComponent implements OnInit {
   isLoggedIn$ = this.authService.isLoggedIn$;
   username$ = this.authService.username$;
   private isProcessingToken = false;
+
+  menuItems: MenuItem[] = [
+    {
+      title: 'Quản lý Area',
+      icon: 'map',
+      route: '/areas',
+      description: 'Quản lý các khu vực trong kho',
+      roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      color: '#2196F3'
+    },
+    {
+      title: 'Quản lý Vị trí',
+      icon: 'place',
+      route: '/location',
+      description: 'Quản lý vị trí lưu trữ',
+      roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      color: '#4CAF50'
+    },
+    {
+      title: 'Nhập kho SX',
+      icon: 'input',
+      route: '/kho-thanh-pham/nhap-kho-sx',
+      description: 'Nhập kho từ sản xuất',
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      color: '#FF9800'
+    },
+    {
+      title: 'Chuyển kho',
+      icon: 'swap_horiz',
+      route: '/kho-thanh-pham/chuyen-kho-noi-bo',
+      description: 'Chuyển kho nội bộ',
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      color: '#9C27B0'
+    },
+    {
+      title: 'Quản lý Kho',
+      icon: 'inventory_2',
+      route: '/kho-thanh-pham/quan-ly-kho',
+      description: 'Quản lý tồn kho',
+      roles: ['WMS_RD_STOCKOPS', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      color: '#F44336'
+    },
+    {
+      title: 'Xuất hàng',
+      icon: 'local_shipping',
+      route: '/kho-thanh-pham/xuat-don-ban-hang',
+      description: 'Xuất hàng theo đơn bán',
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      color: '#00BCD4'
+    },
+    {
+      title: 'XNT',
+      icon: 'assessment',
+      route: '/bao-cao-thong-ke/tong-hop-xuat-nhap-ton',
+      description: 'Tổng hợp xuất nhập tồn',
+      roles: ['WMS_RD_VIEW', 'WMS_RD_ADMIN'],
+      color: '#795548'
+    },
+    {
+      title: 'Tồn kho',
+      icon: 'bar_chart',
+      route: '/bao-cao-thong-ke/thong-ke-ton-kho',
+      description: 'Thống kê tồn kho',
+      roles: ['WMS_RD_VIEW', 'WMS_RD_ADMIN'],
+      color: '#607D8B'
+    }
+  ];
+
   constructor(
     private route: ActivatedRoute,
     private http: HttpClient,
@@ -24,14 +103,12 @@ export class HomepageComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Kiểm tra đăng nhập từ AuthService
     this.isLoggedIn = this.authService.isAuthenticated();
 
     this.route.queryParams.subscribe((params) => {
       const code = params['code'];
       const error = params['error'];
 
-      // Nếu có error
       if (error) {
         console.error('Keycloak error:', params['error_description']);
         alert('Lỗi đăng nhập: ' + params['error_description']);
@@ -47,7 +124,7 @@ export class HomepageComponent implements OnInit {
 
       if (this.isLoggedIn && !code) {
         console.log('[HomePage] Already logged in, redirecting to areas...');
-        this.router.navigate(['/home']);
+        // Không tự động redirect nữa, để user chọn từ menu
       }
     });
   }
@@ -73,26 +150,22 @@ export class HomepageComponent implements OnInit {
         next: (response: any) => {
           console.log('[HomePage] Token received successfully');
 
-          // Lưu token qua AuthService
           this.authService.setToken(
             response.access_token,
             response.refresh_token,
             response.id_token
           );
           this.isLoggedIn = true;
-          // Lấy thông tin user
           this.getUserInfo(response.access_token);
 
-          // Navigate về trang đã lưu hoặc areas
           const returnUrl = localStorage.getItem('returnUrl') || '/home';
           localStorage.removeItem('returnUrl');
 
           console.log('[HomePage] Navigating to:', returnUrl);
 
-          // Xóa code khỏi URL và navigate
           setTimeout(() => {
             this.router.navigate([returnUrl], {
-              replaceUrl: true, // QUAN TRỌNG: thay thế history thay vì push
+              replaceUrl: true,
             });
           }, 500);
         },
@@ -120,10 +193,7 @@ export class HomepageComponent implements OnInit {
           const username =
             userInfo.preferred_username || userInfo.name || 'User';
 
-          // Lưu username qua AuthService
           this.authService.setUsername(username);
-
-          // Backup vào localStorage
           localStorage.setItem('user_info', JSON.stringify(userInfo));
         },
         error: (err) => {
@@ -141,9 +211,11 @@ export class HomepageComponent implements OnInit {
     console.log('[HomePage] Redirecting to login:', loginUrl);
     window.location.href = loginUrl;
   }
-  redirectToArea(): void {
-    this.router.navigate(['/areas']);
+
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
   }
+
   login() {
     this.authService.initiateLogin();
   }
