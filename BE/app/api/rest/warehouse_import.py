@@ -25,9 +25,9 @@ async def confirm_import_requirement_location(
 @router.patch("/requirements/{requirement_id}/status")
 async def update_import_requirement_status(
     requirement_id: int,
-    status: str,
+    status: bool,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    # current_user: str = Depends(get_current_user)
 ):
     return await WarehouseImportService.update_import_requirement_status(db, requirement_id, status)
 

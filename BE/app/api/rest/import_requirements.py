@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 @router.get("/", response_model=List[dict])
 async def get_import_requirements(
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    # current_user: str = Depends(get_current_user)
 ):
     return await WarehouseImportService.get_import_requirements(db)
 
@@ -29,7 +29,7 @@ async def get_import_requirements(
 async def get_import_requirement_details(
     req_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    # current_user: str = Depends(get_current_user)
 ):
     """Get detailed information for a specific import requirement including containers"""
     try:
@@ -59,6 +59,10 @@ async def get_import_requirement_details(
                     "quantity": import_requirement.quantity,
                     "wo_code": import_requirement.wo_code,
                     "lot_number": import_requirement.lot_number,
+                    "industry": import_requirement.industry,
+                    "production_team": import_requirement.production_team,
+                    "production_decision_number": import_requirement.production_decision_number,
+                    "item_no_sku": import_requirement.item_no_sku,
                     "status": import_requirement.status,
                     "approved_by": import_requirement.approved_by,
                     "is_check_all": import_requirement.is_check_all,
@@ -75,6 +79,7 @@ async def get_import_requirement_details(
                         "serial_pallet": container.serial_pallet,
                         "box_code": container.box_code,
                         "box_quantity": container.box_quantity,
+                        "list_serial_items": container.list_serial_items,
                         "updated_by": container.updated_by,
                         "updated_date": container.updated_date.isoformat() if container.updated_date else None
                     }
@@ -90,7 +95,7 @@ async def get_import_requirement_details(
 async def create_warehouse_import(
     import_request: WarehouseImportRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    # current_user: str = Depends(get_current_user)s
 ):
 
     try:
@@ -118,6 +123,10 @@ async def create_warehouse_import(
                     "quantity": import_requirement.quantity,
                     "wo_code": import_requirement.wo_code,
                     "lot_number": import_requirement.lot_number,
+                    "industry": import_requirement.industry,
+                    "production_team": import_requirement.production_team,
+                    "production_decision_number": import_requirement.production_decision_number,
+                    "item_no_sku": import_requirement.item_no_sku,
                     "status": import_requirement.status,
                     "note": import_requirement.note,
                     "updated_by": import_requirement.updated_by,
@@ -130,6 +139,7 @@ async def create_warehouse_import(
                         "serial_pallet": container.serial_pallet,
                         "box_code": container.box_code,
                         "box_quantity": container.box_quantity,
+                        "list_serial_items": container.list_serial_items,
                         "updated_by": container.updated_by,
                         "updated_date": container.updated_date.isoformat() if container.updated_date else None
                     }

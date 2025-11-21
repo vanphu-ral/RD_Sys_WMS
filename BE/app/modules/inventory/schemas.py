@@ -154,25 +154,27 @@ class LocationListResponse(BaseModel):
 
 class GeneralInfo(BaseModel):
     """Schema for general import information"""
-    ma_po: Optional[str] = None
-    ma_kh: int  # Will be mapped to client_id
-    ma_sp: str
-    ten_sp: str
-    so_pallet: int
-    so_thung: int
-    so_luong_sp: int
-    ma_wo: str
-    so_lot: str
-    ngay_nhap: str
-    ghi_chu: str
-    create_by: int  # Will be mapped to updated_by
+    order_id: Optional[str] = None
+    client_id: Optional[str] = None
+    inventory_name: Optional[str] = None
+    ten_sp: Optional[str] = None
+    wo_code: Optional[str] = None
+    lot_number: Optional[str] = None
+    ngay_nhap: Optional[str] = None
+    ghi_chu: Optional[str] = None
+    create_by: Optional[str] = None
+    industry: Optional[str] = None
+    production_team: Optional[str] = None
+    production_decision_number: Optional[str] = None
+    item_no_sku: Optional[str] = None
 
 
 class Detail(BaseModel):
     """Schema for import detail items"""
-    serial_pallet: str
-    box_code: str
-    quantity: int
+    serial_pallet: Optional[str] = None
+    box_code: Optional[str] = None
+    quantity: Optional[int] = None
+    list_serial_items: Optional[str] = None
 
 
 class WarehouseImportRequest(BaseModel):
@@ -190,7 +192,7 @@ class WarehouseImportResponse(BaseModel):
     inventory_name: Optional[str] = None
     number_of_pallet: Optional[int] = None
     number_of_box: Optional[int] = None
-    quantity: int
+    quantity: Optional[int] = None
     wo_code: str
     lot_number: str
     status: bool
@@ -201,6 +203,10 @@ class WarehouseImportResponse(BaseModel):
     updated_date: datetime
     deleted_at: Optional[datetime] = None
     deleted_by: Optional[str] = None
+    industry: Optional[str] = None
+    production_team: Optional[str] = None
+    production_decision_number: Optional[str] = None
+    item_no_sku: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -213,6 +219,7 @@ class WarehouseImportContainerResponse(BaseModel):
     serial_pallet: Optional[str] = None
     box_code: str
     box_quantity: int
+    list_serial_items: Optional[str] = None
     updated_by: str
     updated_date: datetime
 

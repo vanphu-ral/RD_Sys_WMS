@@ -107,7 +107,7 @@ class InventoryService:
         size: int = 20,
         part_number: Optional[str] = None,
         name: Optional[str] = None,
-        client_id: Optional[int] = None,
+        client_id: Optional[str] = None,
         serial_pallet: Optional[str] = None,
         identifier: Optional[str] = None,
         po: Optional[str] = None,
@@ -850,14 +850,18 @@ class WarehouseImportService:
             
             # Map the general_info to database columns
             warehouse_import_data = {
-                'order_id': int(general_info.get('ma_po', 0)) if str(general_info.get('ma_po', '')).isdigit() else None,
-                'client_id': general_info.get('ma_kh'),
-                'inventory_name': general_info.get('ten_sp'),
-                'number_of_pallet': general_info.get('so_pallet'),
-                'number_of_box': general_info.get('so_thung'),
-                'quantity': general_info.get('so_luong_sp'),
-                'wo_code': general_info.get('ma_wo'),
-                'lot_number': general_info.get('so_lot'),
+                'order_id': general_info.get('order_id'),
+                'client_id': general_info.get('client_id'),
+                'inventory_name': general_info.get('inventory_name'),
+                'number_of_pallet': general_info.get('so_pallet'), # Keep old mapping if needed or update to new field names if they changed in request
+                'number_of_box': general_info.get('so_thung'), # Keep old mapping if needed
+                'quantity': general_info.get('so_luong_sp'), # Keep old mapping if needed
+                'wo_code': general_info.get('wo_code'),
+                'lot_number': general_info.get('lot_number'),
+                'industry': general_info.get('industry'),
+                'production_team': general_info.get('production_team'),
+                'production_decision_number': general_info.get('production_decision_number'),
+                'item_no_sku': general_info.get('item_no_sku'),
                 'status': False,
                 'note': general_info.get('ghi_chu'),
                 'updated_by': str(general_info.get('create_by', ''))
@@ -876,6 +880,7 @@ class WarehouseImportService:
                     serial_pallet=detail.get('serial_pallet'),
                     box_code=detail.get('box_code'),
                     box_quantity=detail.get('quantity'),
+                    list_serial_items=detail.get('list_serial_items'),
                     updated_by=str(general_info.get('create_by', ''))
                 )
                 db.add(container)
@@ -907,6 +912,10 @@ class WarehouseImportService:
                 "quantity": req.quantity,
                 "wo_code": req.wo_code,
                 "lot_number": req.lot_number,
+                "industry": req.industry,
+                "production_team": req.production_team,
+                "production_decision_number": req.production_decision_number,
+                "item_no_sku": req.item_no_sku,
                 "status": req.status,
                 "approved_by": req.approved_by,
                 "is_check_all": req.is_check_all,
@@ -937,9 +946,27 @@ class WarehouseImportService:
             return req
 
     @staticmethod
+    def _convert_to_boolean(value) -> bool:
+        """Convert various types to boolean, handling string representations properly"""
+        if isinstance(value, bool):
+            return value
+        elif isinstance(value, str):
+            # Handle string representations of boolean values
+            if value.lower() in ('true', '1', 'yes', 'on'):
+                return True
+            elif value.lower() in ('false', '0', 'no', 'off', ''):
+                return False
+            else:
+                # For any other non-empty string, treat as truthy
+                return bool(value)
+        else:
+            # For numbers, None, and other types
+            return bool(value)
+
+    @staticmethod
     async def update_import_requirement_status(db: AsyncSession, req_id: int, status: str) -> WarehouseImportRequirement:
         req = await WarehouseImportService.get_import_requirement_by_id(db, req_id)
-        req.status = status
+        req.status = WarehouseImportService._convert_to_boolean(status)
         await db.commit()
         await db.refresh(req)
         return req
