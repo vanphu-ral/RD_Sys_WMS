@@ -168,7 +168,7 @@ export class NhapKhoService {
     batchPayload: { updates: Array<{ import_container_id: number; inventory_identifier: string; quantity_imported?: number; location_id?: number; confirmed?: boolean }> },
     inventoriesPayload: PushInventoryPayload,
     requirementId: number,
-    status: string,
+    // status: string,
     username: string
   ): Observable<any> {
     return this.updateContainerInventories(batchPayload).pipe(
@@ -180,11 +180,11 @@ export class NhapKhoService {
               inventory_identifier: item.identifier,
               updated_by: username
             }),
-            this.updateInventoryLocation({
-              inventory_identifier: item.identifier,
-              location_id: item.location_id,
-              updated_by: username
-            })
+            // this.updateInventoryLocation({
+            //   inventory_identifier: item.identifier,
+            //   location_id: item.location_id,
+            //   updated_by: username
+            // })
           ])
         );
         return forkJoin(updates);

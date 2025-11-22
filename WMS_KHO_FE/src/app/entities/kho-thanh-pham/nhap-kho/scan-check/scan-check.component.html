@@ -47,7 +47,7 @@
                 <mat-form-field class="scan-field" appearance="outline">
                     <mat-label>Location scan...</mat-label>
                     <input matInput [(ngModel)]="scanLocation" placeholder="Location scan..." #locationInput
-                        (keydown.enter)="onLocationScanEnter()"  inputmode="none"/>
+                        (keydown.enter)="onLocationScanEnter()" inputmode="none" />
                 </mat-form-field>
             </div>
         </div>
@@ -150,6 +150,14 @@
 
         </div>
         <div class="mobile-scan-list" *ngIf="scannedList.length > 0">
+            <div class="mobile-global-quantity" *ngIf="scannedList.length > 0">
+                <mat-form-field appearance="outline" class="global-quantity-field">
+                    <mat-label>Số lượng chung</mat-label>
+                    <input matInput type="number" [(ngModel)]="globalQuantity" (keydown.enter)="applyGlobalQuantity()"
+                        (keydown.tab)="applyGlobalQuantity()" />
+                </mat-form-field>
+            </div>
+
             <div class="mobile-scan-card" *ngFor="let item of scannedList; let i = index">
                 <div class="scan-card-header">
                     <div class="card-stt">
@@ -182,8 +190,12 @@
 
                     <div class="info-row">
                         <span class="info-label">Số lượng nhập:</span>
-                        <span class="info-value quantity-badge">{{ item.quantityImported }}</span>
+                        <mat-form-field appearance="outline" class="mobile-quantity-input">
+                            <input matInput type="number" [(ngModel)]="item.quantityImported" min="0"
+                                class="quantity-input" />
+                        </mat-form-field>
                     </div>
+
 
                     <div class="info-row">
                         <span class="info-label">Kho:</span>

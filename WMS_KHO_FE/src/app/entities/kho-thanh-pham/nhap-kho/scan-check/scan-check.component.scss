@@ -129,8 +129,9 @@
     border-radius: 12px;
     font-size: 12px;
     font-weight: 600;
-    text-transform: uppercase;    
+    text-transform: uppercase;
 }
+
 .status-badge.scanned {
     background-color: #d3f6e4 !important;
     color: #14AE5C !important;
@@ -565,6 +566,16 @@
             font-weight: 600;
         }
     }
+
+    .mobile-quantity-input {
+        width: 100px;
+    }
+
+    .global-quantity-field {
+        width: 100%;
+        margin-bottom: 12px;
+    }
+
 
     // Pagination - Mobile friendly
     .pagination {
