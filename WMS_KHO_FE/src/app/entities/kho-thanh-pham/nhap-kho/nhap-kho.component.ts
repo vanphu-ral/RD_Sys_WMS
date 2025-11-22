@@ -30,7 +30,8 @@ export interface NhapKhoItem {
 export class NhapKhoComponent {
   showMobileFilters: boolean = false;
   displayedColumns: string[] = [
-    'id',
+    // 'id',
+    'stt',
     'inventory_name',
     // 'order_id',
     'client_id',

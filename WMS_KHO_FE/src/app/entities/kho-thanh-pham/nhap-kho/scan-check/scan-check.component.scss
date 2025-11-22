@@ -63,7 +63,9 @@
     background-color: #14AE5C !important;
     color: white !important;
 }
-
+::ng-deep .mat-mdc-snack-bar-container{
+    z-index: 2000 !important;
+}
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-position {
     margin-bottom: 75vh;
@@ -346,7 +348,7 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.85);
-    z-index: 9999;
+    z-index: 999;
     display: flex;
     align-items: center;
     justify-content: center;

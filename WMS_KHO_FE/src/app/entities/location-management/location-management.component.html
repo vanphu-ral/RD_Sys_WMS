@@ -34,10 +34,13 @@
             <table mat-table [dataSource]="filteredData" class="location-table">
 
                 <!-- ID Column -->
-                <ng-container matColumnDef="id">
-                    <th mat-header-cell *matHeaderCellDef>ID</th>
-                    <td mat-cell *matCellDef="let location">{{ location.id }}</td>
+                <ng-container matColumnDef="stt">
+                    <th mat-header-cell *matHeaderCellDef>STT</th>
+                    <td mat-cell *matCellDef="let location; let i = index">
+                        {{ i + 1 + (pageSize * (currentPage - 1)) }}
+                    </td>
                 </ng-container>
+
 
                 <!-- Code Column -->
                 <ng-container matColumnDef="code">
@@ -231,13 +234,13 @@
 
         <!-- Mobile Card List -->
         <div class="mobile-location-list">
-            <div class="mobile-location-card" *ngFor="let location of locations">
+            <div class="mobile-location-card" *ngFor="let location of locations; let i = index">
                 <!-- Card Header -->
                 <div class="card-header">
                     <div class="card-id-section">
                         <div class="card-id">
-                            <mat-icon>location_on</mat-icon>
-                            #{{ location.id }}
+                            <mat-icon>tag</mat-icon>
+                            #{{ (pageSize * (currentPage - 1)) + i + 1 }}
                         </div>
                         <div class="card-code">{{ location.code }}</div>
                     </div>

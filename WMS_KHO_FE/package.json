@@ -22,6 +22,7 @@
     "@angular/router": "^19.2.11",
     "@apollo/client": "^3.14.0",
     "@types/chart.js": "^2.9.41",
+    "@zxing/ngx-scanner": "^20.0.0",
     "apollo-angular": "^10.0.3",
     "chart.js": "^4.5.1",
     "devextreme": "^24.2.7",

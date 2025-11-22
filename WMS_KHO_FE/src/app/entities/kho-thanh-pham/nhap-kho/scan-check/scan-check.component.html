@@ -276,12 +276,16 @@
 <div class="qr-scanner-overlay" *ngIf="isScanning" (click)="stopScanning()">
     <div class="qr-scanner-modal" (click)="$event.stopPropagation()">
         <div class="scanner-header">
-            <h3>{{ scannerActive === 'pallet' ? 'Scan Pallet/Thùng' : 'Scan Location' }}</h3>
+            <h3>Quét mã {{ scannerActive === 'pallet' ? 'Scan Pallet/Thùng' : 'Scan Location' }} và mã vị trí</h3>
             <button mat-icon-button (click)="stopScanning()">
                 <mat-icon>close</mat-icon>
             </button>
         </div>
-        <div id="qr-reader" #qrReaderDiv></div>
-        <p class="scanner-hint">Đưa mã QR vào khung hình để quét</p>
+        <zxing-scanner [device]="currentDevice" [formats]="formats" [autostart]="true"
+            (scanSuccess)="onScanSuccess($event)">
+        </zxing-scanner>
+
+
+        <p class="scanner-hint">Đưa lần lượt 2 mã vào khung hình để quét</p>
     </div>
 </div>

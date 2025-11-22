@@ -6,7 +6,7 @@ import { AuthService } from '../../../../services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AlertDialogComponent } from '../dialog/alert-dialog.component';
 import { forkJoin } from 'rxjs';
-import { Html5Qrcode } from 'html5-qrcode';
+import { BarcodeFormat } from '@zxing/library';
 
 export interface ScannedInventory {
   id: number;
@@ -59,6 +59,7 @@ export class ScanCheckComponent implements OnInit {
   scanLocation: string = '';
   selectedMode: 'pallet' | 'thung' | null = null;
   globalQuantity: number | null = null;
+  lastScannedCode: string | null = null;
 
   // Scanned list
   scannedList: ScannedInventory[] = [];
@@ -95,7 +96,9 @@ export class ScanCheckComponent implements OnInit {
   @ViewChild('locationInput') locationInput!: ElementRef;
   @ViewChild('qrReaderDiv') qrReaderDiv?: ElementRef;
   locations: { id: number; code: string }[] = [];
-  private html5QrCode: Html5Qrcode | null = null;
+  currentDevice: MediaDeviceInfo | undefined = undefined;
+  availableDevices: MediaDeviceInfo[] = [];
+  formats: BarcodeFormat[] = [BarcodeFormat.QR_CODE];
   private readonly qrReaderId = 'qr-reader';
   constructor(
     private route: ActivatedRoute,
@@ -276,84 +279,38 @@ export class ScanCheckComponent implements OnInit {
   }
   async openCameraScanner(field: 'pallet' | 'location'): Promise<void> {
     if (!this.selectedMode && field === 'pallet') {
-      this.snackBar.open('Vui lòng chọn mode scan!', 'Đóng', {
-        duration: 3000,
-      });
+      this.snackBar.open('Vui lòng chọn mode scan!', 'Đóng', { duration: 3000 });
       return;
     }
-
     this.scannerActive = field;
     this.isScanning = true;
-
-    // Wait for DOM to render
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    try {
-      this.html5QrCode = new Html5Qrcode(this.qrReaderId);
-
-      await this.html5QrCode.start(
-        { facingMode: "environment" }, // Use back camera
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0
-        },
-        (decodedText) => {
-          this.onScanSuccess(decodedText);
-        },
-        (errorMessage) => {
-          // Ignore scan errors (they happen constantly while scanning)
-        }
-      );
-    } catch (err) {
-      console.error('Camera error:', err);
-      this.snackBar.open('Không thể mở camera. Vui lòng kiểm tra quyền truy cập!', 'Đóng', {
-        duration: 3000,
-      });
-      this.isScanning = false;
-      this.scannerActive = null;
-    }
   }
-
   onScanSuccess(decodedText: string): void {
-    // Fill the appropriate field
-    if (this.scannerActive === 'pallet') {
-      this.scanPallet = decodedText;
-      this.snackBar.open('✓ Đã scan pallet/thùng!', '', {
-        duration: 1500,
-      });
-    } else if (this.scannerActive === 'location') {
-      this.scanLocation = decodedText;
-      this.snackBar.open('✓ Đã scan location!', '', {
-        duration: 1500,
-      });
+    const code = decodedText.trim();
+    if (code === this.lastScannedCode) return;
+    this.lastScannedCode = code;
+
+    if (code.startsWith('P')) {
+      this.scanPallet = code;
+      this.snackBar.open('✓ Đã scan pallet!', '', { duration: 1500 });
+    } else if (code.startsWith('B')) {
+      this.scanPallet = code;
+      this.snackBar.open('✓ Đã scan thùng!', '', { duration: 1500 });
+    } else {
+      this.scanLocation = code;
+      this.snackBar.open('✓ Đã scan location!', '', { duration: 1500 });
     }
 
-    // Stop scanning and continue workflow
-    this.stopScanning();
-
-    // Auto-focus next field or perform scan
-    setTimeout(() => {
-      if (this.scannerActive === 'pallet') {
-        this.locationInput?.nativeElement?.focus();
-      } else if (this.scannerActive === 'location' && this.scanPallet && this.scanLocation) {
-        this.performScan();
-      }
-    }, 100);
+    if (this.scanPallet && this.scanLocation) {
+      this.stopScanning();
+      setTimeout(() => this.performScan(), 100);
+    }
   }
 
-  async stopScanning(): Promise<void> {
-    if (this.html5QrCode && this.html5QrCode.isScanning) {
-      try {
-        await this.html5QrCode.stop();
-        this.html5QrCode.clear();
-      } catch (err) {
-        console.error('Error stopping scanner:', err);
-      }
-    }
+  stopScanning(): void {
+    this.lastScannedCode = null;
     this.isScanning = false;
     this.scannerActive = null;
-    this.html5QrCode = null;
   }
   ngOnDestroy(): void {
     this.stopScanning();

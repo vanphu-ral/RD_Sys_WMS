@@ -28,10 +28,17 @@
             <table mat-table [dataSource]="nhapKhoList" class="nhapkho-table">
 
                 <!-- ID -->
-                <ng-container matColumnDef="id">
+                <!-- <ng-container matColumnDef="id">
                     <th mat-header-cell *matHeaderCellDef>ID</th>
                     <td mat-cell *matCellDef="let item">{{ item.id }}</td>
+                </ng-container> -->
+                <ng-container matColumnDef="stt">
+                    <th mat-header-cell *matHeaderCellDef>STT</th>
+                    <td mat-cell *matCellDef="let item; let i = index">
+                        {{ i + 1 + (pageSize * (currentPage - 1)) }}
+                    </td>
                 </ng-container>
+
                 <ng-container matColumnDef="inventory_name">
                     <th mat-header-cell *matHeaderCellDef>
                         <div>Tên sản phẩm</div>
@@ -231,13 +238,15 @@
 
         <!-- Mobile Card List -->
         <div class="mobile-nhapkho-list">
-            <div class="mobile-nhapkho-card" *ngFor="let item of nhapKhoList">
+            <div class="mobile-nhapkho-card" *ngFor="let item of nhapKhoList; let i = index">
                 <!-- Card Header -->
                 <div class="card-header">
                     <div class="card-id-section">
                         <div class="card-id">
                             <mat-icon>tag</mat-icon>
-                            #{{ item.id }}
+                            #{{ (pageSize * (currentPage - 1)) + i + 1 }}
+
+
                         </div>
                         <div class="card-wo">WO: {{ item.wo_code }}</div>
                     </div>

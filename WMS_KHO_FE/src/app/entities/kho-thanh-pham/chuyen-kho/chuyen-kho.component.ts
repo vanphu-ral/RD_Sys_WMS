@@ -28,7 +28,8 @@ export interface InternalTransferRequest {
 })
 export class ChuyenKhoComponent {
   displayedColumns: string[] = [
-    'id',
+    // 'id',
+    'stt',
     'ma_yc_cknb',
     'tu_kho',
     'den_kho',

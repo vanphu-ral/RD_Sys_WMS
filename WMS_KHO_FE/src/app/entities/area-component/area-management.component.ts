@@ -48,7 +48,8 @@ export class AreaManagementComponent {
   totalItems: number = 0;
   //colmn
   displayedColumns: string[] = [
-    'id',
+    // 'id',
+    'stt',
     'code',
     'name',
     'storekeeper',

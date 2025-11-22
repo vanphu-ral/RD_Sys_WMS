@@ -27,6 +27,11 @@ import { UnauthorizedComponent } from './entities/unauthorized/unauthorized.comp
 
 export const routes: Routes = [
   {
+    path: '',
+    component: HomepageComponent,
+    data: { tabLabel: 'Home', isClosable: false },
+  },
+  {
     path: 'home',
     component: HomepageComponent,
     data: { tabLabel: 'Home', isClosable: false },

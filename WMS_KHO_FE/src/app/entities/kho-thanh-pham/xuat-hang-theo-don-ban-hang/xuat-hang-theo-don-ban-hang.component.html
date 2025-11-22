@@ -32,10 +32,17 @@
         <div class="table-container">
             <table mat-table [dataSource]="pagedSalesRequests" class="chuyenkho-table">
                 <!-- ID Column -->
-                <ng-container matColumnDef="id">
+                <!-- <ng-container matColumnDef="id">
                     <th mat-header-cell *matHeaderCellDef style="width: 50px !important; min-width: 50px;">ID</th>
                     <td mat-cell *matCellDef="let chuyenkho">{{chuyenkho.id}}</td>
+                </ng-container> -->
+                <ng-container matColumnDef="stt">
+                    <th mat-header-cell *matHeaderCellDef style="width: 50px; min-width: 50px;">STT</th>
+                    <td mat-cell *matCellDef="let chuyenkho; let i = index">
+                        {{ i + 1 + (pageSize * (currentPage - 1)) }}
+                    </td>
                 </ng-container>
+
 
                 <!-- Code Column -->
                 <ng-container matColumnDef="ma_yc_xk">
@@ -249,7 +256,7 @@
                 <input matInput [(ngModel)]="filterValues.don_vi_linh" (keyup.enter)="applyFilter()">
                 <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
-             <mat-form-field class="filter-field" appearance="outline">
+            <mat-form-field class="filter-field" appearance="outline">
                 <mat-label>Đơn vị nhận</mat-label>
                 <input matInput [(ngModel)]="filterValues.don_vi_nhan" (keyup.enter)="applyFilter()">
                 <mat-icon matSuffix>search</mat-icon>
@@ -287,14 +294,14 @@
 
         <!-- Mobile Card List -->
         <div class="mobile-chuyenkho-list">
-            <div class="mobile-chuyenkho-card" *ngFor="let item of filteredData">
+            <div class="mobile-chuyenkho-card" *ngFor="let item of filteredData; let i = index">
                 <!-- Card Header -->
                 <div class="card-header">
                     <div class="card-main-info">
                         <div class="card-id">
                             <mat-icon>tag</mat-icon>
                             <span class="id-text">ID:</span>
-                            <span class="id-value">#{{item.id}}</span>
+                            <span class="id-value">#{{ (pageSize * (currentPage - 1)) + i + 1 }}</span>
                         </div>
                         <div class="card-code">{{item.ma_yc_xk}}</div>
                     </div>
@@ -328,7 +335,8 @@
                     <div class="info-row">
                         <span class="label">Đơn vị lĩnh</span>
                         <span class="value">{{item.don_vi_linh}}</span>
-                    </div><div class="info-row">
+                    </div>
+                    <div class="info-row">
                         <span class="label">Đơn vị nhận</span>
                         <span class="value">{{item.don_vi_nhan}}</span>
                     </div>

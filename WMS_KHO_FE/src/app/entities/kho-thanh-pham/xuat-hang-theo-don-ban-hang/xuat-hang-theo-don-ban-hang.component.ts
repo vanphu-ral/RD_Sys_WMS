@@ -29,7 +29,8 @@ export interface SalesExportRequest {
 })
 export class XuatHangTheoDonBanHangComponent {
   displayedColumns: string[] = [
-    'id',
+    // 'id',
+    'stt',
     'ma_yc_xk',
     'kho_xuat',
     'xuat_toi',

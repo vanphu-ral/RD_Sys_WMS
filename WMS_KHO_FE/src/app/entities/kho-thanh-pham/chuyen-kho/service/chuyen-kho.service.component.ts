@@ -8,21 +8,24 @@ import { environment } from '../../../../../environments/environment';
 export class ChuyenKhoService {
   private apiUrl = environment.apiUrl;   //dùng biến môi trường
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getWarehouses(): Observable<{ id: number; name: string }[]> {
     return this.http.get<any>(`${this.apiUrl}/areas`).pipe(
       map((res) =>
         Array.isArray(res.data)
           ? res.data.map((item: any) => ({
-              id: item.id,
-              name: item.name,
-            }))
+            id: item.id,
+            name: item.name,
+          }))
           : []
       )
     );
   }
-
+  // Danh sách kho minimal
+  getMinimalLocations(): Observable<{ id: number; code: string }[]> {
+    return this.http.get<{ id: number; code: string }[]>(`${this.apiUrl}/locations/minimal`);
+  }
   getInternalTransfers(): Observable<InternalTransferRequest[]> {
     return this.http.get<InternalTransferRequest[]>(`${this.apiUrl}/iwtr/requests`);
   }

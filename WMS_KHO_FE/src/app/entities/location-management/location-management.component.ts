@@ -44,7 +44,8 @@ export class LocationManagementComponent implements OnInit {
   originalData: any[] = [];
   filteredData: any[] = [];
   displayedColumns: string[] = [
-    'id',
+    // 'id',
+    'stt',
     'code',
     // 'name',
     'description',

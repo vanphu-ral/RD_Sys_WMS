@@ -36,6 +36,7 @@ import { ConfirmDialogComponent } from './chuyen-kho/dialog/confirm-dialog.compo
 import { ConfirmDialogXuatHangComponent } from './xuat-hang-theo-don-ban-hang/dialog/confirm-dialog.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AlertDialogComponent } from './nhap-kho/dialog/alert-dialog.component';
+import { HttpClientModule } from '@angular/common/http';
 
 import { APOLLO_OPTIONS } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
@@ -46,6 +47,7 @@ import { InventoryGraphqlService } from './quan-ly-kho/service/inventory-graphql
 import { inject } from '@angular/core';
 import { AuthService } from '../../services/auth.service'; 
 import { Router } from '@angular/router';
+import { ZXingScannerModule } from '@zxing/ngx-scanner';
 
 /**
  * Apollo Client Factory với Authentication & Error Handling
@@ -112,7 +114,7 @@ export function createApollo(httpLink: HttpLink): ApolloClientOptions<any> {
 
   // HTTP Link
   const http = httpLink.create({
-    uri: 'http://192.168.20.101:8050/graphql',
+    uri: 'http://192.168.20.101:8050/graphql', 
   });
 
   // Combine all links: Error -> Auth -> HTTP
@@ -203,9 +205,11 @@ export function createApollo(httpLink: HttpLink): ApolloClientOptions<any> {
     RouterLinkWithHref,
     MatSelectModule,
     FormsModule,
+    ZXingScannerModule,
     MatCheckboxModule,
     MatInputModule,
     MatFormFieldModule,
+    HttpClientModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
     MatTableModule,

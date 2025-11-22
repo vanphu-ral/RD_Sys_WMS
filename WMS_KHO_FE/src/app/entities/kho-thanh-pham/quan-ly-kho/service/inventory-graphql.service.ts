@@ -1,8 +1,8 @@
-// inventory.service.ts
 import { Injectable } from '@angular/core';
 import { Apollo, gql } from 'apollo-angular';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 
 // Interfaces
 export interface InventoryDashboardItem {
@@ -169,7 +169,9 @@ const INVENTORY_DASHBOARD_GROUPED_QUERY = gql`
     providedIn: 'root'
 })
 export class InventoryGraphqlService {
-    constructor(private apollo: Apollo) { }
+    constructor(private apollo: Apollo) {
+        console.log('[InventoryGraphqlService] Initialized');
+    }
 
     /**
      * Lấy dữ liệu inventory dashboard mặc định (chi tiết)
@@ -187,17 +189,71 @@ export class InventoryGraphqlService {
         status?: string;
         updated_by?: string;
     }): Observable<InventoryDashboardResponse> {
+        console.log('[InventoryGraphqlService] getInventoryDashboard called with params:', params);
+
         return this.apollo
             .query<{ inventoryDashboard: InventoryDashboardResponse }>({
                 query: INVENTORY_DASHBOARD_QUERY,
                 variables: {
                     page: params.page || 1,
                     size: params.size || 20,
-                    ...params
+                    name: params.name || null,
+                    client_id: params.client_id || null,
+                    serial_pallet: params.serial_pallet || null,
+                    identifier: params.identifier || null,
+                    po: params.po || null,
+                    location_id: params.location_id || null,
+                    area_id: params.area_id || null,
+                    status: params.status || null,
+                    updated_by: params.updated_by || null
                 },
-                fetchPolicy: 'network-only'
+                fetchPolicy: 'network-only',
+                errorPolicy: 'all'
             })
-            .pipe(map(result => result.data.inventoryDashboard));
+            .pipe(
+                map(result => {
+                    console.log('[InventoryGraphqlService] Raw Apollo result:', result);
+
+                    // Kiểm tra xem result có data không
+                    if (!result || !result.data) {
+                        console.error('[InventoryGraphqlService] No data in result:', result);
+                        throw new Error('No data returned from GraphQL query');
+                    }
+
+                    // Kiểm tra xem inventoryDashboard có tồn tại không
+                    if (!result.data.inventoryDashboard) {
+                        console.error('[InventoryGraphqlService] inventoryDashboard is undefined:', result.data);
+                        throw new Error('inventoryDashboard field is undefined in response');
+                    }
+
+                    const dashboard = result.data.inventoryDashboard;
+                    console.log('[InventoryGraphqlService] Dashboard data:', dashboard);
+
+                    // Đảm bảo response có structure đúng
+                    const response: InventoryDashboardResponse = {
+                        data: dashboard.data || [],
+                        meta: dashboard.meta || {
+                            page: params.page || 1,
+                            size: params.size || 20,
+                            total_items: 0,
+                            total_pages: 0
+                        }
+                    };
+
+                    console.log('[InventoryGraphqlService] Mapped response:', response);
+                    return response;
+                }),
+                catchError(error => {
+                    console.error('[InventoryGraphqlService] Error in getInventoryDashboard:', error);
+                    console.error('[InventoryGraphqlService] Error details:', {
+                        message: error.message,
+                        graphQLErrors: error.graphQLErrors,
+                        networkError: error.networkError,
+                        extraInfo: error.extraInfo
+                    });
+                    return throwError(() => error);
+                })
+            );
     }
 
     /**
@@ -217,7 +273,8 @@ export class InventoryGraphqlService {
         status?: string;
         updated_by?: string;
     }): Observable<InventoryGroupedResponse> {
-        // Destructure to avoid duplicating group_by in the spread
+        console.log('[InventoryGraphqlService] getInventoryDashboardGrouped called with params:', params);
+
         const { group_by, page = 1, size = 20, ...filters } = params;
 
         return this.apollo
@@ -227,11 +284,59 @@ export class InventoryGraphqlService {
                     group_by,
                     page,
                     size,
-                    ...filters
+                    name: filters.name || null,
+                    client_id: filters.client_id || null,
+                    serial_pallet: filters.serial_pallet || null,
+                    identifier: filters.identifier || null,
+                    po: filters.po || null,
+                    location_id: filters.location_id || null,
+                    area_id: filters.area_id || null,
+                    status: filters.status || null,
+                    updated_by: filters.updated_by || null
                 },
-                fetchPolicy: 'network-only'
+                fetchPolicy: 'network-only',
+                errorPolicy: 'all'
             })
-            .pipe(map(result => result.data.inventoryDashboardGrouped));
+            .pipe(
+                map(result => {
+                    console.log('[InventoryGraphqlService] Grouped raw result:', result);
+
+                    if (!result || !result.data) {
+                        console.error('[InventoryGraphqlService] No data in grouped result:', result);
+                        throw new Error('No data returned from GraphQL grouped query');
+                    }
+
+                    if (!result.data.inventoryDashboardGrouped) {
+                        console.error('[InventoryGraphqlService] inventoryDashboardGrouped is undefined:', result.data);
+                        throw new Error('inventoryDashboardGrouped field is undefined in response');
+                    }
+
+                    const grouped = result.data.inventoryDashboardGrouped;
+                    console.log('[InventoryGraphqlService] Grouped data:', grouped);
+
+                    const response: InventoryGroupedResponse = {
+                        data: grouped.data || [],
+                        meta: grouped.meta || {
+                            page,
+                            size,
+                            total_items: 0,
+                            total_pages: 0
+                        }
+                    };
+
+                    console.log('[InventoryGraphqlService] Mapped grouped response:', response);
+                    return response;
+                }),
+                catchError(error => {
+                    console.error('[InventoryGraphqlService] Error in getInventoryDashboardGrouped:', error);
+                    console.error('[InventoryGraphqlService] Error details:', {
+                        message: error.message,
+                        graphQLErrors: error.graphQLErrors,
+                        networkError: error.networkError
+                    });
+                    return throwError(() => error);
+                })
+            );
     }
 
     /**
