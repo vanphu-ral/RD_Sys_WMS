@@ -32,11 +32,9 @@
                     <th mat-header-cell *matHeaderCellDef>ID</th>
                     <td mat-cell *matCellDef="let item">{{ item.id }}</td>
                 </ng-container>
-
-                <!-- Tên kho -->
                 <ng-container matColumnDef="inventory_name">
                     <th mat-header-cell *matHeaderCellDef>
-                        <div>Tên kho</div>
+                        <div>Tên sản phẩm</div>
                         <mat-form-field class="search-field" appearance="outline">
                             <input matInput [(ngModel)]="filterValues.inventory_name" (keyup.enter)="applyFilter()" />
                         </mat-form-field>
@@ -56,10 +54,10 @@
                 </ng-container>
 
                 <!-- Mã đơn hàng -->
-                <ng-container matColumnDef="order_id">
+                <!-- <ng-container matColumnDef="order_id">
                     <th mat-header-cell *matHeaderCellDef>Mã đơn hàng</th>
                     <td mat-cell *matCellDef="let item">{{ item.order_id }}</td>
-                </ng-container>
+                </ng-container> -->
 
                 <!-- Mã khách hàng -->
                 <ng-container matColumnDef="client_id">
@@ -92,10 +90,10 @@
                 </ng-container>
 
                 <!-- Người phê duyệt -->
-                <ng-container matColumnDef="approved_by">
+                <!-- <ng-container matColumnDef="approved_by">
                     <th mat-header-cell *matHeaderCellDef>Phê duyệt bởi</th>
                     <td mat-cell *matCellDef="let item">{{ item.approved_by || '—' }}</td>
-                </ng-container>
+                </ng-container> -->
 
                 <!-- Ghi chú -->
                 <ng-container matColumnDef="note">

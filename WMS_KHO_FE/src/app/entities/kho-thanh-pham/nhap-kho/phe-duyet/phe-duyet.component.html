@@ -26,7 +26,6 @@
                             <th>Mã PO</th>
                             <th>Mã sản phẩm</th>
                             <th>Mã khách hàng</th>
-                            <th>Tên sản phẩm</th>
                             <th>Số pallet</th>
                             <th>Số thùng</th>
                             <th>Số lượng SP</th>
@@ -38,17 +37,16 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>{{mainInfo.maPO}}</td>
-                            <td>{{mainInfo.maSanPham}}</td>
-                            <td>{{mainInfo.maKhachHang}}</td>
-                            <td>{{mainInfo.tenSanPham}}</td>
+                            <td>{{mainInfo.po_code}}</td>
+                            <td>{{mainInfo.inventory_name}}</td>
+                            <td>{{mainInfo.client_id}}</td>
                             <td>{{mainInfo.soPallet}}</td>
                             <td>{{mainInfo.soThung}}</td>
                             <td>{{mainInfo.soLuongSP}}</td>
-                            <td>{{mainInfo.maWO}}</td>
-                            <td>{{mainInfo.soLOT}}</td>
-                            <td>{{mainInfo.ngayNhap}}</td>
-                            <td>{{mainInfo.ghiChu}}</td>
+                            <td>{{mainInfo.wo_code}}</td>
+                            <td>{{mainInfo.lot_number}}</td>
+                            <td>{{mainInfo.updated_date}}</td>
+                            <td>{{mainInfo.note}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -65,23 +63,23 @@
                 <div class="main-codes">
                     <div class="code-box">
                         <div class="code-label">Mã PO</div>
-                        <div class="code-value">{{mainInfo.maPO}}</div>
+                        <div class="code-value">{{mainInfo.po_code}}</div>
                     </div>
-                    <div class="code-box">
+                    <!-- <div class="code-box">
                         <div class="code-label">Mã SP</div>
-                        <div class="code-value">{{mainInfo.maSanPham}}</div>
-                    </div>
+                        <div class="code-value">{{mainInfo.inventory_name}}</div>
+                    </div> -->
                     <div class="code-box">
                         <div class="code-label">Mã KH</div>
-                        <div class="code-value">{{mainInfo.maKhachHang}}</div>
+                        <div class="code-value">{{mainInfo.client_id}}</div>
                     </div>
                     <div class="code-box">
                         <div class="code-label">Mã WO</div>
-                        <div class="code-value">{{mainInfo.maWO}}</div>
+                        <div class="code-value">{{mainInfo.wo_code}}</div>
                     </div>
                 </div>
 
-                <div class="product-name">{{mainInfo.tenSanPham}}</div>
+                <div class="product-name">{{mainInfo.inventory_name}}</div>
             </div>
 
             <!-- Stats Grid -->
@@ -113,15 +111,15 @@
             <div class="additional-info">
                 <div class="info-row">
                     <span class="label">Số LOT</span>
-                    <span class="value">{{mainInfo.soLOT}}</span>
+                    <span class="value">{{mainInfo.lot_number}}</span>
                 </div>
                 <div class="info-row">
                     <span class="label">Ngày nhập</span>
-                    <span class="value">{{mainInfo.ngayNhap}}</span>
+                    <span class="value">{{mainInfo.updated_date}}</span>
                 </div>
-                <div class="info-row" *ngIf="mainInfo.ghiChu">
+                <div class="info-row">
                     <span class="label">Ghi chú</span>
-                    <span class="value">{{mainInfo.ghiChu}}</span>
+                    <span class="value">{{mainInfo.note}}</span>
                 </div>
             </div>
         </div>

@@ -3,15 +3,12 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root'
 })
-export class SidebarService { 
-toggled = false;
-  
+export class SidebarService {
+  toggled = false;
+
   menus = [
-      {
-      title: 'Quản Lý Kho',
-      type: 'home',
-      link: '/areas',
-    },
+    { title: 'Trang chủ', type: 'home', link: '/home', icon: 'home' },
+    { title: 'Quản Lý Kho', type: 'area', link: '/areas', icon: 'map' },
     {
       title: 'Quản Lý Vị Trí',
       active: false,
@@ -34,12 +31,12 @@ toggled = false;
           link: '/kho-thanh-pham/chuyen-kho-noi-bo',
         },
         {
-          title: 'Quản lý kho',
-          link: '/kho-thanh-pham/quan-ly-kho',
-        },
-        {
           title: 'Xuất hàng theo đơn bán',
           link: '/kho-thanh-pham/xuat-don-ban-hang',
+        },
+        {
+          title: 'Quản lý kho',
+          link: '/kho-thanh-pham/quan-ly-kho',
         },
       ]
     },
@@ -63,7 +60,7 @@ toggled = false;
   constructor() { }
 
   toggle() {
-    this.toggled = ! this.toggled;
+    this.toggled = !this.toggled;
   }
 
   getSidebarState() {

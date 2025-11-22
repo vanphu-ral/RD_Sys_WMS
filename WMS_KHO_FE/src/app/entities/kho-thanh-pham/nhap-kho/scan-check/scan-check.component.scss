@@ -339,6 +339,118 @@
     display: none; // Ẩn trên desktop
 }
 
+.qr-scanner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+}
+
+.qr-scanner-modal {
+    background: white;
+    border-radius: 16px;
+    max-width: 500px;
+    width: 100%;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.scanner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #14AE5C 0%, #0d8a47 100%);
+    color: white;
+
+    h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    button {
+        color: white;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    }
+}
+
+#qr-reader {
+    width: 100%;
+    min-height: 300px;
+    border: none;
+}
+
+.scanner-hint {
+    text-align: center;
+    padding: 16px;
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+    background: #f8fafc;
+}
+
+/* Input with Camera Button */
+.input-with-camera {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+
+    .scan-field {
+        flex: 1;
+    }
+
+    .camera-btn {
+        margin-top: 8px; // Align với input field
+        color: #14AE5C;
+        background: #f0fdf4;
+        border-radius: 8px;
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+
+        mat-icon {
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+        }
+
+        &:hover:not(:disabled) {
+            background: #dcfce7;
+        }
+
+        &:disabled {
+            color: rgba(0, 0, 0, 0.26);
+            background: #f8fafc;
+        }
+    }
+}
+
 
 @media (max-width: 768px) {
 
@@ -376,6 +488,43 @@
             .subtitle {
                 font-size: 12px;
                 margin-top: 2px;
+            }
+        }
+    }
+
+    .qr-scanner-modal {
+        max-width: 100%;
+        margin: 0;
+        border-radius: 12px;
+    }
+
+    #qr-reader {
+        min-height: 250px;
+    }
+
+    .scanner-header {
+        padding: 14px 16px;
+
+        h3 {
+            font-size: 16px;
+        }
+    }
+
+    .scanner-hint {
+        padding: 12px;
+        font-size: 13px;
+    }
+
+    .input-with-camera {
+        .camera-btn {
+            width: 44px;
+            height: 44px;
+            margin-top: 6px;
+
+            mat-icon {
+                font-size: 22px;
+                width: 22px;
+                height: 22px;
             }
         }
     }
@@ -431,6 +580,10 @@
     .scan-inputs {
         grid-template-columns: 1fr;
         gap: 12px;
+
+        .input-with-camera {
+            width: 100%;
+        }
 
         .scan-field {
             width: 100%;
@@ -622,6 +775,18 @@
 @media (max-width: 480px) {
     .chuyen-kho-detail-container {
         padding: 6px;
+    }
+
+    .qr-scanner-overlay {
+        padding: 12px;
+    }
+
+    .qr-scanner-modal {
+        border-radius: 8px;
+    }
+
+    #qr-reader {
+        min-height: 200px;
     }
 
     .chuyen-kho-detail-header {

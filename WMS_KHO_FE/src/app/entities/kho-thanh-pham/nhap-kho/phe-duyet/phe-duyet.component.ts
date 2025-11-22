@@ -16,17 +16,17 @@ export interface DetailItem {
 }
 
 export interface MainInfo {
-  maPO: string;
-  maSanPham: string;
-  maKhachHang: string;
-  tenSanPham: string;
+  po_code: string;
+  inventory_name: string;
+  client_id: string;
+  // tenSanPham: string;
   soPallet: number;
   soThung: number;
   soLuongSP: number;
-  maWO: number;
-  soLOT: string;
-  ngayNhap: string;
-  ghiChu: string;
+  wo_code: string;
+  lot_number: string;
+  updated_date: string;
+  note: string;
 }
 
 @Component({
@@ -57,17 +57,16 @@ export class PheDuyetComponent implements OnInit {
 
 
   mainInfo: MainInfo = {
-    maPO: '',
-    maSanPham: '',
-    maKhachHang: '',
-    tenSanPham: '',
+    po_code: '',
+    inventory_name: '',
+    client_id: '',
     soPallet: 0,
     soThung: 0,
     soLuongSP: 0,
-    maWO: 0,
-    soLOT: '',
-    ngayNhap: '',
-    ghiChu: '',
+    wo_code: '',
+    lot_number: '',
+    updated_date: '',
+    note: '',
   };
 
   pageSize: number = 10;
@@ -119,17 +118,16 @@ export class PheDuyetComponent implements OnInit {
         const soLuongSP = containers.reduce((sum: number, c: any) => sum + (c.box_quantity || 0), 0);
 
         this.mainInfo = {
-          maPO: info.po_code || '',
-          maSanPham: '',
-          maKhachHang: String(info.client_id),
-          tenSanPham: info.inventory_name || '',
+          po_code: info.po_code || '',
+          inventory_name: info.inventory_name || '',
+          client_id: String(info.client_id),
           soPallet: soPallet,
           soThung: soThung,
           soLuongSP: soLuongSP,
-          maWO: Number(info.wo_code) || 0,
-          soLOT: info.lot_number || '',
-          ngayNhap: this.formatDate(info.updated_date),
-          ghiChu: info.note || '',
+          wo_code: info.wo_code,
+          lot_number: info.lot_number || '',
+          updated_date: this.formatDate(info.updated_date),
+          note: info.note || '',
         };
 
         this.detailList = containers.map((c: any): DetailItem => ({

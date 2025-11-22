@@ -1,5 +1,44 @@
 @use "@angular/material" as mat;
+.error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+  }
+}
 
+.success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+  }
+}
+
+.warning-snackbar {
+  background-color: #ff9800 !important;
+  color: white !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+  }
+}
+
+.info-snackbar {
+  background-color: #2196f3 !important;
+  color: white !important;
+  
+  .mat-simple-snackbar-action {
+    color: white !important;
+  }
+}
+
+.loading-snackbar {
+  background-color: #607d8b !important;
+  color: white !important;
+}
 .nhapkho-container {
     padding: 10px;
     background-color: #f8fafc;

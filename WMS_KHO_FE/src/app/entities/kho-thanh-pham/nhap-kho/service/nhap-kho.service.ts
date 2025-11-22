@@ -61,15 +61,18 @@ export interface UpdateLocationPayload {
 }
 
 export interface PushInventoryPayload {
-  inventories: Array<{
+  inventories: {
     identifier: string;
     initial_quantity: number;
     location_id: number;
     name: string;
-    sap_code: string;
     serial_pallet: string;
-  }>;
+    updated_by: string;
+    sap_code: string;
+    part_number: string;
+  }[];
 }
+
 export interface UpdateQuantityPayload {
   available_quantity: number;
   inventory_identifier: string;

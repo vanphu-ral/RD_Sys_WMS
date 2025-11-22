@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
+import { environment } from '../../../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class QuanLyKhoService {
-  private baseUrl = 'http://192.168.20.101:8050/api';
+  private baseUrl = environment.apiUrl;      
 
   constructor(private http: HttpClient) {}
 

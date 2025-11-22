@@ -5,7 +5,8 @@ import { NhapKhoService, PushInventoryPayload } from '../service/nhap-kho.servic
 import { AuthService } from '../../../../services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AlertDialogComponent } from '../dialog/alert-dialog.component';
-// import { Html5Qrcode } from 'html5-qrcode';
+import { forkJoin } from 'rxjs';
+import { Html5Qrcode } from 'html5-qrcode';
 
 export interface ScannedInventory {
   id: number;
@@ -26,6 +27,7 @@ export interface ScannedInventory {
   scanBy: string;
   timeChecked: string;
   confirmed: boolean;
+  part_number?: string;
 }
 export interface ContainerInfo {
   id: number;
@@ -93,7 +95,7 @@ export class ScanCheckComponent implements OnInit {
   @ViewChild('locationInput') locationInput!: ElementRef;
   @ViewChild('qrReaderDiv') qrReaderDiv?: ElementRef;
   locations: { id: number; code: string }[] = [];
-  // private html5QrCode: Html5Qrcode | null = null;
+  private html5QrCode: Html5Qrcode | null = null;
   private readonly qrReaderId = 'qr-reader';
   constructor(
     private route: ActivatedRoute,
@@ -245,7 +247,7 @@ export class ScanCheckComponent implements OnInit {
     setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
     this.scanPallet = '';
     this.scanLocation = '';
-    // this.stopScanning();
+    this.stopScanning();
   }
 
   // Enter từ pallet input
@@ -272,87 +274,90 @@ export class ScanCheckComponent implements OnInit {
 
     this.performScan();
   }
-  // async openCameraScanner(field: 'pallet' | 'location'): Promise<void> {
-  //   if (!this.selectedMode && field === 'pallet') {
-  //     this.snackBar.open('Vui lòng chọn mode scan!', 'Đóng', {
-  //       duration: 3000,
-  //     });
-  //     return;
-  //   }
+  async openCameraScanner(field: 'pallet' | 'location'): Promise<void> {
+    if (!this.selectedMode && field === 'pallet') {
+      this.snackBar.open('Vui lòng chọn mode scan!', 'Đóng', {
+        duration: 3000,
+      });
+      return;
+    }
 
-  //   this.scannerActive = field;
-  //   this.isScanning = true;
+    this.scannerActive = field;
+    this.isScanning = true;
 
-  //   // Wait for DOM to render
-  //   await new Promise(resolve => setTimeout(resolve, 100));
+    // Wait for DOM to render
+    await new Promise(resolve => setTimeout(resolve, 100));
 
-  //   try {
-  //     this.html5QrCode = new Html5Qrcode(this.qrReaderId);
+    try {
+      this.html5QrCode = new Html5Qrcode(this.qrReaderId);
 
-  //     await this.html5QrCode.start(
-  //       { facingMode: "environment" }, // Use back camera
-  //       {
-  //         fps: 10,
-  //         qrbox: { width: 250, height: 250 },
-  //         aspectRatio: 1.0
-  //       },
-  //       (decodedText) => {
-  //         this.onScanSuccess(decodedText);
-  //       },
-  //       (errorMessage) => {
-  //         // Ignore scan errors (they happen constantly while scanning)
-  //       }
-  //     );
-  //   } catch (err) {
-  //     console.error('Camera error:', err);
-  //     this.snackBar.open('Không thể mở camera. Vui lòng kiểm tra quyền truy cập!', 'Đóng', {
-  //       duration: 3000,
-  //     });
-  //     this.isScanning = false;
-  //     this.scannerActive = null;
-  //   }
-  // }
+      await this.html5QrCode.start(
+        { facingMode: "environment" }, // Use back camera
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0
+        },
+        (decodedText) => {
+          this.onScanSuccess(decodedText);
+        },
+        (errorMessage) => {
+          // Ignore scan errors (they happen constantly while scanning)
+        }
+      );
+    } catch (err) {
+      console.error('Camera error:', err);
+      this.snackBar.open('Không thể mở camera. Vui lòng kiểm tra quyền truy cập!', 'Đóng', {
+        duration: 3000,
+      });
+      this.isScanning = false;
+      this.scannerActive = null;
+    }
+  }
 
-  // onScanSuccess(decodedText: string): void {
-  //   // Fill the appropriate field
-  //   if (this.scannerActive === 'pallet') {
-  //     this.scanPallet = decodedText;
-  //     this.snackBar.open('✓ Đã scan pallet/thùng!', '', {
-  //       duration: 1500,
-  //     });
-  //   } else if (this.scannerActive === 'location') {
-  //     this.scanLocation = decodedText;
-  //     this.snackBar.open('✓ Đã scan location!', '', {
-  //       duration: 1500,
-  //     });
-  //   }
+  onScanSuccess(decodedText: string): void {
+    // Fill the appropriate field
+    if (this.scannerActive === 'pallet') {
+      this.scanPallet = decodedText;
+      this.snackBar.open('✓ Đã scan pallet/thùng!', '', {
+        duration: 1500,
+      });
+    } else if (this.scannerActive === 'location') {
+      this.scanLocation = decodedText;
+      this.snackBar.open('✓ Đã scan location!', '', {
+        duration: 1500,
+      });
+    }
 
-  //   // Stop scanning and continue workflow
-  //   this.stopScanning();
+    // Stop scanning and continue workflow
+    this.stopScanning();
 
-  //   // Auto-focus next field or perform scan
-  //   setTimeout(() => {
-  //     if (this.scannerActive === 'pallet') {
-  //       this.locationInput?.nativeElement?.focus();
-  //     } else if (this.scannerActive === 'location' && this.scanPallet && this.scanLocation) {
-  //       this.performScan();
-  //     }
-  //   }, 100);
-  // }
+    // Auto-focus next field or perform scan
+    setTimeout(() => {
+      if (this.scannerActive === 'pallet') {
+        this.locationInput?.nativeElement?.focus();
+      } else if (this.scannerActive === 'location' && this.scanPallet && this.scanLocation) {
+        this.performScan();
+      }
+    }, 100);
+  }
 
-  // async stopScanning(): Promise<void> {
-  //   if (this.html5QrCode && this.html5QrCode.isScanning) {
-  //     try {
-  //       await this.html5QrCode.stop();
-  //       this.html5QrCode.clear();
-  //     } catch (err) {
-  //       console.error('Error stopping scanner:', err);
-  //     }
-  //   }
-  //   this.isScanning = false;
-  //   this.scannerActive = null;
-  //   this.html5QrCode = null;
-  // }
+  async stopScanning(): Promise<void> {
+    if (this.html5QrCode && this.html5QrCode.isScanning) {
+      try {
+        await this.html5QrCode.stop();
+        this.html5QrCode.clear();
+      } catch (err) {
+        console.error('Error stopping scanner:', err);
+      }
+    }
+    this.isScanning = false;
+    this.scannerActive = null;
+    this.html5QrCode = null;
+  }
+  ngOnDestroy(): void {
+    this.stopScanning();
+  }
 
   // Thực hiện scan
   performScan(): void {
@@ -373,9 +378,9 @@ export class ScanCheckComponent implements OnInit {
     this.nhapKhoService.getImportRequirement(this.requestId!).subscribe({
       next: (res) => {
         const containers: ContainerInfo[] = res.data.containers;
+        let payload: any;
 
         if (this.selectedMode === 'pallet') {
-          // tìm pallet trong yêu cầu nhập
           const pallet = containers.find(c => c.serial_pallet?.trim().toUpperCase() === scannedCode.toUpperCase());
           if (!pallet) {
             this.playAudio('assets/audio/beep_warning.mp3');
@@ -384,58 +389,35 @@ export class ScanCheckComponent implements OnInit {
             return;
           }
 
-          // tìm trong scannedList
           const existing = this.scannedList.find(item =>
             item.serialPallet?.trim().toUpperCase() === scannedCode.toUpperCase()
           );
 
-          if (existing) {
-            if (!existing.confirmed) {
-              // cập nhật thành confirmed
-              const payload = {
-                import_container_id: existing.importContainerId,
-                inventory_identifier: existing.inventoryIdentifier,
-                serial_pallet: existing.serialPallet,
-                location_id: locationId,
-                quantity_imported: existing.quantityImported ?? 0,
-                scan_by: username,
-                confirmed: true,
-                sap_code: existing.sapCode,
-                po: existing.po,
-                lot: existing.lot,
-                name: existing.name,
-                manufacturing_date: existing.manufacturingDate,
-                expiration_date: existing.expirationDate,
-                vendor: existing.vendor,
-                msd_level: existing.msdLevel,
-                comments: existing.comments,
-              };
-
-              this.isLoading = true;
-              this.nhapKhoService.postScannedInventory(payload).subscribe({
-                next: () => {
-                  this.playAudio('assets/audio/successed-295058.mp3');
-                  this.loadScannedList();
-                  this.resetScanInputs();
-                },
-                error: (err) => {
-                  this.playAudio('assets/audio/beep_warning.mp3');
-                  this.dialog.open(AlertDialogComponent, { data: err.error?.message || 'Lỗi khi scan pallet!' });
-                  this.isLoading = false;
-                  this.resetScanInputs();
-                },
-              });
-            } else {
-              // đã confirmed rồi thì không thêm nữa
-              this.playAudio('assets/audio/beep_warning.mp3');
-              this.dialog.open(AlertDialogComponent, { data: 'Pallet này đã được scan trước đó!' });
-            }
+          if (existing && existing.confirmed) {
+            this.playAudio('assets/audio/beep_warning.mp3');
+            this.dialog.open(AlertDialogComponent, { data: 'Pallet này đã được scan trước đó!' });
             this.resetScanInputs();
-            return; //  return để không chạy xuống phần tạo mới
+            return;
           }
 
-          // nếu chưa có trong scannedList thì tạo mới
-          const payload = {
+          payload = existing ? {
+            import_container_id: existing.importContainerId,
+            inventory_identifier: existing.inventoryIdentifier,
+            serial_pallet: existing.serialPallet,
+            location_id: locationId,
+            quantity_imported: existing.quantityImported ?? 0,
+            scan_by: username,
+            confirmed: true,
+            sap_code: existing.sapCode,
+            po: existing.po,
+            lot: existing.lot,
+            name: existing.name,
+            manufacturing_date: existing.manufacturingDate,
+            expiration_date: existing.expirationDate,
+            vendor: existing.vendor,
+            msd_level: existing.msdLevel,
+            comments: existing.comments,
+          } : {
             import_container_id: pallet.id,
             inventory_identifier: pallet.serial_pallet,
             serial_pallet: pallet.serial_pallet,
@@ -453,24 +435,7 @@ export class ScanCheckComponent implements OnInit {
             msd_level: '',
             comments: '',
           };
-
-          this.isLoading = true;
-          this.nhapKhoService.postScannedInventory(payload).subscribe({
-            next: () => {
-              this.playAudio('assets/audio/successed-295058.mp3');
-              this.loadScannedList();
-              this.resetScanInputs();
-            },
-            error: (err) => {
-              this.playAudio('assets/audio/beep_warning.mp3');
-              this.dialog.open(AlertDialogComponent, { data: err.error?.message || 'Lỗi khi scan pallet!' });
-              this.isLoading = false;
-              this.resetScanInputs();
-            },
-          });
-
         } else {
-          // quét thùng
           const box = containers.find(c => c.box_code?.trim().toUpperCase() === scannedCode.toUpperCase());
           if (!box) {
             this.playAudio('assets/audio/beep_warning.mp3');
@@ -483,51 +448,31 @@ export class ScanCheckComponent implements OnInit {
             item.inventoryIdentifier?.trim().toUpperCase() === scannedCode.toUpperCase()
           );
 
-          if (existing) {
-            if (!existing.confirmed) {
-              const payload = {
-                import_container_id: existing.importContainerId,
-                inventory_identifier: existing.inventoryIdentifier,
-                serial_pallet: existing.serialPallet,
-                location_id: existing.locationId,
-                quantity_imported: existing.quantityImported ?? 0,
-                scan_by: username,
-                confirmed: true,
-                sap_code: existing.sapCode,
-                po: existing.po,
-                lot: existing.lot,
-                name: existing.name,
-                manufacturing_date: existing.manufacturingDate,
-                expiration_date: existing.expirationDate,
-                vendor: existing.vendor,
-                msd_level: existing.msdLevel,
-                comments: existing.comments,
-              };
-
-              this.isLoading = true;
-              this.nhapKhoService.postScannedInventory(payload).subscribe({
-                next: () => {
-                  this.playAudio('assets/audio/successed-295058.mp3');
-                  this.loadScannedList();
-                  this.resetScanInputs();
-                },
-                error: (err) => {
-                  this.playAudio('assets/audio/beep_warning.mp3');
-                  this.dialog.open(AlertDialogComponent, { data: err.error?.message || 'Lỗi khi xác nhận thùng!' });
-                  this.isLoading = false;
-                  this.resetScanInputs();
-                },
-              });
-            } else {
-              this.playAudio('assets/audio/beep_warning.mp3');
-              this.dialog.open(AlertDialogComponent, { data: 'Thùng này đã được scan trước đó!' });
-            }
+          if (existing && existing.confirmed) {
+            this.playAudio('assets/audio/beep_warning.mp3');
+            this.dialog.open(AlertDialogComponent, { data: 'Thùng này đã được scan trước đó!' });
             this.resetScanInputs();
-            return; //  return để không chạy xuống phần tạo mới
+            return;
           }
 
-          // nếu chưa có thì tạo payload mới
-          const payload = {
+          payload = existing ? {
+            import_container_id: existing.importContainerId,
+            inventory_identifier: existing.inventoryIdentifier,
+            serial_pallet: existing.serialPallet,
+            location_id: existing.locationId,
+            quantity_imported: existing.quantityImported ?? 0,
+            scan_by: username,
+            confirmed: true,
+            sap_code: existing.sapCode,
+            po: existing.po,
+            lot: existing.lot,
+            name: existing.name,
+            manufacturing_date: existing.manufacturingDate,
+            expiration_date: existing.expirationDate,
+            vendor: existing.vendor,
+            msd_level: existing.msdLevel,
+            comments: existing.comments,
+          } : {
             import_container_id: this.containerId!,
             inventory_identifier: scannedCode,
             serial_pallet: box.serial_pallet,
@@ -545,24 +490,43 @@ export class ScanCheckComponent implements OnInit {
             msd_level: '',
             comments: '',
           };
-
-          this.isLoading = true;
-          this.nhapKhoService.postScannedInventory(payload).subscribe({
-            next: () => {
-              this.playAudio('assets/audio/successed-295058.mp3');
-              this.loadScannedList();
-              this.resetScanInputs();
-            },
-            error: (err) => {
-              this.playAudio('assets/audio/beep_warning.mp3');
-              this.dialog.open(AlertDialogComponent, { data: err.error?.message || 'Lỗi khi scan thùng!' });
-              this.isLoading = false;
-              this.resetScanInputs();
-            },
-          });
         }
+
+        // Payload cho pushInventoriesToSystem
+        const pushPayload: PushInventoryPayload = {
+          inventories: [
+            {
+              identifier: payload.inventory_identifier,
+              initial_quantity: payload.quantity_imported,
+              location_id: payload.location_id,
+              name: payload.name,
+              serial_pallet: payload.serial_pallet,
+              updated_by: username,
+              sap_code: payload.sapCode || '',
+              part_number: payload.part_number || ''
+            }
+          ]
+        };
+
+        this.isLoading = true;
+        forkJoin([
+          this.nhapKhoService.postScannedInventory(payload),
+          this.nhapKhoService.pushInventoriesToSystem(pushPayload)
+        ]).subscribe({
+          next: () => {
+            this.playAudio('assets/audio/successed-295058.mp3');
+            this.loadScannedList();
+            this.resetScanInputs();
+          },
+          error: (err) => {
+            this.playAudio('assets/audio/beep_warning.mp3');
+            this.dialog.open(AlertDialogComponent, { data: err.error?.message || 'Lỗi khi scan!' });
+            this.isLoading = false;
+            this.resetScanInputs();
+          }
+        });
       },
-      error: (err) => {
+      error: () => {
         this.playAudio('assets/audio/beep_warning.mp3');
         this.dialog.open(AlertDialogComponent, { data: 'Không thể kiểm tra dữ liệu yêu cầu nhập!' });
       }
@@ -648,8 +612,10 @@ export class ScanCheckComponent implements OnInit {
         initial_quantity: item.quantityImported,
         location_id: item.locationId,
         name: item.name,
-        sap_code: item.sapCode,
         serial_pallet: item.serialPallet,
+        updated_by: username,
+        sap_code: item.sapCode || '',
+        part_number: item.part_number || ''
       })),
     };
 
@@ -663,13 +629,13 @@ export class ScanCheckComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.snackBar.open('✓ Cập nhật thay đổi thành công!', '', { duration: 3000, panelClass: ['snackbar-success'] });
-        setTimeout(() => this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']), 1500);
+        setTimeout(() => this.router.navigate(['/kho-thanh-pham/nhap-kho-sx/phe-duyet/', this.requestId]), 1500);
       },
       error: (err) => {
         if (err.status === 404) {
           // Workaround: API trả 404 nhưng thực tế đã cập nhật
-          this.snackBar.open('✓ Cập nhật thay đổi thành công (404)', '', { duration: 3000, panelClass: ['snackbar-success'] });
-          setTimeout(() => this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']), 1500);
+          this.snackBar.open('✓ Cập nhật thay đổi thành công', '', { duration: 3000, panelClass: ['snackbar-success'] });
+          setTimeout(() => this.router.navigate(['/kho-thanh-pham/nhap-kho-sx/phe-duyet/', this.requestId]), 1500);
         } else {
           this.snackBar.open('Lỗi khi cập nhật! Vui lòng thử lại.', 'Đóng', { duration: 3000 });
           this.isLoading = false;
@@ -680,30 +646,30 @@ export class ScanCheckComponent implements OnInit {
 
 
   // Đẩy tồn hàng lên hệ thống
-  pushInventoriesToSystem(): void {
-    const inventories = this.scannedList.map((item) => ({
-      identifier: item.inventoryIdentifier || item.serialPallet,
-      initial_quantity: item.quantityImported,
-      location_id: item.locationId,
-      name: item.name,
-      sap_code: item.sapCode,
-      serial_pallet: item.serialPallet,
-    }));
+  // pushInventoriesToSystem(): void {
+  //   const inventories = this.scannedList.map((item) => ({
+  //     identifier: item.inventoryIdentifier || item.serialPallet,
+  //     initial_quantity: item.quantityImported,
+  //     location_id: item.locationId,
+  //     name: item.name,
+  //     sap_code: item.sapCode,
+  //     serial_pallet: item.serialPallet,
+  //   }));
 
-    this.nhapKhoService
-      .pushInventoriesToSystem({ inventories })
-      .subscribe({
-        next: () => {
-          // Cập nhật trạng thái import requirement
-          this.updateImportRequirementStatus();
-        },
-        error: (err) => {
-          console.error('Lỗi đẩy tồn hàng:', err);
-          // Vẫn tiếp tục cập nhật trạng thái
-          this.updateImportRequirementStatus();
-        },
-      });
-  }
+  //   this.nhapKhoService
+  //     .pushInventoriesToSystem({ inventories })
+  //     .subscribe({
+  //       next: () => {
+  //         // Cập nhật trạng thái import requirement
+  //         this.updateImportRequirementStatus();
+  //       },
+  //       error: (err) => {
+  //         console.error('Lỗi đẩy tồn hàng:', err);
+  //         // Vẫn tiếp tục cập nhật trạng thái
+  //         this.updateImportRequirementStatus();
+  //       },
+  //     });
+  // }
 
   // Cập nhật trạng thái import requirement
   updateImportRequirementStatus(): void {
