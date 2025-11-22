@@ -50,7 +50,7 @@ export class ChiTietNhapKhoComponent implements OnInit {
     'updatedBy',
     'updatedDate',
     // 'scanStatus',
-    'actions'
+    // 'actions'
   ];
 
 
