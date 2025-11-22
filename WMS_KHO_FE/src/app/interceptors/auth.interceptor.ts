@@ -15,7 +15,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Danh sách API cần token (WHITELIST)
   const protectedApis = [
-    'https://ral.wms-logistic.rangdong.com.vn:9004/api',
+    'https://ral-wms-logistic.rangdong.com.vn:9004/api',
     'http://192.168.10.99:8050/api', 
     'http://192.168.20.101:8050/api',
   ];
