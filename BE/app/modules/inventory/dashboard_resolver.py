@@ -37,7 +37,6 @@ class DashboardDataType:
 @strawberry.type
 class InventoryDashboardItem:
     id: int
-    part_number: Optional[str]
     name: Optional[str]
     client_id: Optional[int]
     serial_pallet: Optional[str]
@@ -131,7 +130,6 @@ class DashboardQuery:
         info: Info,
         page: int = 1,
         size: int = 20,
-        part_number: Optional[str] = None,
         name: Optional[str] = None,
         client_id: Optional[int] = None,
         serial_pallet: Optional[str] = None,
@@ -148,7 +146,6 @@ class DashboardQuery:
                 db=db,
                 page=page,
                 size=size,
-                part_number=part_number,
                 name=name,
                 client_id=client_id,
                 serial_pallet=serial_pallet,
@@ -164,7 +161,6 @@ class DashboardQuery:
         data = [
             InventoryDashboardItem(
                 id=item["id"],
-                part_number=item["part_number"],
                 name=item["name"],
                 client_id=item["client_id"],
                 serial_pallet=item["serial_pallet"],
@@ -200,7 +196,6 @@ class DashboardQuery:
         group_by: str = None,
         page: int = 1,
         size: int = 20,
-        part_number: Optional[str] = None, # Đã thêm: Tham số lọc quan trọng
         name: Optional[str] = None,
         client_id: Optional[int] = None,
         serial_pallet: Optional[str] = None,
@@ -218,7 +213,6 @@ class DashboardQuery:
                 group_by=group_by,
                 page=page,
                 size=size,
-                part_number=part_number, # Đã thêm: Pass tham số part_number
                 name=name,
                 client_id=client_id,
                 serial_pallet=serial_pallet,

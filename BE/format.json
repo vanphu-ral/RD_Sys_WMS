@@ -1,49 +1,55 @@
 {
-  "exp": 1763446915,
-  "iat": 1763446615,
-  "jti": "onrtro:47e826b1-5143-3751-2d55-fd5086b79c2d",
-  "iss": "https://ssosys.rangdong.com.vn:9002/realms/rangdong",
-  "aud": "account",
-  "sub": "95c6b3de-cde7-4f53-8b53-9fa696f11563",
-  "typ": "Bearer",
-  "azp": "RD_KHO",
-  "sid": "53fe3060-051f-477c-8d10-0466dc884e96",
-  "acr": "1",
-  "allowed-origins": [
-    "https://ral.wms-logistic.rangdong.com.vn:9004/",
-    "*"
-  ],
-  "realm_access": {
-    "roles": [
-      "offline_access",
-      "uma_authorization",
-      "default-roles-rangdong"
-    ]
+  "general_info": {
+    "order_id": "WO-151804-1",
+    "client_id": "Current / YNK",
+    "inventory_name": "LED00084407",
+    "ten_sp": "Bộ vỏ hộp nguồn panel MQL 1064 ENCL-DRVR NBT SKD(Current)",
+    "wo_code": "123075",
+    "lot_number": "251117130004A",
+    "ngay_nhap": "2025/11/20",
+    "ghi_chu": "Đạt",
+    "create_by": "Sơn",
+    "industry": "LRSP LED2",
+    "production_team": "Tổ Panel khổ lớn",
+    "production_decision_number": "322.25",
+    "item_no_sku": "95059979"
   },
-  "resource_access": {
-    "RD_KHO": {
-      "roles": [
-        "WMS_RD_STOCKOPS",
-        "WMS_RD_ADMIN",
-        "WMS_RD_AREALOC",
-        "WMS_RD_APPROVEIO",
-        "WMS_RD_VIEW",
-        "WMS_RD_PUTAWAY"
-      ]
+  "detail": [
+    {
+      "serial_pallet": "P20250321000115",
+      "box_code": "B01420251121000695",
+      "quantity": 28,
+      "list_serial_items": ""
     },
-    "account": {
-      "roles": [
-        "manage-account",
-        "manage-account-links",
-        "view-profile"
-      ]
+    {
+      "serial_pallet": "P20250321000114",
+      "box_code": "B01420251121000694",
+      "quantity": 28,
+      "list_serial_items": ""
+    },
+    {
+      "serial_pallet": "P20250321000119",
+      "box_code": "B01420251121000699",
+      "quantity": 28,
+      "list_serial_items": ""
+    },
+    {
+      "serial_pallet": "P20250321000117",
+      "box_code": "B01420251121000697",
+      "quantity": 28,
+      "list_serial_items": ""
+    },
+    {
+      "serial_pallet": "P20250321000123",
+      "box_code": "B01420251121000703",
+      "quantity": 28,
+      "list_serial_items": ""
+    },
+    {
+      "serial_pallet": "P20250321000121",
+      "box_code": "B01420251121000701",
+      "quantity": 28,
+      "list_serial_items": ""
     }
-  },
-  "scope": "email profile",
-  "email_verified": false,
-  "name": "Khac Hieu",
-  "preferred_username": "rd03136",
-  "given_name": "Khac",
-  "family_name": "Hieu",
-  "email": "rd03136@ledrangdong.com"
+  ]
 }

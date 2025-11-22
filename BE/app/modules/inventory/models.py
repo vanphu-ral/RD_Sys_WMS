@@ -55,7 +55,7 @@ class Inventory(Base):
     location_id = Column(Integer, ForeignKey("locations.id"), nullable=False)
     parent_location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
     last_location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
-    parent_inventory_id = Column(String(20), nullable=True)
+    parent_inventory_id = Column(Integer, nullable=True)
     expiration_date = Column(DateTime, nullable=True)
     received_date = Column(DateTime, nullable=True)
     updated_date = Column(DateTime, nullable=True)

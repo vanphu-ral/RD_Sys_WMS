@@ -7,21 +7,21 @@ from pydantic import BaseModel, Field
 class InventoryWHItem(BaseModel):
     """Schema for individual inventory item in WH request"""
     identifier: str = Field(..., max_length=20, description="Unique identifier for the inventory item")
-    sap_code: str = Field(..., max_length=50, description="SAP code, mã hàng hóa")
-    name: str = Field(..., max_length=255, description="Inventory name")
     serial_pallet: str = Field(..., max_length=50, description="Serial pallet")
-    initial_quantity: int = Field(..., ge=0, description="Initial quantity")
     location_id: int = Field(..., gt=0, description="Location ID")
+    updated_by: str = Field(..., max_length=50, description="User who updated the inventory")
+    initial_quantity: int = Field(..., ge=0, description="Initial quantity")
+    name: str = Field(..., max_length=255, description="Inventory name")
 
     class Config:
         json_schema_extra = {
             "example": {
-                "identifier": "123fdfs",
-                "sap_code": "1",
-                "name": "1231231sadas",
-                "serial_pallet": "12321esda",
-                "initial_quantity": 123,
-                "location_id": 1
+                "identifier": "INV-001",
+                "serial_pallet": "PLT-001",
+                "location_id": 1,
+                "updated_by": "admin",
+                "initial_quantity": 100,
+                "name": "Product A"
             }
         }
 
@@ -35,20 +35,20 @@ class InventoriesWHRequest(BaseModel):
             "example": {
                 "inventories": [
                     {
-                        "identifier": "123fdfs",
-                        "sap_code": "1",
-                        "name": "1231231sadas",
-                        "serial_pallet": "12321esda",
-                        "initial_quantity": 123,
-                        "location_id": 1
+                        "identifier": "INV-001",
+                        "serial_pallet": "PLT-001",
+                        "location_id": 1,
+                        "updated_by": "admin",
+                        "initial_quantity": 100,
+                        "name": "Product A"
                     },
                     {
-                        "identifier": "12123fdfs",
-                        "sap_code": "1",
-                        "name": "1231231sadas",
-                        "serial_pallet": "12321esda",
-                        "initial_quantity": 123,
-                        "location_id": 1
+                        "identifier": "INV-002",
+                        "serial_pallet": "PLT-001",
+                        "location_id": 1,
+                        "updated_by": "admin",
+                        "initial_quantity": 50,
+                        "name": "Product B"
                     }
                 ]
             }
@@ -59,14 +59,12 @@ class InventoriesWHResponse(BaseModel):
     """Response schema for inventories WH creation"""
     success: bool
     created_count: int
-    message: Optional[str] = None
 
     class Config:
         json_schema_extra = {
             "example": {
                 "success": True,
                 "created_count": 2,
-                "message": "Inventories created successfully"
             }
         }
 

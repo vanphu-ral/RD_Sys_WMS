@@ -82,31 +82,24 @@ async def update_inventory_quantity(
 async def create_inventories_wh(
     request: InventoriesWHRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    # current_user: str = Depends(get_current_user)
 ):
 
     try:
+        from datetime import datetime
 
         inventories_data = []
         for item in request.inventories:
             inventory_data = {
                 "identifier": item.identifier,
-                "part_number": item.part_number,
                 "name": item.name,
                 "serial_pallet": item.serial_pallet,
-                "quantity": item.quantity,
-                "available_quantity": item.available_quantity,
+                "quantity": item.initial_quantity,
+                "available_quantity": item.initial_quantity,
                 "initial_quantity": item.initial_quantity,
                 "location_id": item.location_id,
-                "sap_code": item.sap_code,
-                "po": item.po,
-                "lot": item.lot,
-                "vendor": item.vendor,
-                "msd_level": item.msd_level,
-                "comments": item.comments,
-                "expiration_date": item.expiration_date,
-                "manufacturing_date": item.manufacturing_date,
-                "updated_by": "system"
+                "updated_by": item.updated_by,
+                "updated_date": datetime.now()
             }
             inventories_data.append(inventory_data)
 
@@ -115,7 +108,6 @@ async def create_inventories_wh(
         return InventoriesWHResponse(
             success=True,
             created_count=len(created_inventories),
-            message=f"Successfully created {len(created_inventories)} inventories"
         )
 
     except Exception as e:

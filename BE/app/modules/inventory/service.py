@@ -105,7 +105,6 @@ class InventoryService:
         db: AsyncSession,
         page: int = 1,
         size: int = 20,
-        part_number: Optional[str] = None,
         name: Optional[str] = None,
         client_id: Optional[str] = None,
         serial_pallet: Optional[str] = None,
@@ -123,7 +122,6 @@ class InventoryService:
         # Base query with joins
         query = select(
             Inventory.id,
-            Inventory.part_number,
             Inventory.name,
             WarehouseImportRequirement.client_id,
             Inventory.serial_pallet,
@@ -155,8 +153,6 @@ class InventoryService:
         # Apply filters
         filters = []
 
-        if part_number:
-            filters.append(Inventory.part_number.ilike(f"%{part_number}%"))
         if name:
             filters.append(Inventory.name.ilike(f"%{name}%"))
         if client_id:
@@ -203,7 +199,6 @@ class InventoryService:
         for row in rows:
             data.append({
                 "id": row.id,
-                "part_number": row.part_number,
                 "name": row.name,
                 "client_id": row.client_id,
                 "serial_pallet": row.serial_pallet,
@@ -238,7 +233,6 @@ class InventoryService:
         group_by: str = None,
         page: int = 1,
         size: int = 20,
-        part_number: Optional[str] = None,
         name: Optional[str] = None,
         client_id: Optional[int] = None,
         serial_pallet: Optional[str] = None,
@@ -253,7 +247,6 @@ class InventoryService:
 
         base_query = select(
             Inventory.id,
-            Inventory.part_number,
             Inventory.name,
             WarehouseImportRequirement.client_id,
             Inventory.serial_pallet,
@@ -285,8 +278,6 @@ class InventoryService:
         # Apply filters
         filters = []
 
-        if part_number:
-            filters.append(Inventory.part_number.ilike(f"%{part_number}%"))
         if name:
             filters.append(Inventory.name.ilike(f"%{name}%"))
         if client_id:
@@ -326,10 +317,6 @@ class InventoryService:
             group_column = WarehouseImportRequirement.client_id
             group_name_column = WarehouseImportRequirement.client_id
             group_key = "client_id"
-        elif group_by == "part_number":
-            group_column = Inventory.part_number
-            group_name_column = Inventory.part_number
-            group_key = "part_number"
         else:
             # Default to area
             group_column = Area.code
@@ -339,7 +326,6 @@ class InventoryService:
         base_subquery = base_query.subquery()
             
         # Khai báo các cột thống kê mới
-        total_products = func.count(distinct(base_subquery.c.part_number)).label("total_products")
         total_clients = func.count(distinct(base_subquery.c.client_id)).label("total_clients")
         total_pos = func.count(distinct(base_subquery.c.po)).label("total_pos")
         total_locations = func.count(distinct(base_subquery.c.location_id)).label("total_locations")
@@ -357,7 +343,6 @@ class InventoryService:
                 func.count(base_subquery.c.id).label("item_count"), # Số dòng tồn kho chi tiết
                 
                 # Thống kê mới
-                total_products,
                 total_clients,
                 total_pos,
                 total_locations,
@@ -393,7 +378,6 @@ class InventoryService:
                 "item_count": row.item_count or 0,
                 
                 # Thêm các trường thống kê mới
-                "total_unique_products": row.total_products or 0, # Tổng sp (mã sản phẩm duy nhất)
                 "total_clients": row.total_clients or 0, # Tổng k.hàng (mã khách hàng duy nhất)
                 "total_pos": row.total_pos or 0, # Số PO (PO duy nhất)
                 "total_pallets": row.total_pallets or 0, # Số pallet (serial_pallet duy nhất)

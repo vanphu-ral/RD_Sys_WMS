@@ -1,12 +1,4 @@
-# schema.graphql
 
-# --- Kiểu dữ liệu Scalar tùy chỉnh (Nếu cần) ---
-# Nếu bạn muốn sử dụng kiểu dữ liệu DateTime rõ ràng hơn
-# scalar DateTime
-
-# --- Định nghĩa các Kiểu Object (Types) ---
-
-## Quản lý Vị trí Kho (Location Management) ##
 
 type Area {
   id: ID!

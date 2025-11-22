@@ -397,7 +397,6 @@ class InventoryUpdateService:
         return {
             "id": inventory.id,
             "identifier": inventory.identifier,
-            "part_number": inventory.part_number,
             "quantity": inventory.quantity,
             "available_quantity": inventory.available_quantity,
             "location_id": inventory.location_id,
@@ -455,7 +454,6 @@ class InventoryUpdateService:
         return {
             "id": inventory.id,
             "identifier": inventory.identifier,
-            "part_number": inventory.part_number,
             "quantity": inventory.quantity,
             "available_quantity": inventory.available_quantity,
             "location_id": inventory.location_id,

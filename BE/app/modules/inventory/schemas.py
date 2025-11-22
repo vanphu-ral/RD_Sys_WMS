@@ -295,7 +295,6 @@ class InventoryResponse(BaseModel):
     id: int
     identifier: str
     serial_pallet: Optional[str] = None
-    part_number: Optional[str] = None
     location_id: int
     parent_location_id: Optional[int] = None
     last_location_id: Optional[int] = None
