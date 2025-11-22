@@ -846,3 +846,87 @@ class OSRFullORDRRDR1Response(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class TransactionDashboardItem(BaseModel):
+    """Unified transaction dashboard item for all transaction types"""
+    id: int
+    transaction_type: str = Field(..., description="Loại giao dịch: IMPORT, TRANSFER, EXPORT")
+    request_code: str = Field(..., description="Mã yêu cầu (wo_code cho IMPORT, ma_yc_cknb cho TRANSFER, ma_yc_xk cho EXPORT)")
+    doc_entry: Optional[int] = Field(None, description="Mã doc_entry từ SAP (cho TRANSFER và EXPORT)")
+    industry: Optional[str] = Field(None, description="Ngành")
+    production_team: Optional[str] = Field(None, description="Tổ sản xuất")
+    from_warehouse: Optional[int] = Field(None, description="Kho xuất/chuyển")
+    to_warehouse: Optional[int] = Field(None, description="Kho nhận/đến")
+    created_date: datetime = Field(..., description="Thời gian tạo")
+    status: Optional[bool] = Field(None, description="Trạng thái")
+    updated_by: Optional[str] = Field(None, description="Người cập nhật")
+    updated_date: Optional[datetime] = Field(None, description="Thời gian cập nhật")
+    
+    # Additional fields
+    client_id: Optional[str] = Field(None, description="Mã khách hàng (IMPORT)")
+    lot_number: Optional[str] = Field(None, description="Số lô (IMPORT)")
+    don_vi_linh: Optional[str] = Field(None, description="Đơn vị lĩnh (TRANSFER/EXPORT)")
+    don_vi_nhan: Optional[str] = Field(None, description="Đơn vị nhận (TRANSFER/EXPORT)")
+    note: Optional[str] = Field(None, description="Ghi chú")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "id": 1,
+                "transaction_type": "IMPORT",
+                "request_code": "WO-2024-001",
+                "doc_entry": None,
+                "industry": "Electronics",
+                "production_team": "Team A",
+                "from_warehouse": None,
+                "to_warehouse": 1,
+                "created_date": "2024-01-15T10:30:00",
+                "status": True,
+                "updated_by": "admin",
+                "updated_date": "2024-01-15T14:30:00",
+                "client_id": "CLIENT-001",
+                "lot_number": "LOT-001",
+                "don_vi_linh": None,
+                "don_vi_nhan": None,
+                "note": "Import request"
+            }
+        }
+
+
+class TransactionDashboardMeta(BaseModel):
+    """Metadata for transaction dashboard pagination"""
+    page: int
+    size: int
+    total_items: int
+    total_pages: int
+
+
+class TransactionDashboardResponse(BaseModel):
+    """Response schema for unified transaction dashboard"""
+    data: List[TransactionDashboardItem]
+    meta: TransactionDashboardMeta
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "data": [
+                    {
+                        "id": 1,
+                        "transaction_type": "IMPORT",
+                        "request_code": "WO-2024-001",
+                        "industry": "Electronics",
+                        "production_team": "Team A",
+                        "to_warehouse": 1,
+                        "created_date": "2024-01-15T10:30:00",
+                        "status": True
+                    }
+                ],
+                "meta": {
+                    "page": 1,
+                    "size": 20,
+                    "total_items": 100,
+                    "total_pages": 5
+                }
+            }
+        }

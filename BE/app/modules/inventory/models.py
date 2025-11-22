@@ -85,6 +85,7 @@ class WarehouseImportRequirement(Base):
     number_of_box = Column(Integer, nullable=True)
     quantity = Column(Integer, nullable=True)
     wo_code = Column(String(15), nullable=False)
+    sap_wo = Column(String(15), nullable=False)
     lot_number = Column(String(50), nullable=False)
     industry = Column(String(255), nullable=True)
     production_team = Column(String(255), nullable=True)

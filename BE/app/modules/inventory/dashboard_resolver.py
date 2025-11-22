@@ -10,7 +10,8 @@ from app.modules.inventory.service import (
     InventoryService,
     WarehouseImportService,
     IWTRService,
-    OSRService
+    OSRService,
+    TransactionDashboardService
 )
 
 
@@ -89,6 +90,35 @@ class InventoryDashboardResponse:
 @strawberry.type
 class InventoryDashboardGroupResponse:
     data: List[InventoryDashboardGroupItem]
+    meta: PaginationMeta
+
+
+@strawberry.type
+class TransactionDashboardItem:
+    """Unified transaction dashboard item for all transaction types"""
+    id: int
+    transaction_type: str
+    request_code: str
+    doc_entry: Optional[int]
+    industry: Optional[str]
+    production_team: Optional[str]
+    from_warehouse: Optional[int]
+    to_warehouse: Optional[int]
+    created_date: str
+    status: Optional[bool]
+    updated_by: Optional[str]
+    updated_date: Optional[str]
+    client_id: Optional[str]
+    lot_number: Optional[str]
+    don_vi_linh: Optional[str]
+    don_vi_nhan: Optional[str]
+    note: Optional[str]
+
+
+@strawberry.type
+class TransactionDashboardResponse:
+    """Response for unified transaction dashboard"""
+    data: List[TransactionDashboardItem]
     meta: PaginationMeta
 
 
@@ -256,3 +286,87 @@ class DashboardQuery:
         )
 
         return InventoryDashboardGroupResponse(data=data, meta=meta)
+
+    @strawberry.field
+    async def transactionsDashboard(
+        self,
+        info: Info,
+        page: int = 1,
+        size: int = 20,
+        transaction_type: Optional[str] = None,
+        request_code: Optional[str] = None,
+        industry: Optional[str] = None,
+        production_team: Optional[str] = None,
+        from_warehouse: Optional[int] = None,
+        to_warehouse: Optional[int] = None,
+        status: Optional[bool] = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
+        updated_by: Optional[str] = None
+    ) -> TransactionDashboardResponse:
+        """
+        Unified dashboard for all transaction types (IMPORT, TRANSFER, EXPORT)
+        
+        Args:
+            transaction_type: Filter by type (IMPORT, TRANSFER, EXPORT)
+            request_code: Filter by request code (wo_code, ma_yc_cknb, ma_yc_xk)
+            industry: Filter by industry (IMPORT only)
+            production_team: Filter by production team (IMPORT only)
+            from_warehouse: Filter by source warehouse (TRANSFER, EXPORT)
+            to_warehouse: Filter by destination warehouse (all types)
+            status: Filter by status
+            from_date: Filter by date range start
+            to_date: Filter by date range end
+            updated_by: Filter by user who updated
+        """
+        from app.core.database import AsyncSessionLocal
+        
+        async with AsyncSessionLocal() as db:
+            result = await TransactionDashboardService.get_transactions_dashboard(
+                db=db,
+                page=page,
+                size=size,
+                transaction_type=transaction_type,
+                request_code=request_code,
+                industry=industry,
+                production_team=production_team,
+                from_warehouse=from_warehouse,
+                to_warehouse=to_warehouse,
+                status=status,
+                from_date=from_date,
+                to_date=to_date,
+                updated_by=updated_by
+            )
+
+        # Convert to Strawberry types
+        data = [
+            TransactionDashboardItem(
+                id=item["id"],
+                transaction_type=item["transaction_type"],
+                request_code=item["request_code"],
+                doc_entry=item["doc_entry"],
+                industry=item["industry"],
+                production_team=item["production_team"],
+                from_warehouse=item["from_warehouse"],
+                to_warehouse=item["to_warehouse"],
+                created_date=item["created_date"],
+                status=item["status"],
+                updated_by=item["updated_by"],
+                updated_date=item["updated_date"],
+                client_id=item["client_id"],
+                lot_number=item["lot_number"],
+                don_vi_linh=item["don_vi_linh"],
+                don_vi_nhan=item["don_vi_nhan"],
+                note=item["note"]
+            )
+            for item in result["data"]
+        ]
+
+        meta = PaginationMeta(
+            page=result["meta"]["page"],
+            size=result["meta"]["size"],
+            total_items=result["meta"]["total_items"],
+            total_pages=result["meta"]["total_pages"]
+        )
+
+        return TransactionDashboardResponse(data=data, meta=meta)

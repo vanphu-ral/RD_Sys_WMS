@@ -1716,7 +1716,25 @@ class ContainerInventoryService:
     async def create_container_inventory(db: AsyncSession, container_data: dict) -> ContainerInventory:
         """Create a new container inventory record"""
         async with db.begin():
-            container_inventory = ContainerInventory(**container_data)
+            # Explicitly map fields to ensure correct assignment and prevent field misalignment
+            container_inventory = ContainerInventory(
+                manufacturing_date=container_data.get('manufacturing_date'),
+                expiration_date=container_data.get('expiration_date'),
+                sap_code=container_data.get('sap_code'),
+                po=container_data.get('po'),
+                lot=container_data.get('lot'),
+                vendor=container_data.get('vendor'),
+                msd_level=container_data.get('msd_level'),
+                comments=container_data.get('comments'),
+                name=container_data.get('name'),
+                import_container_id=container_data.get('import_container_id'),
+                inventory_identifier=container_data.get('inventory_identifier'),
+                location_id=container_data.get('location_id'),
+                serial_pallet=container_data.get('serial_pallet'),
+                quantity_imported=container_data.get('quantity_imported'),
+                scan_by=container_data.get('scan_by'),
+                confirmed=container_data.get('confirmed', False)
+            )
             db.add(container_inventory)
             await db.flush()
             await db.refresh(container_inventory)
@@ -1837,3 +1855,226 @@ class UIService:
     def get_ui_locations(db: Session) -> List[dict]:
         result = db.execute(select(Location.id, Location.code, Location.name, Location.is_active))
         return [{"id": loc.id, "code": loc.code, "name": loc.name, "is_active": loc.is_active} for loc in result]
+
+
+class TransactionDashboardService:
+    """Service for unified transaction dashboard across all transaction types"""
+
+    @staticmethod
+    async def get_transactions_dashboard(
+        db: AsyncSession,
+        page: int = 1,
+        size: int = 20,
+        transaction_type: Optional[str] = None,
+        request_code: Optional[str] = None,
+        industry: Optional[str] = None,
+        production_team: Optional[str] = None,
+        from_warehouse: Optional[int] = None,
+        to_warehouse: Optional[int] = None,
+        status: Optional[bool] = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
+        updated_by: Optional[str] = None
+    ) -> dict:
+        """
+        Get unified dashboard of all transactions (IMPORT, TRANSFER, EXPORT)
+        
+        Transaction types:
+        - IMPORT: WarehouseImportRequirement (uses wo_code as request_code)
+        - TRANSFER: InternalWarehouseTransferRequest (uses ma_yc_cknb as request_code, doc_entry from SAP)
+        - EXPORT: OutboundShipmentRequestOnOrder (uses ma_yc_xk as request_code, doc_entry from SAP)
+        """
+        from sqlalchemy import union_all, literal, cast, String
+        from datetime import datetime
+
+        transactions = []
+
+        # Build IMPORT query
+        if not transaction_type or transaction_type.upper() == "IMPORT":
+            import_query = select(
+                WarehouseImportRequirement.id,
+                literal("IMPORT").label("transaction_type"),
+                WarehouseImportRequirement.wo_code.label("request_code"),
+                literal(None).cast(Integer).label("doc_entry"),
+                WarehouseImportRequirement.industry,
+                WarehouseImportRequirement.production_team,
+                literal(None).cast(Integer).label("from_warehouse"),
+                literal(None).cast(Integer).label("to_warehouse"),
+                WarehouseImportRequirement.updated_date.label("created_date"),
+                WarehouseImportRequirement.status,
+                WarehouseImportRequirement.updated_by,
+                WarehouseImportRequirement.updated_date,
+                WarehouseImportRequirement.client_id,
+                WarehouseImportRequirement.lot_number,
+                literal(None).cast(String).label("don_vi_linh"),
+                literal(None).cast(String).label("don_vi_nhan"),
+                WarehouseImportRequirement.note
+            ).where(WarehouseImportRequirement.deleted_at.is_(None))
+
+            # Apply filters for IMPORT
+            if request_code:
+                import_query = import_query.where(WarehouseImportRequirement.wo_code.ilike(f"%{request_code}%"))
+            if industry:
+                import_query = import_query.where(WarehouseImportRequirement.industry.ilike(f"%{industry}%"))
+            if production_team:
+                import_query = import_query.where(WarehouseImportRequirement.production_team.ilike(f"%{production_team}%"))
+            if status is not None:
+                import_query = import_query.where(WarehouseImportRequirement.status == status)
+            if updated_by:
+                import_query = import_query.where(WarehouseImportRequirement.updated_by.ilike(f"%{updated_by}%"))
+            if from_date:
+                try:
+                    from_dt = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
+                    import_query = import_query.where(WarehouseImportRequirement.updated_date >= from_dt)
+                except:
+                    pass
+            if to_date:
+                try:
+                    to_dt = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
+                    import_query = import_query.where(WarehouseImportRequirement.updated_date <= to_dt)
+                except:
+                    pass
+
+            result = await db.execute(import_query)
+            transactions.extend(result.all())
+
+        # Build TRANSFER query
+        if not transaction_type or transaction_type.upper() == "TRANSFER":
+            transfer_query = select(
+                InternalWarehouseTransferRequest.id,
+                literal("TRANSFER").label("transaction_type"),
+                InternalWarehouseTransferRequest.ma_yc_cknb.label("request_code"),
+                literal(None).cast(Integer).label("doc_entry"),
+                literal(None).cast(String).label("industry"),
+                literal(None).cast(String).label("production_team"),
+                InternalWarehouseTransferRequest.tu_kho.label("from_warehouse"),
+                InternalWarehouseTransferRequest.den_kho.label("to_warehouse"),
+                InternalWarehouseTransferRequest.updated_date.label("created_date"),
+                InternalWarehouseTransferRequest.status,
+                InternalWarehouseTransferRequest.updated_by,
+                InternalWarehouseTransferRequest.updated_date,
+                literal(None).cast(String).label("client_id"),
+                literal(None).cast(String).label("lot_number"),
+                InternalWarehouseTransferRequest.don_vi_linh,
+                InternalWarehouseTransferRequest.don_vi_nhan,
+                InternalWarehouseTransferRequest.note
+            ).where(InternalWarehouseTransferRequest.deleted_at.is_(None))
+
+            # Apply filters for TRANSFER
+            if request_code:
+                transfer_query = transfer_query.where(InternalWarehouseTransferRequest.ma_yc_cknb.ilike(f"%{request_code}%"))
+            if from_warehouse:
+                transfer_query = transfer_query.where(InternalWarehouseTransferRequest.tu_kho == from_warehouse)
+            if to_warehouse:
+                transfer_query = transfer_query.where(InternalWarehouseTransferRequest.den_kho == to_warehouse)
+            if status is not None:
+                transfer_query = transfer_query.where(InternalWarehouseTransferRequest.status == status)
+            if updated_by:
+                transfer_query = transfer_query.where(InternalWarehouseTransferRequest.updated_by.ilike(f"%{updated_by}%"))
+            if from_date:
+                try:
+                    from_dt = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
+                    transfer_query = transfer_query.where(InternalWarehouseTransferRequest.updated_date >= from_dt)
+                except:
+                    pass
+            if to_date:
+                try:
+                    to_dt = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
+                    transfer_query = transfer_query.where(InternalWarehouseTransferRequest.updated_date <= to_dt)
+                except:
+                    pass
+
+            result = await db.execute(transfer_query)
+            transactions.extend(result.all())
+
+        # Build EXPORT query
+        if not transaction_type or transaction_type.upper() == "EXPORT":
+            export_query = select(
+                OutboundShipmentRequestOnOrder.id,
+                literal("EXPORT").label("transaction_type"),
+                OutboundShipmentRequestOnOrder.ma_yc_xk.label("request_code"),
+                literal(None).cast(Integer).label("doc_entry"),
+                literal(None).cast(String).label("industry"),
+                literal(None).cast(String).label("production_team"),
+                OutboundShipmentRequestOnOrder.kho_xuat.label("from_warehouse"),
+                OutboundShipmentRequestOnOrder.xuat_toi.label("to_warehouse"),
+                OutboundShipmentRequestOnOrder.updated_date.label("created_date"),
+                OutboundShipmentRequestOnOrder.status,
+                OutboundShipmentRequestOnOrder.updated_by,
+                OutboundShipmentRequestOnOrder.updated_date,
+                literal(None).cast(String).label("client_id"),
+                literal(None).cast(String).label("lot_number"),
+                OutboundShipmentRequestOnOrder.don_vi_linh,
+                OutboundShipmentRequestOnOrder.don_vi_nhan,
+                OutboundShipmentRequestOnOrder.note
+            ).where(OutboundShipmentRequestOnOrder.deleted_at.is_(None))
+
+            # Apply filters for EXPORT
+            if request_code:
+                export_query = export_query.where(OutboundShipmentRequestOnOrder.ma_yc_xk.ilike(f"%{request_code}%"))
+            if from_warehouse:
+                export_query = export_query.where(OutboundShipmentRequestOnOrder.kho_xuat == from_warehouse)
+            if to_warehouse:
+                export_query = export_query.where(OutboundShipmentRequestOnOrder.xuat_toi == to_warehouse)
+            if status is not None:
+                export_query = export_query.where(OutboundShipmentRequestOnOrder.status == status)
+            if updated_by:
+                export_query = export_query.where(OutboundShipmentRequestOnOrder.updated_by.ilike(f"%{updated_by}%"))
+            if from_date:
+                try:
+                    from_dt = datetime.fromisoformat(from_date.replace('Z', '+00:00'))
+                    export_query = export_query.where(OutboundShipmentRequestOnOrder.updated_date >= from_dt)
+                except:
+                    pass
+            if to_date:
+                try:
+                    to_dt = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
+                    export_query = export_query.where(OutboundShipmentRequestOnOrder.updated_date <= to_dt)
+                except:
+                    pass
+
+            result = await db.execute(export_query)
+            transactions.extend(result.all())
+
+        # Sort by created_date descending
+        transactions.sort(key=lambda x: x.created_date if x.created_date else datetime.min, reverse=True)
+
+        # Calculate pagination
+        total_items = len(transactions)
+        total_pages = (total_items + size - 1) // size if total_items > 0 else 1
+        start_idx = (page - 1) * size
+        end_idx = start_idx + size
+        paginated_transactions = transactions[start_idx:end_idx]
+
+        # Convert to dict format
+        data = []
+        for txn in paginated_transactions:
+            data.append({
+                "id": txn.id,
+                "transaction_type": txn.transaction_type,
+                "request_code": txn.request_code,
+                "doc_entry": txn.doc_entry,
+                "industry": txn.industry,
+                "production_team": txn.production_team,
+                "from_warehouse": txn.from_warehouse,
+                "to_warehouse": txn.to_warehouse,
+                "created_date": txn.created_date.isoformat() if txn.created_date else None,
+                "status": txn.status,
+                "updated_by": txn.updated_by,
+                "updated_date": txn.updated_date.isoformat() if txn.updated_date else None,
+                "client_id": txn.client_id,
+                "lot_number": txn.lot_number,
+                "don_vi_linh": txn.don_vi_linh,
+                "don_vi_nhan": txn.don_vi_nhan,
+                "note": txn.note
+            })
+
+        return {
+            "data": data,
+            "meta": {
+                "page": page,
+                "size": size,
+                "total_items": total_items,
+                "total_pages": total_pages
+            }
+        }
