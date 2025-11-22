@@ -94,6 +94,39 @@ class InventoryDashboardGroupResponse:
 
 
 @strawberry.type
+class FullInventoryItem:
+    id: int
+    identifier: str
+    serial_pallet: Optional[str]
+    location_id: int
+    parent_location_id: Optional[int]
+    last_location_id: Optional[int]
+    parent_inventory_id: Optional[str]
+    expiration_date: Optional[str]
+    received_date: Optional[str]
+    updated_date: Optional[str]
+    updated_by: Optional[str]
+    calculated_status: Optional[str]
+    manufacturing_date: Optional[str]
+    initial_quantity: int
+    available_quantity: int
+    quantity: Optional[int]
+    name: Optional[str]
+    sap_code: Optional[str]
+    po: Optional[str]
+    lot: Optional[str]
+    vendor: Optional[str]
+    msd_level: Optional[str]
+    comments: Optional[str]
+
+
+@strawberry.type
+class FullInventoryResponse:
+    data: List[FullInventoryItem]
+    meta: PaginationMeta
+
+
+@strawberry.type
 class TransactionDashboardItem:
     """Unified transaction dashboard item for all transaction types"""
     id: int
@@ -128,31 +161,30 @@ class DashboardQuery:
     @strawberry.field
     async def dashboard(self, info: Info) -> DashboardDataType:
 
-        from app.core.database import get_db
-        db = next(get_db())
+        from app.core.database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            total_areas = len(await AreaService.get_areas(db))
+            total_locations = len(await LocationService.get_locations(db))
+            total_inventory_items = len(await InventoryService.get_inventories(db))
 
-        total_areas = len(AreaService.get_areas(db))
-        total_locations = len(LocationService.get_locations(db))
-        total_inventory_items = len(InventoryService.get_inventories(db))
+            import_reqs = await WarehouseImportService.get_import_requirements(db)
+            active_import_requirements = len([req for req in import_reqs if req.get('status') == 'False'])
 
-        import_reqs = WarehouseImportService.get_import_requirements(db)
-        active_import_requirements = len([req for req in import_reqs if req.get('status') == 'False'])
+            iwtr_requests = await IWTRService.get_iwtr_requests(db)
+            pending_iwtr = len([req for req in iwtr_requests if req.get('status') != 'Hoàn thành'])
 
-        iwtr_requests = IWTRService.get_iwtr_requests(db)
-        pending_iwtr = len([req for req in iwtr_requests if req.get('status') != 'Hoàn thành'])
+            osr_requests = await OSRService.get_osr_requests(db)
+            pending_osr = len([req for req in osr_requests if req.get('status') != 'Hoàn thành'])
 
-        osr_requests = OSRService.get_osr_requests(db)
-        pending_osr = len([req for req in osr_requests if req.get('status') != 'Hoàn thành'])
-
-
-        return DashboardDataType(
-            total_areas=total_areas,
-            total_locations=total_locations,
-            total_inventory_items=total_inventory_items,
-            active_import_requirements=active_import_requirements,
-            pending_iwtr=pending_iwtr,
-            pending_osr=pending_osr,
-        )
+            return DashboardDataType(
+                total_areas=total_areas,
+                total_locations=total_locations,
+                total_inventory_items=total_inventory_items,
+                active_import_requirements=active_import_requirements,
+                pending_iwtr=pending_iwtr,
+                pending_osr=pending_osr,
+                recent_activities=[],
+            )
 
     @strawberry.field
     async def inventoryDashboard(
@@ -187,7 +219,6 @@ class DashboardQuery:
                 updated_by=updated_by
             )
 
-        # Convert to Strawberry types
         data = [
             InventoryDashboardItem(
                 id=item["id"],
@@ -254,7 +285,6 @@ class DashboardQuery:
                 updated_by=updated_by
             )
 
-        # Convert to Strawberry types - Sử dụng các trường thống kê mới
         data = [
             InventoryDashboardGroupItem(
                 group_key=group["group_key"],
@@ -263,17 +293,16 @@ class DashboardQuery:
                 total_initial_quantity=group["total_initial_quantity"],
                 item_count=group["item_count"],
                 
-                # Ánh xạ các trường thống kê mới từ service layer
-                total_unique_products=group["total_unique_products"],
+
+                total_unique_products=group["total_clients"],
                 total_clients=group["total_clients"],
                 total_pos=group["total_pos"],
                 total_pallets=group["total_pallets"],
                 total_containers=group["total_containers"],
                 total_locations=group["total_locations"],
-                last_updated=group["last_updated"], # Giá trị ISO string hoặc None
-                last_received=group["last_received"], # Giá trị ISO string hoặc None
+                last_updated=group["last_updated"],
+                last_received=group["last_received"],
                 
-                # Đã loại bỏ: area_codes, area_names, client_ids, part_numbers, pos (các trường array_agg cũ)
             )
             for group in result["data"]
         ]

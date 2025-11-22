@@ -24,13 +24,13 @@ from app.core.exceptions import NotFoundException, HTTPException
 class InventoryService:
 
     @staticmethod
-    def get_inventories(db: Session) -> List[Inventory]:
-        result = db.execute(select(Inventory))
+    async def get_inventories(db: AsyncSession) -> List[Inventory]:
+        result = await db.execute(select(Inventory))
         return result.scalars().all()
 
     @staticmethod
-    def get_inventory_by_id(db: Session, inventory_id: int) -> Inventory:
-        result = db.execute(select(Inventory).where(Inventory.id == inventory_id))
+    async def get_inventory_by_id(db: AsyncSession, inventory_id: int) -> Inventory:
+        result = await db.execute(select(Inventory).where(Inventory.id == inventory_id))
         inventory = result.scalar_one_or_none()
         if not inventory:
             raise NotFoundException("Inventory", str(inventory_id))
@@ -399,6 +399,105 @@ class InventoryService:
             }
         }
     @staticmethod
+    async def get_inventories_paginated(
+        db: AsyncSession,
+        page: int = 1,
+        size: int = 20,
+        name: Optional[str] = None,
+        identifier: Optional[str] = None,
+        sap_code: Optional[str] = None,
+        po: Optional[str] = None,
+        lot: Optional[str] = None,
+        vendor: Optional[str] = None,
+        location_id: Optional[int] = None,
+        available_quantity_gt: Optional[int] = None,
+        available_quantity_lt: Optional[int] = None
+    ) -> dict:
+        """Get inventories with pagination and filtering"""
+        from sqlalchemy import and_, or_, func
+
+        query = select(Inventory)
+
+        # Apply filters
+        filters = []
+        if name:
+            filters.append(Inventory.name.ilike(f"%{name}%"))
+        if identifier:
+            filters.append(Inventory.identifier.ilike(f"%{identifier}%"))
+        if sap_code:
+            filters.append(Inventory.sap_code.ilike(f"%{sap_code}%"))
+        if po:
+            filters.append(Inventory.po.ilike(f"%{po}%"))
+        if lot:
+            filters.append(Inventory.lot.ilike(f"%{lot}%"))
+        if vendor:
+            filters.append(Inventory.vendor.ilike(f"%{vendor}%"))
+        if location_id:
+            filters.append(Inventory.location_id == location_id)
+        if available_quantity_gt is not None:
+            filters.append(Inventory.available_quantity > available_quantity_gt)
+        if available_quantity_lt is not None:
+            filters.append(Inventory.available_quantity < available_quantity_lt)
+
+        if filters:
+            query = query.where(and_(*filters))
+
+        # Get total count
+        count_query = select(func.count()).select_from(query.subquery())
+        count_result = await db.execute(count_query)
+        total_items = count_result.scalar() or 0
+
+        # Apply pagination
+        query = query.order_by(Inventory.updated_date.desc())
+        offset = (page - 1) * size
+        query = query.offset(offset).limit(size)
+
+        # Execute query
+        result = await db.execute(query)
+        inventories = result.scalars().all()
+
+        # Convert to dict format
+        data = []
+        for inv in inventories:
+            data.append({
+                "id": inv.id,
+                "identifier": inv.identifier,
+                "serial_pallet": inv.serial_pallet,
+                "location_id": inv.location_id,
+                "parent_location_id": inv.parent_location_id,
+                "last_location_id": inv.last_location_id,
+                "parent_inventory_id": inv.parent_inventory_id,
+                "expiration_date": inv.expiration_date.isoformat() if inv.expiration_date else None,
+                "received_date": inv.received_date.isoformat() if inv.received_date else None,
+                "updated_date": inv.updated_date.isoformat() if inv.updated_date else None,
+                "updated_by": inv.updated_by,
+                "calculated_status": inv.calculated_status,
+                "manufacturing_date": inv.manufacturing_date.isoformat() if inv.manufacturing_date else None,
+                "initial_quantity": inv.initial_quantity,
+                "available_quantity": inv.available_quantity,
+                "quantity": inv.quantity,
+                "name": inv.name,
+                "sap_code": inv.sap_code,
+                "po": inv.po,
+                "lot": inv.lot,
+                "vendor": inv.vendor,
+                "msd_level": inv.msd_level,
+                "comments": inv.comments
+            })
+
+        total_pages = (total_items + size - 1) // size if total_items > 0 else 1
+
+        return {
+            "data": data,
+            "meta": {
+                "page": page,
+                "size": size,
+                "total_items": total_items,
+                "total_pages": total_pages
+            }
+        }
+
+    @staticmethod
     async def get_inventories_by_scan_pallets(db: AsyncSession, serial_pallet: str) -> List[dict]:
         from sqlalchemy import select
 
@@ -443,9 +542,10 @@ class InventoryService:
 class AreaService:
 
     @staticmethod
-    def get_areas(db: Session) -> List[dict]:
-        result = db.execute(select(Area.id, Area.code, Area.name, Area.thu_kho, Area.description, Area.address, Area.is_active))
-        return [{"id": area.id, "code": area.code, "name": area.name, "thu_kho": area.thu_kho, "description": area.description, "address": area.address, "is_active": area.is_active} for area in result]
+    async def get_areas(db: AsyncSession) -> List[dict]:
+        result = await db.execute(select(Area.id, Area.code, Area.name, Area.thu_kho, Area.description, Area.address, Area.is_active))
+        rows = result.all()
+        return [{"id": area.id, "code": area.code, "name": area.name, "thu_kho": area.thu_kho, "description": area.description, "address": area.address, "is_active": area.is_active} for area in rows]
 
     @staticmethod
     async def get_areas_paginated(
@@ -573,8 +673,8 @@ class AreaService:
 class LocationService:
 
     @staticmethod
-    def get_locations(db: Session) -> List[Location]:
-        result = db.execute(select(Location))
+    async def get_locations(db: AsyncSession) -> List[Location]:
+        result = await db.execute(select(Location))
         return result.scalars().all()
 
     @staticmethod
