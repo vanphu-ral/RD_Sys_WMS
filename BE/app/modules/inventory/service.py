@@ -317,6 +317,10 @@ class InventoryService:
             group_column = WarehouseImportRequirement.client_id
             group_name_column = WarehouseImportRequirement.client_id
             group_key = "client_id"
+        elif group_by == "sap_code":
+            group_column = Inventory.sap_code
+            group_name_column = Inventory.name  # Use name as display name for sap_code groups
+            group_key = "sap_code"
         else:
             # Default to area
             group_column = Area.code
