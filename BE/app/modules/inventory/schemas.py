@@ -167,6 +167,8 @@ class GeneralInfo(BaseModel):
     production_team: Optional[str] = None
     production_decision_number: Optional[str] = None
     item_no_sku: Optional[str] = None
+    destination_warehouse: Optional[int] = None
+    pallet_note_creation_session_id: Optional[int] = None
 
 
 class Detail(BaseModel):

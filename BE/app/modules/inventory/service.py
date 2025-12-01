@@ -951,7 +951,10 @@ class WarehouseImportService:
                 'production_decision_number': general_info.get('production_decision_number'),
                 'item_no_sku': general_info.get('item_no_sku'),
                 'status': False,
+                'approved_by': general_info.get('approver_by'),
                 'note': general_info.get('ghi_chu'),
+                'destination_warehouse': general_info.get('destination_warehouse'),
+                'pallet_note_creation_session_id': general_info.get('pallet_note_creation_session_id'),
                 'updated_by': str(general_info.get('create_by', ''))
             }
             

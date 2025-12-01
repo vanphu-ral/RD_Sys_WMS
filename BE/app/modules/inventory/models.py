@@ -95,6 +95,8 @@ class WarehouseImportRequirement(Base):
     approved_by = Column(String(10), nullable=True)
     is_check_all = Column(Boolean, default=False)
     note = Column(String(255), nullable=True)
+    destination_warehouse = Column(Integer, nullable=True)
+    pallet_note_creation_session_id = Column(BigInteger, nullable=True)
     updated_by = Column(String(10), nullable=True)
     updated_date = Column(DateTime, default=func.now())
     deleted_at = Column(DateTime, nullable=True)
