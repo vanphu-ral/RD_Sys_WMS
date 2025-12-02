@@ -156,17 +156,18 @@ class GeneralInfo(BaseModel):
     """Schema for general import information"""
     order_id: Optional[str] = None
     client_id: Optional[str] = None
+    inventory_code: Optional[str] = None
     inventory_name: Optional[str] = None
-    ten_sp: Optional[str] = None
     wo_code: Optional[str] = None
     lot_number: Optional[str] = None
-    ngay_nhap: Optional[str] = None
-    ghi_chu: Optional[str] = None
+    production_date: Optional[str] = None
+    note: Optional[str] = None
     create_by: Optional[str] = None
-    industry: Optional[str] = None
+    branch: Optional[str] = None
     production_team: Optional[str] = None
     production_decision_number: Optional[str] = None
     item_no_sku: Optional[str] = None
+    approver: Optional[str] = None
     destination_warehouse: Optional[int] = None
     pallet_note_creation_session_id: Optional[int] = None
 
@@ -205,7 +206,7 @@ class WarehouseImportResponse(BaseModel):
     updated_date: datetime
     deleted_at: Optional[datetime] = None
     deleted_by: Optional[str] = None
-    industry: Optional[str] = None
+    branch: Optional[str] = None
     production_team: Optional[str] = None
     production_decision_number: Optional[str] = None
     item_no_sku: Optional[str] = None

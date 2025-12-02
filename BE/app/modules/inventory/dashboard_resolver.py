@@ -133,7 +133,7 @@ class TransactionDashboardItem:
     transaction_type: str
     request_code: str
     doc_entry: Optional[int]
-    industry: Optional[str]
+    branch: Optional[str]
     production_team: Optional[str]
     from_warehouse: Optional[int]
     to_warehouse: Optional[int]
@@ -324,7 +324,7 @@ class DashboardQuery:
         size: int = 20,
         transaction_type: Optional[str] = None,
         request_code: Optional[str] = None,
-        industry: Optional[str] = None,
+        branch: Optional[str] = None,
         production_team: Optional[str] = None,
         from_warehouse: Optional[int] = None,
         to_warehouse: Optional[int] = None,
@@ -339,7 +339,7 @@ class DashboardQuery:
         Args:
             transaction_type: Filter by type (IMPORT, TRANSFER, EXPORT)
             request_code: Filter by request code (wo_code, ma_yc_cknb, ma_yc_xk)
-            industry: Filter by industry (IMPORT only)
+            branch: Filter by branch (IMPORT only)
             production_team: Filter by production team (IMPORT only)
             from_warehouse: Filter by source warehouse (TRANSFER, EXPORT)
             to_warehouse: Filter by destination warehouse (all types)
@@ -357,7 +357,7 @@ class DashboardQuery:
                 size=size,
                 transaction_type=transaction_type,
                 request_code=request_code,
-                industry=industry,
+                industry=branch,
                 production_team=production_team,
                 from_warehouse=from_warehouse,
                 to_warehouse=to_warehouse,
@@ -374,7 +374,7 @@ class DashboardQuery:
                 transaction_type=item["transaction_type"],
                 request_code=item["request_code"],
                 doc_entry=item["doc_entry"],
-                industry=item["industry"],
+                branch=item["industry"],
                 production_team=item["production_team"],
                 from_warehouse=item["from_warehouse"],
                 to_warehouse=item["to_warehouse"],

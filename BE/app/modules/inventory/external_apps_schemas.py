@@ -854,7 +854,7 @@ class TransactionDashboardItem(BaseModel):
     transaction_type: str = Field(..., description="Loại giao dịch: IMPORT, TRANSFER, EXPORT")
     request_code: str = Field(..., description="Mã yêu cầu (wo_code cho IMPORT, ma_yc_cknb cho TRANSFER, ma_yc_xk cho EXPORT)")
     doc_entry: Optional[int] = Field(None, description="Mã doc_entry từ SAP (cho TRANSFER và EXPORT)")
-    industry: Optional[str] = Field(None, description="Ngành")
+    branch: Optional[str] = Field(None, description="Ngành")
     production_team: Optional[str] = Field(None, description="Tổ sản xuất")
     from_warehouse: Optional[int] = Field(None, description="Kho xuất/chuyển")
     to_warehouse: Optional[int] = Field(None, description="Kho nhận/đến")
@@ -877,7 +877,7 @@ class TransactionDashboardItem(BaseModel):
                 "transaction_type": "IMPORT",
                 "request_code": "WO-2024-001",
                 "doc_entry": None,
-                "industry": "Electronics",
+                "branch": "Electronics",
                 "production_team": "Team A",
                 "from_warehouse": None,
                 "to_warehouse": 1,
@@ -915,7 +915,7 @@ class TransactionDashboardResponse(BaseModel):
                         "id": 1,
                         "transaction_type": "IMPORT",
                         "request_code": "WO-2024-001",
-                        "industry": "Electronics",
+                        "branch": "Electronics",
                         "production_team": "Team A",
                         "to_warehouse": 1,
                         "created_date": "2024-01-15T10:30:00",

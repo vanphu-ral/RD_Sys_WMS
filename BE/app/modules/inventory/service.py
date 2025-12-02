@@ -940,21 +940,21 @@ class WarehouseImportService:
             warehouse_import_data = {
                 'order_id': general_info.get('order_id'),
                 'client_id': general_info.get('client_id'),
+                'inventory_code': general_info.get('inventory_code'),
                 'inventory_name': general_info.get('inventory_name'),
-                'number_of_pallet': general_info.get('so_pallet'), # Keep old mapping if needed or update to new field names if they changed in request
-                'number_of_box': general_info.get('so_thung'), # Keep old mapping if needed
-                'quantity': general_info.get('so_luong_sp'), # Keep old mapping if needed
                 'wo_code': general_info.get('wo_code'),
                 'lot_number': general_info.get('lot_number'),
-                'industry': general_info.get('industry'),
+                'production_date': general_info.get('production_date'),
+                'branch': general_info.get('branch'),
                 'production_team': general_info.get('production_team'),
                 'production_decision_number': general_info.get('production_decision_number'),
                 'item_no_sku': general_info.get('item_no_sku'),
                 'status': False,
-                'approved_by': general_info.get('approver_by'),
-                'note': general_info.get('ghi_chu'),
+                'approver': general_info.get('approver'),
+                'note': general_info.get('note'),
                 'destination_warehouse': general_info.get('destination_warehouse'),
                 'pallet_note_creation_session_id': general_info.get('pallet_note_creation_session_id'),
+                'created_by': str(general_info.get('create_by', '')),
                 'updated_by': str(general_info.get('create_by', ''))
             }
             
@@ -997,20 +997,21 @@ class WarehouseImportService:
                 "id": req.id,
                 "order_id": req.order_id,
                 "client_id": req.client_id,
+                "inventory_code": req.inventory_code,
                 "inventory_name": req.inventory_name,
-                "number_of_pallet": req.number_of_pallet,
-                "number_of_box": req.number_of_box,
-                "quantity": req.quantity,
                 "wo_code": req.wo_code,
                 "lot_number": req.lot_number,
-                "industry": req.industry,
+                "production_date": req.production_date,
+                "branch": req.branch,
                 "production_team": req.production_team,
                 "production_decision_number": req.production_decision_number,
                 "item_no_sku": req.item_no_sku,
                 "status": req.status,
-                "approved_by": req.approved_by,
-                "is_check_all": req.is_check_all,
+                "approver": req.approver,
                 "note": req.note,
+                "destination_warehouse": req.destination_warehouse,
+                "pallet_note_creation_session_id": req.pallet_note_creation_session_id,
+                "created_by": req.created_by,
                 "updated_by": req.updated_by,
                 "updated_date": req.updated_date,
                 "deleted_at": req.deleted_at,
@@ -2003,7 +2004,7 @@ class TransactionDashboardService:
                 literal("IMPORT").label("transaction_type"),
                 WarehouseImportRequirement.wo_code.label("request_code"),
                 literal(None).cast(Integer).label("doc_entry"),
-                WarehouseImportRequirement.industry,
+                WarehouseImportRequirement.branch,
                 WarehouseImportRequirement.production_team,
                 literal(None).cast(Integer).label("from_warehouse"),
                 literal(None).cast(Integer).label("to_warehouse"),
@@ -2022,7 +2023,7 @@ class TransactionDashboardService:
             if request_code:
                 import_query = import_query.where(WarehouseImportRequirement.wo_code.ilike(f"%{request_code}%"))
             if industry:
-                import_query = import_query.where(WarehouseImportRequirement.industry.ilike(f"%{industry}%"))
+                import_query = import_query.where(WarehouseImportRequirement.branch.ilike(f"%{industry}%"))
             if production_team:
                 import_query = import_query.where(WarehouseImportRequirement.production_team.ilike(f"%{production_team}%"))
             if status is not None:
