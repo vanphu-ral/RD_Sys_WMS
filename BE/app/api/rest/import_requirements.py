@@ -51,7 +51,7 @@ async def get_import_requirement_details(
             "data": {
                 "import_requirement": {
                     "id": import_requirement.id,
-                    "order_id": import_requirement.order_id,
+                    "po_number": import_requirement.po_number,
                     "client_id": import_requirement.client_id,
                     "inventory_code": import_requirement.inventory_code,
                     "inventory_name": import_requirement.inventory_name,
@@ -116,7 +116,7 @@ async def create_warehouse_import(
             "data": {
                 "import_requirement": {
                     "id": import_requirement.id,
-                    "order_id": import_requirement.order_id,
+                    "po_number": import_requirement.po_number,
                     "client_id": import_requirement.client_id,
                     "inventory_code": import_requirement.inventory_code,
                     "inventory_name": import_requirement.inventory_name,

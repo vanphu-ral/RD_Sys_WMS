@@ -78,7 +78,7 @@ class WarehouseImportRequirement(Base):
     __tablename__ = "warehouse_import_requirements"
 
     id = Column(Integer, primary_key=True)
-    order_id = Column(String(255), nullable=True)
+    po_number = Column(String(255), nullable=True)
     client_id = Column(String(255), nullable=True)
     inventory_name = Column(String(255), nullable=True)
     number_of_pallet = Column(Integer, nullable=True)

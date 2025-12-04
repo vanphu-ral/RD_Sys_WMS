@@ -248,6 +248,7 @@ class InventoryService:
         base_query = select(
             Inventory.id,
             Inventory.name,
+            WarehouseImportRequirement.po_number.label("po_number"),
             WarehouseImportRequirement.client_id,
             Inventory.serial_pallet,
             Inventory.identifier,
@@ -938,7 +939,7 @@ class WarehouseImportService:
             
             # Map the general_info to database columns
             warehouse_import_data = {
-                'order_id': general_info.get('order_id'),
+                'po_number': general_info.get('po_number'),
                 'client_id': general_info.get('client_id'),
                 'inventory_code': general_info.get('inventory_code'),
                 'inventory_name': general_info.get('inventory_name'),
@@ -995,7 +996,7 @@ class WarehouseImportService:
         return [
             {
                 "id": req.id,
-                "order_id": req.order_id,
+                "po_number": req.po_number,
                 "client_id": req.client_id,
                 "inventory_code": req.inventory_code,
                 "inventory_name": req.inventory_name,
@@ -2170,6 +2171,7 @@ class TransactionDashboardService:
                 "status": txn.status,
                 "updated_by": txn.updated_by,
                 "updated_date": txn.updated_date.isoformat() if txn.updated_date else None,
+                "po_number": txn.po_number,
                 "client_id": txn.client_id,
                 "lot_number": txn.lot_number,
                 "don_vi_linh": txn.don_vi_linh,

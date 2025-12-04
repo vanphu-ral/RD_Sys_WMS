@@ -864,6 +864,7 @@ class TransactionDashboardItem(BaseModel):
     updated_date: Optional[datetime] = Field(None, description="Thời gian cập nhật")
     
     # Additional fields
+    po_number: Optional[str] = Field(None, description="PO number (IMPORT)")
     client_id: Optional[str] = Field(None, description="Mã khách hàng (IMPORT)")
     lot_number: Optional[str] = Field(None, description="Số lô (IMPORT)")
     don_vi_linh: Optional[str] = Field(None, description="Đơn vị lĩnh (TRANSFER/EXPORT)")
@@ -885,6 +886,8 @@ class TransactionDashboardItem(BaseModel):
                 "status": True,
                 "updated_by": "admin",
                 "updated_date": "2024-01-15T14:30:00",
+                "po_number": "PO-001",
+                "po_number": "PO-001",
                 "client_id": "CLIENT-001",
                 "lot_number": "LOT-001",
                 "don_vi_linh": None,

@@ -154,7 +154,7 @@ class LocationListResponse(BaseModel):
 
 class GeneralInfo(BaseModel):
     """Schema for general import information"""
-    order_id: Optional[str] = None
+    po_number: Optional[str] = None
     client_id: Optional[str] = None
     inventory_code: Optional[str] = None
     inventory_name: Optional[str] = None
@@ -189,7 +189,7 @@ class WarehouseImportRequest(BaseModel):
 class WarehouseImportResponse(BaseModel):
     """Response schema for warehouse import"""
     id: int
-    order_id: Optional[int] = None
+    po_number: Optional[str] = None
     po_code: Optional[int] = None
     client_id: Optional[int] = None
     inventory_name: Optional[str] = None

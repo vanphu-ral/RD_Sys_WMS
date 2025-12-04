@@ -141,6 +141,7 @@ class TransactionDashboardItem:
     status: Optional[bool]
     updated_by: Optional[str]
     updated_date: Optional[str]
+    po_number: Optional[str]
     client_id: Optional[str]
     lot_number: Optional[str]
     don_vi_linh: Optional[str]
@@ -382,6 +383,7 @@ class DashboardQuery:
                 status=item["status"],
                 updated_by=item["updated_by"],
                 updated_date=item["updated_date"],
+                po_number=item["po_number"],
                 client_id=item["client_id"],
                 lot_number=item["lot_number"],
                 don_vi_linh=item["don_vi_linh"],
