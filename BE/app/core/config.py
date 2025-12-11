@@ -37,14 +37,22 @@ class Settings(BaseSettings):
     CACHE_EXPIRE_SECONDS: int = 300
 
     # CORS
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:4200", "http://192.168.20.101:4200","http://localhost:9004","http://localhost:9041","http://192.168.20.101:9004","https://ral.wms-logistic.rangdong.com.vn:9004","http://192.168.10.8:9041" ]
-
+    ALLOWED_ORIGINS: List[str] = ["http://localhost:4200",
+                                   "http://192.168.20.101:4200",
+                                   "http://localhost:9004", 
+                                   "http://192.168.20.101:9004",
+                                   "https://ral.wms-logistic.rangdong.com.vn:9004",
+                                   "https://192.168.68.77:4200",
+                                   "http://192.168.68.77:9040",
+                                    "http://192.168.18.103:9000",
+                                     "http://192.168.10.99:8085",
+                                     "http://192.168.68.77:8085",
+                                     "http://192.168.10.99:9000",
+                                      "http://localhost:9000" ]
     LOG_LEVEL: str = "INFO"
 
     class Config:
         env_file = ".env"
         case_sensitive = True
 
-#
-# Global settings instance
 settings = Settings()
