@@ -23,3 +23,5 @@ setuptools
 wheel
 psycopg
 psycopg_binary
+redis==5.0.1
+fastapi-cache2==0.2.1

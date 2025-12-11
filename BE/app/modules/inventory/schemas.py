@@ -468,3 +468,57 @@ class UpdateInventoriesInOSRRequest(BaseModel):
 class BulkUpdateInventoriesInOSRRequest(BaseModel):
 
     updates: list[UpdateInventoriesInOSRRequest]
+
+
+# Schemas for WMS Import Requirements API
+class BoxInfo(BaseModel):
+    """Schema for box information in pallet"""
+    box_code: str
+    quantity: int
+    note: Optional[str] = None
+    list_serial_items: Optional[str] = None
+
+
+class PalletInfo(BaseModel):
+    """Schema for pallet information"""
+    serial_pallet: str
+    quantity_per_box: Optional[int] = None
+    num_box_per_pallet: Optional[int] = None
+    total_quantity: Optional[int] = None
+    po_number: Optional[str] = None
+    customer_name: Optional[str] = None
+    production_decision_number: Optional[str] = None
+    item_no_sku: Optional[str] = None
+    date_code: Optional[str] = None
+    note: Optional[str] = None
+    list_box: list[BoxInfo]
+
+
+class WMSGeneralInfo(BaseModel):
+    """Schema for WMS general import information"""
+    client_id: Optional[str] = None
+    inventory_code: Optional[str] = None
+    inventory_name: Optional[str] = None
+    wo_code: str
+    production_date: Optional[str] = None
+    lot_number: str
+    note: Optional[str] = None
+    created_by: Optional[str] = None
+    branch: Optional[str] = None
+    production_team: Optional[str] = None
+    number_of_pallet: Optional[int] = None
+    number_of_box: Optional[int] = None
+    quantity: Optional[int] = None
+    destination_warehouse: Optional[int] = None
+    pallet_note_creation_id: Optional[int] = None
+    list_pallet: list[PalletInfo]
+
+
+class WMSImportRequest(BaseModel):
+    """Schema for WMS warehouse import request"""
+    general_info: WMSGeneralInfo
+
+
+class WMSImportResponse(BaseModel):
+    """Response schema for WMS warehouse import"""
+    success: bool

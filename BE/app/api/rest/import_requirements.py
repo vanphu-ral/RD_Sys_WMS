@@ -7,11 +7,18 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.modules.inventory.service import WarehouseImportService, IWTRService
-from app.modules.inventory.schemas import WarehouseImportRequest, WarehouseImportResponse, WarehouseImportContainerResponse
+from app.modules.inventory.schemas import (
+    WarehouseImportRequest,
+    WarehouseImportResponse,
+    WarehouseImportContainerResponse,
+    WMSImportRequest,
+    WMSImportResponse,
+    ContainerInventoryCreate,
+    ContainerInventoryResponse
+)
 from app.modules.inventory.models import WarehouseImportRequirement, WarehouseImportContainer
 from datetime import datetime
 from app.modules.inventory.service import InventoryService, ContainerInventoryService
-from app.modules.inventory.schemas import ContainerInventoryCreate, ContainerInventoryResponse
 import logging
 
 router = APIRouter()
@@ -188,3 +195,20 @@ async def get_container_inventories_by_import_container_id(
         logger.error(f"Error fetching container inventories for import_container_id {import_container_id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch container inventories: {str(e)}")
     
+
+@router.post("/wms", response_model=WMSImportResponse)
+async def create_wms_import_requirement(
+    request: WMSImportRequest,
+    db: AsyncSession = Depends(get_db),
+    # current_user: str = Depends(get_current_user)
+):
+    try:
+        import_data = request.model_dump()
+        result = await WarehouseImportService.create_wms_import_with_nested_data(db, import_data)
+        
+        return WMSImportResponse(
+            success=True
+        )
+    except Exception as e:
+        logger.error(f"Gửi nhập kho WMS thất bại: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=400, detail=f"Gửi nhập kho WMS thất bại: {str(e)}")
