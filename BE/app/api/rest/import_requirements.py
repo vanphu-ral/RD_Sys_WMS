@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 @router.get("/", response_model=List[dict])
 async def get_import_requirements(
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    # #current_user: str = Depends(get_current_user)
 ):
     return await WarehouseImportService.get_import_requirements(db)
 
@@ -36,65 +36,14 @@ async def get_import_requirements(
 async def get_import_requirement_details(
     req_id: int,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    # #current_user: str = Depends(get_current_user)
 ):
-    """Get detailed information for a specific import requirement including containers"""
+    """Get detailed information for a specific import requirement in WMS structure"""
     try:
-        # Get the import requirement
-        import_requirement = await WarehouseImportService.get_import_requirement_by_id(db, req_id)
+        # Get the import requirement in WMS structure
+        wms_data = await WarehouseImportService.get_wms_import_requirement_by_id(db, req_id)
 
-        # Get the containers for this requirement
-        from sqlalchemy import select
-        from app.modules.inventory.models import WarehouseImportContainer
-
-        result = await db.execute(
-            select(WarehouseImportContainer).where(
-                WarehouseImportContainer.warehouse_import_requirement_id == req_id
-            )
-        )
-        containers = result.scalars().all()
-
-        return {
-            "data": {
-                "import_requirement": {
-                    "id": import_requirement.id,
-                    "po_number": import_requirement.po_number,
-                    "client_id": import_requirement.client_id,
-                    "inventory_code": import_requirement.inventory_code,
-                    "inventory_name": import_requirement.inventory_name,
-                    "wo_code": import_requirement.wo_code,
-                    "lot_number": import_requirement.lot_number,
-                    "production_date": import_requirement.production_date,
-                    "branch": import_requirement.branch,
-                    "production_team": import_requirement.production_team,
-                    "production_decision_number": import_requirement.production_decision_number,
-                    "item_no_sku": import_requirement.item_no_sku,
-                    "status": import_requirement.status,
-                    "approver": import_requirement.approver,
-                    "note": import_requirement.note,
-                    "destination_warehouse": import_requirement.destination_warehouse,
-                    "pallet_note_creation_session_id": import_requirement.pallet_note_creation_session_id,
-                    "created_by": import_requirement.created_by,
-                    "updated_by": import_requirement.updated_by,
-                    "updated_date": import_requirement.updated_date.isoformat() if import_requirement.updated_date else None,
-                    "deleted_at": import_requirement.deleted_at.isoformat() if import_requirement.deleted_at else None,
-                    "deleted_by": import_requirement.deleted_by
-                },
-                "containers": [
-                    {
-                        "id": container.id,
-                        "warehouse_import_requirement_id": container.warehouse_import_requirement_id,
-                        "serial_pallet": container.serial_pallet,
-                        "box_code": container.box_code,
-                        "box_quantity": container.box_quantity,
-                        "list_serial_items": container.list_serial_items,
-                        "updated_by": container.updated_by,
-                        "updated_date": container.updated_date.isoformat() if container.updated_date else None
-                    }
-                    for container in containers
-                ]
-            }
-        }
+        return wms_data
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Import requirement with ID {req_id} not found: {str(e)}")
 
@@ -103,7 +52,7 @@ async def get_import_requirement_details(
 async def create_warehouse_import(
     import_request: WarehouseImportRequest,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)s
+    # #current_user: str = Depends(get_current_user)s
 ):
 
     try:
@@ -165,7 +114,7 @@ async def create_warehouse_import(
 async def create_container_inventory(
     request: ContainerInventoryCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
     """Create a new container inventory record"""
     try:
@@ -183,7 +132,7 @@ async def get_container_inventories_by_import_container_id(
     page: int = 1,
     size: int = 20,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
     """Get container inventories by import_container_id"""
     try:
@@ -200,7 +149,7 @@ async def get_container_inventories_by_import_container_id(
 async def create_wms_import_requirement(
     request: WMSImportRequest,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    # #current_user: str = Depends(get_current_user)
 ):
     try:
         import_data = request.model_dump()

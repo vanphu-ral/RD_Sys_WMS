@@ -18,7 +18,7 @@ router = APIRouter()
 async def get_inventory_by_identifier(
     identifier: str,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
     logger.info(f"Fetching inventory with identifier: {identifier}")
     try:
@@ -33,7 +33,7 @@ async def get_inventory_by_identifier(
 async def update_inventory_location(
     request: UpdateInventoryLocationRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
     try:
         updated_inventory = await InventoryUpdateService.update_inventory_location(
@@ -57,7 +57,7 @@ async def update_inventory_location(
 async def update_inventory_quantity(
     request: UpdateInventoryQuantityRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -82,7 +82,7 @@ async def update_inventory_quantity(
 async def create_inventories_wh(
     request: InventoriesWHRequest,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    # #current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -118,7 +118,7 @@ async def create_inventories_wh(
 async def get_inventories_by_serial_pallet(
     serial_pallet: str,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
     try:
         result = await InventoryService.get_inventories_by_scan_pallets(db,serial_pallet)

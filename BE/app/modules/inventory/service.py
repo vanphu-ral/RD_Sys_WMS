@@ -1030,6 +1030,75 @@ class WarehouseImportService:
         return req
 
     @staticmethod
+    async def get_wms_import_requirement_by_id(db: AsyncSession, req_id: int) -> dict:
+        req = await WarehouseImportService.get_import_requirement_by_id(db, req_id)
+
+        from app.modules.inventory.models import ImportPalletInfo, ContainerInventory
+        pallets_result = await db.execute(
+            select(ImportPalletInfo).where(ImportPalletInfo.warehouse_import_requirement_id == req_id)
+        )
+        pallets = pallets_result.scalars().all()
+
+        list_pallet = []
+        for pallet in pallets:
+            boxes_result = await db.execute(
+                select(ContainerInventory).where(ContainerInventory.import_pallet_id == pallet.id)
+            )
+            boxes = boxes_result.scalars().all()
+
+            list_box = [
+                {
+                    "id": box.id,
+                    "box_code": box.inventory_identifier,
+                    "quantity": box.quantity_imported,
+                    "note": box.comments,
+                    "list_serial_items": box.list_serial_items
+                }
+                for box in boxes
+            ]
+
+            pallet_info = {
+                "id": pallet.id,
+                "serial_pallet": pallet.serial_pallet,
+                "quantity_per_box": pallet.quantity_per_box,
+                "num_box_per_pallet": pallet.num_box_per_pallet,
+                "total_quantity": pallet.total_quantity,
+                "po_number": pallet.po_number,
+                "customer_name": pallet.customer_name,
+                "production_decision_number": pallet.qdsx_no,
+                "item_no_sku": pallet.item_no_sku,
+                "date_code": pallet.date_code,
+                "production_date": pallet.production_date,
+                "note": pallet.note,
+                "list_box": list_box
+            }
+            list_pallet.append(pallet_info)
+
+        # Construct general_info
+        general_info = {
+            "id": req.id,
+            "client_id": req.client_id,
+            "inventory_code": req.inventory_code,
+            "inventory_name": req.inventory_name,
+            "wo_code": req.wo_code,
+            "lot_number": req.lot_number,
+            "note": req.note,
+            "created_by": req.created_by,
+            "branch": req.branch,
+            "production_team": req.production_team,
+            "number_of_pallet": req.number_of_pallet,
+            "number_of_box": req.number_of_box,
+            "quantity": req.quantity,
+            "destination_warehouse": req.destination_warehouse,
+            "pallet_note_creation_id": req.pallet_note_creation_session_id,
+            "list_pallet": list_pallet
+        }
+
+        return {
+            "general_info": general_info
+        }
+
+    @staticmethod
     def create_import_requirement_from_sap(db: Session, sap_data: dict) -> WarehouseImportRequirement:
         with db.begin():
             req = WarehouseImportRequirement(**sap_data)
