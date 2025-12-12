@@ -18,6 +18,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     'https://ral-wms-logistic.rangdong.com.vn:9004/api',
     'http://192.168.10.99:8050/api', 
     'http://192.168.20.101:8050/api',
+    'http://192.168.68.77:4200/api',
   ];
 
   // Kiểm tra request có phải API cần bảo vệ không

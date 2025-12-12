@@ -31,9 +31,14 @@ export class AuthService {
   isLoggedIn$: Observable<boolean> = this.isLoggedInSubject.asObservable();
   username$: Observable<string> = this.usernameSubject.asObservable();
 
-  private readonly KEYCLOAK_URL = 'https://ssosys.rangdong.com.vn:9002';
-  private readonly REALM = 'rangdong';
-  private readonly CLIENT_ID = 'RD_KHO';
+  // private readonly KEYCLOAK_URL = 'https://ssosys.rangdong.com.vn:9002';
+  // private readonly REALM = 'rangdong';
+  // private readonly CLIENT_ID = 'RD_KHO';
+
+  
+  private readonly KEYCLOAK_URL = 'http://192.168.68.90:8080/auth';
+  private readonly REALM = 'QLSX';
+  private readonly CLIENT_ID = 'WMS_KHO';
 
   // Session timeout: 30 phút
   private readonly SESSION_TIMEOUT = 30 * 60 * 1000;
@@ -58,7 +63,7 @@ export class AuthService {
   private async generateCodeChallenge(verifier: string): Promise<string> {
     const encoder = new TextEncoder();
     const data = encoder.encode(verifier);
-    const hash = await crypto.subtle.digest('SHA-256', data);
+    const hash = await window.crypto.subtle.digest('SHA-256', data);
     return this.base64UrlEncode(new Uint8Array(hash));
   }
 
@@ -100,6 +105,7 @@ export class AuthService {
     }
 
     const codeVerifier = this.generateCodeVerifier();
+
     const codeChallenge = await this.generateCodeChallenge(codeVerifier);
     const state = this.generateState();
 
