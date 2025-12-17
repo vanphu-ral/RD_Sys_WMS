@@ -20,18 +20,32 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     # Keycloak Configuration
     # KEYCLOAK_URL: str = "http://localhost:9000/auth"
-    KEYCLOAK_URL: str = "https://ssosys.rangdong.com.vn:9002"
-    KEYCLOAK_REALM: str = "rangdong"
-    KEYCLOAK_CLIENT_ID: str = "RD_KHO"
-    KEYCLOAK_CLIENT_SECRET: str = "BXq009ttkCAYqQpczs4YqtaUFod4WlmI"
-    KEYCLOAK_REDIRECT_URI: str = "https://ssosys.rangdong.com.vn:9002"
-
+    # KEYCLOAK_URL: str = "https://ssosys.rangdong.com.vn:9002"
+    # KEYCLOAK_REALM: str = "rangdong"
+    # KEYCLOAK_CLIENT_ID: str = "RD_KHO"
+    # KEYCLOAK_CLIENT_SECRET: str = "BXq009ttkCAYqQpczs4YqtaUFod4WlmI"
+    # KEYCLOAK_REDIRECT_URI: str = "https://ssosys.rangdong.com.vn:9002"
+    KEYCLOAK_URL: str = "http://192.168.68.90:8080"
+    KEYCLOAK_REALM: str = "QLSX"
+    KEYCLOAK_CLIENT_ID: str = "WMS_KHO"
+    KEYCLOAK_REDIRECT_URI: str = "http://192.168.68.90:8080"
 # Tên miền :ssosys.rangdong.com.vn:9002
 # realm: rangdong
 # clientID : RD_KHO
 
     # CORS
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:4200", "http://192.168.20.101:4200","http://localhost:9004", "http://192.168.20.101:9004","https://ral.wms-logistic.rangdong.com.vn:9004" ]
+    ALLOWED_ORIGINS: List[str] = ["http://localhost:4200",
+                                   "http://192.168.20.101:4200",
+                                   "http://localhost:9004", 
+                                   "http://192.168.20.101:9004",
+                                   "https://ral.wms-logistic.rangdong.com.vn:9004",
+                                   "https://192.168.68.77:4200",
+                                   "http://192.168.68.77:9040",
+                                    "http://192.168.18.103:9000",
+                                     "http://192.168.10.99:8085",
+                                     "http://192.168.68.77:8085",
+                                     "http://192.168.10.99:9000",
+                                      "http://localhost:9000" ]
 
     LOG_LEVEL: str = "INFO"
 
