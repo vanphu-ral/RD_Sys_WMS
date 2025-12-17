@@ -77,7 +77,7 @@ class AreaResponse(BaseModel):
     id: int
     code: str
     name: str
-    thu_kho: str
+    thu_kho: Optional[str] = None
     description: Optional[str] = None
     address: Optional[str] = None
     is_active: bool
@@ -520,5 +520,46 @@ class WMSImportRequest(BaseModel):
 
 
 class WMSImportResponse(BaseModel):
-    """Response schema for WMS warehouse import"""
-    success: bool
+     """Response schema for WMS warehouse import"""
+     success: bool
+
+
+class WarehouseNoteInfoApprovalCreate(BaseModel):
+     """Create schema for warehouse note info approval"""
+     ma_lenh_san_xuat: Optional[str] = None
+     so_phieu_xuat: Optional[str] = None
+     so_chung_tu: Optional[str] = None
+     series_pgh: Optional[str] = None
+     ngay_chung_tu: Optional[str] = None
+     ly_do_xuat_nhap: Optional[str] = None
+     don_vi_linh: Optional[str] = None
+     don_vi_nhan: Optional[str] = None
+     note: Optional[str] = None
+     status: Optional[bool] = None
+     approved_by: Optional[str] = None
+     created_by: Optional[str] = None
+     updated_by: Optional[str] = None
+
+
+class WarehouseNoteInfoApprovalResponse(BaseModel):
+     """Response schema for warehouse note info approval"""
+     id: int
+     ma_lenh_san_xuat: Optional[str] = None
+     so_phieu_xuat: Optional[str] = None
+     so_chung_tu: Optional[str] = None
+     series_pgh: Optional[str] = None
+     ngay_chung_tu: Optional[str] = None
+     ly_do_xuat_nhap: Optional[str] = None
+     don_vi_linh: Optional[str] = None
+     don_vi_nhan: Optional[str] = None
+     note: Optional[str] = None
+     status: Optional[bool] = None
+     approved_by: Optional[str] = None
+     created_by: Optional[str] = None
+     updated_by: Optional[str] = None
+     updated_date: datetime
+     deleted_at: Optional[datetime] = None
+     deleted_by: Optional[str] = None
+
+     class Config:
+         from_attributes = True

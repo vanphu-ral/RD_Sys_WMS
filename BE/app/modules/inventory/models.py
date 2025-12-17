@@ -251,15 +251,37 @@ class ProductsInOSR(Base):
 
 
 class InventoriesInOSR(Base):
-    __tablename__ = "inventories_in_osr"
+     __tablename__ = "inventories_in_osr"
 
-    id = Column(Integer, primary_key=True)
-    product_in_osr_id = Column(Integer, ForeignKey("products_in_osr.id"), nullable=False)
-    inventory_identifier = Column(String(50), nullable=False)
-    serial_pallet = Column(String(50), nullable=False)
-    scan_by = Column(String(10), nullable=False)
-    quantity_dispatched = Column(Integer, nullable=False)
-    scan_time = Column(DateTime, default=func.now())
-    confirmed = Column(Boolean, default=False)
+     id = Column(Integer, primary_key=True)
+     product_in_osr_id = Column(Integer, ForeignKey("products_in_osr.id"), nullable=False)
+     inventory_identifier = Column(String(50), nullable=False)
+     serial_pallet = Column(String(50), nullable=False)
+     scan_by = Column(String(10), nullable=False)
+     quantity_dispatched = Column(Integer, nullable=False)
+     scan_time = Column(DateTime, default=func.now())
+     confirmed = Column(Boolean, default=False)
+
+
+class WarehouseNoteInfoApproval(Base):
+     __tablename__ = "warehouse_note_info_approvals"
+
+     id = Column(Integer, primary_key=True)
+     ma_lenh_san_xuat = Column(String(50), nullable=True)
+     so_phieu_xuat = Column(String(50), nullable=True)
+     so_chung_tu = Column(String(50), nullable=True)
+     series_pgh = Column(String(50), nullable=True)
+     ngay_chung_tu = Column(String(50), nullable=True)
+     ly_do_xuat_nhap = Column(String(255), nullable=True)
+     don_vi_linh = Column(String(50), nullable=True)
+     don_vi_nhan = Column(String(50), nullable=True)
+     note = Column(String(255), nullable=True)
+     status = Column(Boolean, nullable=True)
+     approved_by = Column(String(10), nullable=True)
+     created_by = Column(String(10), nullable=True)
+     updated_by = Column(String(10), nullable=True)
+     updated_date = Column(DateTime, default=func.now())
+     deleted_at = Column(DateTime, nullable=True)
+     deleted_by = Column(String(10), nullable=True)
 
 

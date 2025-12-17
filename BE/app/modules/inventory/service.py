@@ -5,19 +5,20 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, func
 
 from app.modules.inventory.models import (
-    Area,
-    Location,
-    Inventory,
-    WarehouseImportRequirement,
-    InternalWarehouseTransferRequest,
-    OutboundShipmentRequestOnOrder,
-    WarehouseImportContainer,
-    ContainerInventory,
-    ProductsInIWTR,
-    InventoriesInIWTR,
-    ProductsInOSR,
-    InventoriesInOSR
-)
+     Area,
+     Location,
+     Inventory,
+     WarehouseImportRequirement,
+     InternalWarehouseTransferRequest,
+     OutboundShipmentRequestOnOrder,
+     WarehouseImportContainer,
+     ContainerInventory,
+     ProductsInIWTR,
+     InventoriesInIWTR,
+     ProductsInOSR,
+     InventoriesInOSR,
+     WarehouseNoteInfoApproval
+ )
 from app.core.exceptions import NotFoundException, HTTPException
 
 
@@ -566,10 +567,16 @@ class AreaService:
     ) -> dict:
         from sqlalchemy import and_
         
+        # lọc is_active = true
+
         query = select(Area)
         
         # Apply filters
         filters = []
+        if is_active is None:
+            filters.append(Area.is_active == True)
+        else:
+            filters.append(Area.is_active == is_active)
         if code:
             filters.append(Area.code.ilike(f"%{code}%"))
         if name:
@@ -580,8 +587,6 @@ class AreaService:
             filters.append(Area.description.ilike(f"%{description}%"))
         if address:
             filters.append(Area.address.ilike(f"%{address}%"))
-        if is_active is not None:
-            filters.append(Area.is_active == is_active)
         
         if filters:
             query = query.where(and_(*filters))
