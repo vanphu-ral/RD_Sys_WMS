@@ -106,7 +106,27 @@ class WarehouseImportRequirement(Base):
     deleted_at = Column(DateTime, nullable=True)
     deleted_by = Column(String(10), nullable=True)
 
+class ImportPalletInfo(Base):
+    __tablename__ = "import_pallet_info"
 
+    id = Column(Integer, primary_key=True)
+    warehouse_import_requirement_id = Column(Integer, ForeignKey("warehouse_import_requirements.id"), nullable=False)
+    serial_pallet = Column(String(50), nullable=False)
+    quantity_per_box = Column(Integer, nullable=True)
+    num_box_per_pallet = Column(Integer, nullable=True)
+    total_quantity = Column(Integer, nullable=True)
+    note = Column(String(255), nullable=True)
+    customer_name  = Column(String(255), nullable=True)
+    po_number = Column(String(255), nullable=True)
+    date_code = Column(String(50), nullable=True)
+    item_no_sku = Column(String(255), nullable=True)
+    qdsx_no = Column(String(255), nullable=True)
+    production_date = Column(String(15), nullable=True)
+    scan_status = Column(Boolean, default=False)
+    created_by = Column(String(10), nullable=True)
+    updated_date = Column(DateTime, default=func.now())
+
+# tạm không sử dụng
 class WarehouseImportContainer(Base):
     __tablename__ = "warehouse_import_containers"
 
@@ -119,11 +139,11 @@ class WarehouseImportContainer(Base):
     updated_by = Column(String(10), nullable=False)
     updated_date = Column(DateTime, default=func.now())
 
-
 class ContainerInventory(Base):
     __tablename__ = "container_inventories"
 
     id = Column(Integer, primary_key=True)
+    import_pallet_id = Column(Integer, ForeignKey("import_pallet_info.id"), nullable=False)
     manufacturing_date = Column(DateTime, nullable=True)
     expiration_date = Column(DateTime, nullable=True)
     sap_code = Column(String(20), nullable=True)
@@ -133,14 +153,15 @@ class ContainerInventory(Base):
     msd_level = Column(String(50), nullable=True)
     comments = Column(String(255), nullable=True)
     name = Column(String(255), nullable=True)
-    import_container_id = Column(Integer, ForeignKey("warehouse_import_containers.id"), nullable=False)
-    inventory_identifier = Column(String(20), nullable=False)
+    import_container_id = Column(Integer)
+    inventory_identifier = Column(String(50), nullable=False)
     location_id = Column(Integer, nullable=True)
     serial_pallet = Column(String(50), nullable=True)
     quantity_imported = Column(Integer, nullable=True)
     scan_by = Column(String(10), nullable=True)
     time_checked = Column(DateTime, default=func.now())
     confirmed = Column(Boolean, default=False)
+    list_serial_items = Column(Text, nullable=True)
 
 class InternalWarehouseTransferRequest(Base):
     __tablename__ = "internal_warehouse_transfer_requests"
@@ -185,7 +206,7 @@ class InventoriesInIWTR(Base):
 
     id = Column(Integer, primary_key=True)
     product_in_iwtr_id = Column(Integer, ForeignKey("products_in_iwtr.id"), nullable=False)
-    inventory_identifier = Column(String(20), nullable=True)
+    inventory_identifier = Column(String(50), nullable=True)
     serial_pallet = Column(String(50), nullable=True)
     scan_by = Column(String(10), nullable=True)
     quantity_dispatched = Column(Integer, nullable=True)
@@ -230,13 +251,37 @@ class ProductsInOSR(Base):
 
 
 class InventoriesInOSR(Base):
-    __tablename__ = "inventories_in_osr"
+     __tablename__ = "inventories_in_osr"
 
-    id = Column(Integer, primary_key=True)
-    product_in_osr_id = Column(Integer, ForeignKey("products_in_osr.id"), nullable=False)
-    inventory_identifier = Column(String(20), nullable=False)
-    serial_pallet = Column(String(50), nullable=False)
-    scan_by = Column(String(10), nullable=False)
-    quantity_dispatched = Column(Integer, nullable=False)
-    scan_time = Column(DateTime, default=func.now())
-    confirmed = Column(Boolean, default=False)
+     id = Column(Integer, primary_key=True)
+     product_in_osr_id = Column(Integer, ForeignKey("products_in_osr.id"), nullable=False)
+     inventory_identifier = Column(String(50), nullable=False)
+     serial_pallet = Column(String(50), nullable=False)
+     scan_by = Column(String(10), nullable=False)
+     quantity_dispatched = Column(Integer, nullable=False)
+     scan_time = Column(DateTime, default=func.now())
+     confirmed = Column(Boolean, default=False)
+
+
+class WarehouseNoteInfoApproval(Base):
+     __tablename__ = "warehouse_note_info_approvals"
+
+     id = Column(Integer, primary_key=True)
+     ma_lenh_san_xuat = Column(String(50), nullable=True)
+     so_phieu_xuat = Column(String(50), nullable=True)
+     so_chung_tu = Column(String(50), nullable=True)
+     series_pgh = Column(String(50), nullable=True)
+     ngay_chung_tu = Column(String(50), nullable=True)
+     ly_do_xuat_nhap = Column(String(255), nullable=True)
+     don_vi_linh = Column(String(50), nullable=True)
+     don_vi_nhan = Column(String(50), nullable=True)
+     note = Column(String(255), nullable=True)
+     status = Column(Boolean, nullable=True)
+     approved_by = Column(String(10), nullable=True)
+     created_by = Column(String(10), nullable=True)
+     updated_by = Column(String(10), nullable=True)
+     updated_date = Column(DateTime, default=func.now())
+     deleted_at = Column(DateTime, nullable=True)
+     deleted_by = Column(String(10), nullable=True)
+
+

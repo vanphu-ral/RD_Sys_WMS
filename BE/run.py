@@ -11,6 +11,7 @@ if __name__ == "__main__":
         log_level="info",
         ssl_certfile="C:/Users/Administrator/Desktop/Backup/Cert/192.168.68.77.pem",
         ssl_keyfile="C:/Users/Administrator/Desktop/Backup/Cert/192.168.68.77-key.pem"
+        # reload=True,
     )
 
 

@@ -40,7 +40,7 @@ async def get_iwtr_from_external_apps(
     from_date: Optional[datetime] = Query(None, description="Filter from date"),
     to_date: Optional[datetime] = Query(None, description="Filter to date"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum records to fetch"),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -63,7 +63,7 @@ async def get_iwtr_from_external_apps(
 async def get_iwtr_by_doc_entry(
     doc_entry: int,
     external_apps_db: AsyncSession = Depends(get_external_apps_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
     """
     Get single IWTR by DocEntry from SAP in OWTR/WTR1 format
@@ -85,7 +85,7 @@ async def get_iwtr_by_doc_entry(
 async def get_iwtr_header_by_doc_entry(
     doc_entry: int,
     external_apps_db: AsyncSession = Depends(get_external_apps_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
     """
     Get single IWTR header by DocEntry from SAP (original format)
@@ -107,7 +107,7 @@ async def get_iwtr_header_by_doc_entry(
 async def get_full_iwtr_by_doc_entry(
     doc_entry: int,
     external_apps_db: AsyncSession = Depends(get_external_apps_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
     """
     Get full IWTR data (header + lines) by DocEntry from SAP
@@ -127,7 +127,7 @@ async def get_full_iwtr_by_doc_entry(
 async def get_open_iwtr_from_external_apps(
     external_apps_db: AsyncSession = Depends(get_external_apps_db),
     limit: int = Query(100, ge=1, le=1000, description="Maximum records to fetch"),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -141,7 +141,7 @@ async def get_open_iwtr_from_external_apps(
 @router.get("/requests", response_model=List[dict])
 async def get_iwtr_requests(
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
 
     return await IWTRService.get_iwtr_requests(db)
@@ -153,7 +153,7 @@ async def confirm_iwtr_location(
     request_id: int,
     location_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
 
     return await IWTRService.confirm_iwtr_location(db, request_id, location_id)
@@ -164,7 +164,7 @@ async def scan_iwtr(
     request_id: int,
     scan_request: IWTRScanDetailRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -183,7 +183,7 @@ async def create_products_in_iwtr(
     request_id: int,
     request_data: IWTRInventoriesCreateRequest,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    # #current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -219,7 +219,7 @@ async def create_products_in_iwtr(
 async def get_iwtr_inventories_by_request_id(
     request_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -236,7 +236,7 @@ async def get_iwtr_inventories_by_request_id(
 async def get_iwtr_scan_details_by_product_in_iwtr_id(
     product_in_iwtr_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
 
     try:
@@ -289,7 +289,7 @@ async def create_iwtr_with_inventories(
 async def update_inventories_in_iwrt(
     request: BulkUpdateInventoriesInIWTRRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
     updates = [
         {

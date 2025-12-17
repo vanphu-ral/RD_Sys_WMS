@@ -5,19 +5,20 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, func
 
 from app.modules.inventory.models import (
-    Area,
-    Location,
-    Inventory,
-    WarehouseImportRequirement,
-    InternalWarehouseTransferRequest,
-    OutboundShipmentRequestOnOrder,
-    WarehouseImportContainer,
-    ContainerInventory,
-    ProductsInIWTR,
-    InventoriesInIWTR,
-    ProductsInOSR,
-    InventoriesInOSR
-)
+     Area,
+     Location,
+     Inventory,
+     WarehouseImportRequirement,
+     InternalWarehouseTransferRequest,
+     OutboundShipmentRequestOnOrder,
+     WarehouseImportContainer,
+     ContainerInventory,
+     ProductsInIWTR,
+     InventoriesInIWTR,
+     ProductsInOSR,
+     InventoriesInOSR,
+     WarehouseNoteInfoApproval
+ )
 from app.core.exceptions import NotFoundException, HTTPException
 
 
@@ -566,10 +567,16 @@ class AreaService:
     ) -> dict:
         from sqlalchemy import and_
         
+        # lọc is_active = true
+
         query = select(Area)
         
         # Apply filters
         filters = []
+        if is_active is None:
+            filters.append(Area.is_active == True)
+        else:
+            filters.append(Area.is_active == is_active)
         if code:
             filters.append(Area.code.ilike(f"%{code}%"))
         if name:
@@ -580,8 +587,6 @@ class AreaService:
             filters.append(Area.description.ilike(f"%{description}%"))
         if address:
             filters.append(Area.address.ilike(f"%{address}%"))
-        if is_active is not None:
-            filters.append(Area.is_active == is_active)
         
         if filters:
             query = query.where(and_(*filters))
@@ -1030,6 +1035,75 @@ class WarehouseImportService:
         return req
 
     @staticmethod
+    async def get_wms_import_requirement_by_id(db: AsyncSession, req_id: int) -> dict:
+        req = await WarehouseImportService.get_import_requirement_by_id(db, req_id)
+
+        from app.modules.inventory.models import ImportPalletInfo, ContainerInventory
+        pallets_result = await db.execute(
+            select(ImportPalletInfo).where(ImportPalletInfo.warehouse_import_requirement_id == req_id)
+        )
+        pallets = pallets_result.scalars().all()
+
+        list_pallet = []
+        for pallet in pallets:
+            boxes_result = await db.execute(
+                select(ContainerInventory).where(ContainerInventory.import_pallet_id == pallet.id)
+            )
+            boxes = boxes_result.scalars().all()
+
+            list_box = [
+                {
+                    "id": box.id,
+                    "box_code": box.inventory_identifier,
+                    "quantity": box.quantity_imported,
+                    "note": box.comments,
+                    "list_serial_items": box.list_serial_items
+                }
+                for box in boxes
+            ]
+
+            pallet_info = {
+                "id": pallet.id,
+                "serial_pallet": pallet.serial_pallet,
+                "quantity_per_box": pallet.quantity_per_box,
+                "num_box_per_pallet": pallet.num_box_per_pallet,
+                "total_quantity": pallet.total_quantity,
+                "po_number": pallet.po_number,
+                "customer_name": pallet.customer_name,
+                "production_decision_number": pallet.qdsx_no,
+                "item_no_sku": pallet.item_no_sku,
+                "date_code": pallet.date_code,
+                "production_date": pallet.production_date,
+                "note": pallet.note,
+                "list_box": list_box
+            }
+            list_pallet.append(pallet_info)
+
+        # Construct general_info
+        general_info = {
+            "id": req.id,
+            "client_id": req.client_id,
+            "inventory_code": req.inventory_code,
+            "inventory_name": req.inventory_name,
+            "wo_code": req.wo_code,
+            "lot_number": req.lot_number,
+            "note": req.note,
+            "created_by": req.created_by,
+            "branch": req.branch,
+            "production_team": req.production_team,
+            "number_of_pallet": req.number_of_pallet,
+            "number_of_box": req.number_of_box,
+            "quantity": req.quantity,
+            "destination_warehouse": req.destination_warehouse,
+            "pallet_note_creation_id": req.pallet_note_creation_session_id,
+            "list_pallet": list_pallet
+        }
+
+        return {
+            "general_info": general_info
+        }
+
+    @staticmethod
     def create_import_requirement_from_sap(db: Session, sap_data: dict) -> WarehouseImportRequirement:
         with db.begin():
             req = WarehouseImportRequirement(**sap_data)
@@ -1145,6 +1219,98 @@ class WarehouseImportService:
                 await db.refresh(inventory)
 
         return updated_inventories
+
+    @staticmethod
+    async def create_wms_import_with_nested_data(db: AsyncSession, import_data: dict) -> dict:
+        """
+        Create warehouse import requirement with nested pallet and box data
+        Inserts into: warehouse_import_requirements -> import_pallet_info -> container_inventories
+        """
+        from app.modules.inventory.models import ImportPalletInfo, ContainerInventory
+        from datetime import datetime
+        
+        async with db.begin():
+            # Step 1: Extract general_info and list_pallet
+            general_info = import_data.get('general_info', {})
+            list_pallet = general_info.pop('list_pallet', [])
+            
+            # Step 2: Create warehouse_import_requirements record
+            warehouse_import_data = {
+                'po_number': general_info.get('po_number'),
+                'client_id': general_info.get('client_id'),
+                'inventory_code': general_info.get('inventory_code'),
+                'inventory_name': general_info.get('inventory_name'),
+                'wo_code': general_info.get('wo_code'),
+                'sap_wo': general_info.get('wo_code'),  # Using wo_code as sap_wo
+                'lot_number': general_info.get('lot_number'),
+                'production_date': general_info.get('production_date'),
+                'branch': general_info.get('branch'),
+                'production_team': general_info.get('production_team'),
+                'number_of_pallet': general_info.get('number_of_pallet'),
+                'number_of_box': general_info.get('number_of_box'),
+                'quantity': general_info.get('quantity'),
+                'status': False,
+                'note': general_info.get('note'),
+                'destination_warehouse': general_info.get('destination_warehouse'),
+                'pallet_note_creation_session_id': general_info.get('pallet_note_creation_id'),
+                'created_by': general_info.get('created_by'),
+                'updated_by': general_info.get('created_by')
+            }
+            
+            warehouse_import = WarehouseImportRequirement(**warehouse_import_data)
+            db.add(warehouse_import)
+            await db.flush()
+            await db.refresh(warehouse_import)
+            
+            # Step 3: Create import_pallet_info records for each pallet
+            total_pallets = 0
+            total_boxes = 0
+            
+            for pallet_data in list_pallet:
+                list_box = pallet_data.pop('list_box', [])
+                
+                # Create pallet record
+                pallet_info = ImportPalletInfo(
+                    warehouse_import_requirement_id=warehouse_import.id,
+                    serial_pallet=pallet_data.get('serial_pallet'),
+                    quantity_per_box=pallet_data.get('quantity_per_box'),
+                    num_box_per_pallet=pallet_data.get('num_box_per_pallet'),
+                    total_quantity=pallet_data.get('total_quantity'),
+                    po_number=pallet_data.get('po_number'),
+                    customer_name=pallet_data.get('customer_name'),
+                    qdsx_no=pallet_data.get('production_decision_number'),
+                    item_no_sku=pallet_data.get('item_no_sku'),
+                    date_code=pallet_data.get('date_code'),
+                    note=pallet_data.get('note'),
+                    scan_status=False,
+                    created_by=general_info.get('created_by')
+                )
+                db.add(pallet_info)
+                await db.flush()
+                await db.refresh(pallet_info)
+                total_pallets += 1
+                
+                # Step 4: Create container_inventories records for each box
+                for box_data in list_box:
+                    container_inventory = ContainerInventory(
+                        import_pallet_id=pallet_info.id,
+                        inventory_identifier=box_data.get('box_code'),
+                        serial_pallet=pallet_data.get('serial_pallet'),
+                        quantity_imported=box_data.get('quantity'),
+                        comments=box_data.get('note'),
+                        list_serial_items=box_data.get('list_serial_items'),
+                        confirmed=False
+                    )
+                    db.add(container_inventory)
+                    total_boxes += 1
+                
+                await db.flush()
+            
+            return {
+                'warehouse_import_requirement_id': warehouse_import.id,
+                'total_pallets': total_pallets,
+                'total_boxes': total_boxes
+            }
 
 class IWTRService:
 
