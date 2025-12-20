@@ -1005,6 +1005,10 @@ class WarehouseImportService:
                 "client_id": req.client_id,
                 "inventory_code": req.inventory_code,
                 "inventory_name": req.inventory_name,
+                "number_of_pallet": req.number_of_pallet,
+                "number_of_box": req.number_of_box,
+                "box_scan_progress": req.box_scan_progress,
+                "quantity": req.quantity,
                 "wo_code": req.wo_code,
                 "lot_number": req.lot_number,
                 "production_date": req.production_date,
@@ -1021,7 +1025,7 @@ class WarehouseImportService:
                 "updated_by": req.updated_by,
                 "updated_date": req.updated_date,
                 "deleted_at": req.deleted_at,
-                "deleted_by": req.deleted_by
+                "deleted_by": req.deleted_by,
             }
             for req in requirements
         ]
@@ -2159,7 +2163,7 @@ class TransactionDashboardService:
         - TRANSFER: InternalWarehouseTransferRequest (uses ma_yc_cknb as request_code, doc_entry from SAP)
         - EXPORT: OutboundShipmentRequestOnOrder (uses ma_yc_xk as request_code, doc_entry from SAP)
         """
-        from sqlalchemy import union_all, literal, cast, String
+        from sqlalchemy import union_all, literal, cast, String, Integer
         from datetime import datetime
 
         transactions = []

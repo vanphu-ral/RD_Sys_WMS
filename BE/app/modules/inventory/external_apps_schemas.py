@@ -866,7 +866,7 @@ class TransactionDashboardItem(BaseModel):
     # Additional fields
     po_number: Optional[str] = Field(None, description="PO number (IMPORT)")
     client_id: Optional[str] = Field(None, description="Mã khách hàng (IMPORT)")
-    lot_number: Optional[str] = Field(None, description="Số lô (IMPORT)")
+    lot_number: Optional[str] = Field(None, description="Số lot (IMPORT)")
     don_vi_linh: Optional[str] = Field(None, description="Đơn vị lĩnh (TRANSFER/EXPORT)")
     don_vi_nhan: Optional[str] = Field(None, description="Đơn vị nhận (TRANSFER/EXPORT)")
     note: Optional[str] = Field(None, description="Ghi chú")

@@ -49,6 +49,7 @@ class Settings(BaseSettings):
                                     "http://192.168.68.77:8085",
                                     "http://192.168.68.77:9040",
                                     "http://192.168.10.99:9000",
+                                    "http://localhost:9041",
                                     "http://localhost:9000" ]
     LOG_LEVEL: str = "INFO"
 
