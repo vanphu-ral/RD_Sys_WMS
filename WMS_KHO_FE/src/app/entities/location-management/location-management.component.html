@@ -1,0 +1,331 @@
+<div class="location-container">
+    <!-- Header -->
+    <div class="location-header">
+        <div class="header-title">
+            <mat-icon class="title-icon">location_on</mat-icon>
+            <div>
+                <h1>Quản Lý Vị Trí</h1>
+                <p class="subtitle">Locations Management</p>
+            </div>
+        </div>
+        <button mat-raised-button color="primary" class="add-btn" [routerLink]="'/location/add-new'">
+            <mat-icon>add_circle</mat-icon>
+            Thêm mới vị trí
+        </button>
+    </div>
+
+    <!-- Content Card -->
+    <mat-card class="location-card">
+        <!-- Table Header -->
+        <div class="table-header">
+            <div class="table-title">
+                <mat-icon>list</mat-icon>
+                <span>Danh sách vị trí ({{totalItems}} )</span>
+            </div>
+            <div class="table-actions">
+                <button mat-raised-button (click)="onRefresh()" class="refresh-btn icon-only">
+                    <mat-icon color="primary">sync</mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <table mat-table [dataSource]="filteredData" class="location-table">
+
+                <!-- ID Column -->
+                <ng-container matColumnDef="id">
+                    <th mat-header-cell *matHeaderCellDef>ID</th>
+                    <td mat-cell *matCellDef="let location">{{ location.id }}</td>
+                </ng-container>
+
+                <!-- Code Column -->
+                <ng-container matColumnDef="code">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div>Mã vị trí</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput [(ngModel)]="filterValues.code" (keyup.enter)="applyFilter()" />
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let location">{{ location.code }}</td>
+                </ng-container>
+
+                <!-- Name Column -->
+                <!-- <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div>Tên vị trí</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <input matInput [(ngModel)]="filterValues.name" (keyup.enter)="applyFilter()" />
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let location">{{ location.name }}</td>
+                </ng-container> -->
+
+                <!-- Description Column -->
+                <ng-container matColumnDef="description">
+                    <th mat-header-cell *matHeaderCellDef>Mô tả</th>
+                    <td mat-cell *matCellDef="let location">{{ location.description }}</td>
+                </ng-container>
+
+                <!-- Area ID Column -->
+                <ng-container matColumnDef="area_id">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <div>Kho</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <mat-select [(ngModel)]="filterValues.area" (selectionChange)="applyFilter()">
+                                <mat-option value="">Tất cả</mat-option>
+                                <mat-option *ngFor="let area of areas" [value]="area.id">
+                                    {{ area.name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let location">
+                        {{ getAreaName(location.area_id) }}
+                    </td>
+                </ng-container>
+
+
+                <!-- Racks Column -->
+                <ng-container matColumnDef="number_of_rack">
+                    <th mat-header-cell *matHeaderCellDef>Số lượng slot</th>
+                    <td mat-cell *matCellDef="let location">{{ location.number_of_rack }}</td>
+                </ng-container>
+
+                <!-- Empty Racks Column -->
+                <ng-container matColumnDef="number_of_rack_empty">
+                    <th mat-header-cell *matHeaderCellDef>Số slot trống</th>
+                    <td mat-cell *matCellDef="let location">{{ location.number_of_rack_empty }}</td>
+                </ng-container>
+
+                <!-- Multi Location Column -->
+                <ng-container matColumnDef="is_multi_location">
+                    <th mat-header-cell *matHeaderCellDef class="text-center">
+                        <div>Kiểu kho</div>
+                        <mat-form-field appearance="outline" style="width: 120px;" class="search-field">
+                            <mat-select [(value)]="selectedTypeFilter" (selectionChange)="applyTypeFilter()">
+                                <mat-option value="">Tất cả</mat-option>
+                                <mat-option value="Multi">Multi</mat-option>
+                                <mat-option value="Single">Single</mat-option>
+                                <mat-option value="SubLocation">SubLocation</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let location" class="text-center">
+                        <span class="type-label" [ngClass]="{
+                                'multi-type': getLocationType(location) === 'Multi',
+                                'single-type': getLocationType(location) === 'Single',
+                                'sublocation-type': getLocationType(location) === 'SubLocation'
+                            }">
+                            {{ getLocationType(location) }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <!-- Status Column -->
+                <ng-container matColumnDef="is_active">
+                    <th mat-header-cell *matHeaderCellDef class="text-center">
+                        <div>Trạng thái</div>
+                        <mat-form-field class="search-field" appearance="outline">
+                            <mat-select [(ngModel)]="filterValues.is_active" (selectionChange)="applyFilter()">
+                                <mat-option value="">Tất cả</mat-option>
+                                <mat-option value="true">Hoạt động</mat-option>
+                                <mat-option value="false">Không hoạt động</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </th>
+                    <td mat-cell *matCellDef="let location" class="text-center">
+                        <span [ngClass]="getStatusClass(location.is_active)">
+                            {{ getStatusLabel(location.is_active) }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <!-- Actions Column -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef class="text-center">Tuỳ chọn</th>
+                    <td mat-cell *matCellDef="let location" class="text-center">
+                        <!-- Nút chỉnh sửa -->
+                        <button mat-mini-fab class="action-btn edit-btn" (click)="onEdit(location)"
+                            matTooltip="Chỉnh sửa Location">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+
+                        <!-- Nút kích hoạt / vô hiệu hóa -->
+                        <button mat-mini-fab class="action-btn"
+                            [ngClass]="location.is_active ? 'delete-btn' : 'approve-btn'"
+                            (click)="onChangeStatus(location)"
+                            [matTooltip]="location.is_active ? 'Vô hiệu hóa Location' : 'Kích hoạt Location'">
+                            <mat-icon>{{ location.is_active ? 'block' : 'check_circle' }}</mat-icon>
+                        </button>
+
+                        <!-- Nút xóa -->
+                        <!-- <button mat-mini-fab class="action-btn delete-btn" (click)="onDelete(location)"
+                            matTooltip="Xóa Location">
+                            <mat-icon>delete</mat-icon>
+                        </button> -->
+                    </td>
+
+                </ng-container>
+
+                <!-- Table Rows -->
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+            </table>
+        </div>
+
+
+        <!-- mobile -->
+        <div class="mobile-filter-toggle">
+            <button mat-stroked-button (click)="toggleMobileFilters()" class="filter-toggle-btn">
+                <span class="btn-content">
+                    <mat-icon>filter_list</mat-icon>
+                    <span>Bộ lọc</span>
+                </span>
+                <mat-icon>{{showMobileFilters ? 'expand_less' : 'expand_more'}}</mat-icon>
+            </button>
+        </div>
+
+        <!-- Mobile Filters Panel -->
+        <div class="mobile-filters" [class.show]="showMobileFilters">
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Mã khu vực</mat-label>
+                <input matInput [(ngModel)]="filterValues.code" (keyup.enter)="applyFilter()">
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Tên khu vực</mat-label>
+                <input matInput [(ngModel)]="filterValues.name" (keyup.enter)="applyFilter()">
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Kho</mat-label>
+                <input matInput [(ngModel)]="filterValues.area" (keyup.enter)="applyFilter()">
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+
+            <!-- <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Type</mat-label>
+                <mat-select [(ngModel)]="filterValues.type" (selectionChange)="applyFilter()">
+                    <mat-option value="">Tất cả</mat-option>
+                    <mat-option value="SITE">SITE</mat-option>
+                    <mat-option value="BUILDING">BUILDING</mat-option>
+                    <mat-option value="FLOOR">FLOOR</mat-option>
+                    <mat-option value="MATERIAL">MATERIAL</mat-option>
+                </mat-select>
+            </mat-form-field> -->
+
+            <div class="filter-actions">
+                <button mat-button (click)="clearFilters()">
+                    <mat-icon>clear</mat-icon>
+                    Xóa
+                </button>
+                <button mat-raised-button color="primary" (click)="applyFilter(); toggleMobileFilters()">
+                    <mat-icon>check</mat-icon>
+                    Áp dụng
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Card List -->
+        <div class="mobile-location-list">
+            <div class="mobile-location-card" *ngFor="let location of locations">
+                <!-- Card Header -->
+                <div class="card-header">
+                    <div class="card-id-section">
+                        <div class="card-id">
+                            <mat-icon>location_on</mat-icon>
+                            #{{ location.id }}
+                        </div>
+                        <div class="card-code">{{ location.code }}</div>
+                    </div>
+                    <span [ngClass]="getStatusClass(location.is_active)">
+                        {{ getStatusLabel(location.is_active) }}
+                    </span>
+                </div>
+
+                <!-- Card Content -->
+                <div class="card-content">
+                    <div class="info-row">
+                        <span class="info-label">
+                            <mat-icon>label</mat-icon>
+                            Tên khu vực
+                        </span>
+                        <span class="info-value">{{ location.name }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">
+                            <mat-icon>place</mat-icon>
+                            Kho ID
+                        </span>
+                        <span class="info-value">{{ location.area_id }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">
+                            <mat-icon>layers</mat-icon>
+                            Multi Location
+                        </span>
+                        <span class="multi-status" [class.multi-true]="location.is_multi_location"
+                            [class.multi-false]="!location.is_multi_location">
+                            <mat-icon>{{ location.is_multi_location ? 'check_circle' : 'cancel' }}</mat-icon>
+                            {{ location.is_multi_location ? 'Có' : 'Không' }}
+                        </span>
+                    </div>
+
+                    <!-- Stats Section -->
+                    <div class="stats-section">
+                        <div class="stat-item total-racks">
+                            <span class="stat-label">Tổng Rack</span>
+                            <span class="stat-value">{{ location.number_of_rack }}</span>
+                        </div>
+                        <div class="stat-item empty-racks">
+                            <span class="stat-label">Rack trống</span>
+                            <span class="stat-value">{{ location.number_of_rack_empty }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Actions -->
+                <div class="card-actions">
+                    <button mat-raised-button class="edit-btn" (click)="onEdit(location)">
+                        <mat-icon>edit</mat-icon>
+                        Chỉnh sửa
+                    </button>
+                    <button mat-mini-fab class="action-btn"
+                        [ngClass]="location.is_active ? 'delete-btn' : 'approve-btn'" (click)="onChangeStatus(location)"
+                        [matTooltip]="location.is_active ? 'Vô hiệu hóa Location' : 'Kích hoạt Location'">
+                        <mat-icon>{{ location.is_active ? 'block' : 'check_circle' }}</mat-icon>
+                    </button>
+                    <!-- <button mat-stroked-button class="delete-btn" (click)="onDelete(location)">
+                        <mat-icon>delete</mat-icon>
+                        Xóa
+                    </button> -->
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <mat-form-field class="page-size-select" appearance="outline">
+                <mat-select [(ngModel)]="pageSize" (selectionChange)="onPageSizeChange($event.value)">
+                    <mat-option [value]="10">10</mat-option>
+                    <mat-option [value]="25">25</mat-option>
+                    <mat-option [value]="50">50</mat-option>
+                    <mat-option [value]="100">100</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <div class="pagination-buttons">
+                <button *ngFor="let page of [].constructor(totalPages); let i = index" mat-button
+                    [class.page-active]="currentPage === i + 1" (click)="onPageChange(i + 1)">
+                    {{ i + 1 }}
+                </button>
+            </div>
+        </div>
+    </mat-card>
+</div>

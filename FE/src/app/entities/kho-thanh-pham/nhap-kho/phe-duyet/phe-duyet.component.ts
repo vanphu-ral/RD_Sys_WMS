@@ -1,0 +1,145 @@
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+export interface ScannedItem {
+  maHangHoa: string;
+  tenHangHoa: string;
+  serialPallet: string;
+  serialBox: string;
+  soLuong: number;
+  area: string;
+  location: string;
+  thoiDiemScan: string;
+}
+@Component({
+  selector: 'app-nhap-kho-component',
+  standalone: false,
+  templateUrl: './phe-duyet.component.html',
+  styleUrl: './phe-duyet.component.scss',
+})
+export class PheDuyetComponent implements OnInit {
+  nhapKhoId: number | undefined;
+  nhapKhoData: ScannedItem | undefined;
+  currentPage = 1;
+  //bien scan
+  scanPallet: string = '';
+  scanLocation: string = '';
+
+  displayedColumns: string[] = [
+    'stt',
+    'maHangHoa',
+    'tenHangHoa',
+    'serialPallet',
+    'serialBox',
+    'soLuong',
+    'area',
+    'location',
+    'thoiDiemScan',
+  ];
+  scannedList: ScannedItem[] = [
+    {
+      maHangHoa: 'LED000035', 
+      tenHangHoa: 'Đèn LED cắm ứng 8W', 
+      serialPallet: 'P202500191', 
+      serialBox: 'B202500191', soLuong: 10, area: 'RD-01', location: '01-B01-01-001', thoiDiemScan: '31/10/2025 08:35',
+    }
+  ];
+  selectedMode: 'pallet' | 'thung' | null = null;
+
+  @ViewChild('palletInput') palletInput!: ElementRef;
+  @ViewChild('locationInput') locationInput!: ElementRef;
+  constructor(private route: ActivatedRoute, private router: Router, private snackBar: MatSnackBar) { }
+
+  ngOnInit(): void {
+    this.route.params.subscribe((params) => {
+      this.nhapKhoId = +params['id'];
+    });
+
+    this.route.queryParams.subscribe((queryParams) => {
+      console.log('Mã sản phẩm:', queryParams['maSanPham']);
+      console.log('Status:', queryParams['status']);
+    });
+  }
+  trackByIndex(index: number, item: any): number {
+    return index;
+  }
+  onSelectMode(mode: 'pallet' | 'thung') {
+    if (this.selectedMode === mode) {
+      this.selectedMode = null;
+    } else {
+      this.selectedMode = mode;
+
+      // focus vào input pallet sau khi chọn mode
+      setTimeout(() => {
+        this.palletInput?.nativeElement?.focus();
+      }, 100);
+    }
+  }
+
+  onPalletScanEnter() {
+    // chuyển focus sang input location
+    this.locationInput?.nativeElement?.focus();
+  }
+
+  onLocationScanEnter() {
+    if (!this.scanPallet || !this.scanLocation) return;
+
+    const now = new Date();
+    const formattedTime = now.toLocaleString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+
+    const newItem: ScannedItem = {
+      maHangHoa: 'LED000035',
+      tenHangHoa: 'Đèn LED cắm ứng 8W',
+      serialPallet: this.scanPallet,
+      serialBox: this.selectedMode === 'thung' ? this.scanPallet : '',
+      soLuong: 1,
+      area: 'RD-01',
+      location: this.scanLocation,
+      thoiDiemScan: formattedTime,
+    };
+
+    this.scannedList.unshift(newItem);
+    this.snackBar.open('Lưu thành công!', 'Đóng', {
+      duration: 3000,
+      horizontalPosition: 'right',
+      verticalPosition: 'bottom', 
+      panelClass: ['snackbar-success', 'snackbar-position'],
+    });
+
+    // reset input
+    this.scanPallet = '';
+    this.scanLocation = '';
+    this.selectedMode = null;
+
+    // focus lại vào pallet để scan tiếp
+    setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
+  }
+  loadData(): void {
+    // Load dữ liệu từ service
+  }
+
+  onPageChange(page: number): void {
+    // Load data for new page
+  }
+
+  onCancel(): void {
+    this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']);
+  }
+
+  onReject(): void {
+    // Xử lý từ chối
+  }
+
+  onConfirm(): void {
+    // Xử lý xác nhận
+  }
+  goBack(): void {
+    this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']);
+  }
+}

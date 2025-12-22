@@ -1,0 +1,242 @@
+<div class="nhapkho-container">
+    <div class="nhapkho-header">
+        <div class="header-title">
+            <mat-icon class="title-icon">qr_code_2</mat-icon>
+            <div>
+                <h1>Scan vào kho</h1>
+                <p class="subtitle">Warehouse management from production</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mode Scan Card -->
+    <mat-card class="nhapkho-card">
+        <div class="table-header">
+            <div class="table-title">
+                <mat-icon>qr_code_2</mat-icon>
+                <span>Mode scan</span>
+            </div>
+        </div>
+
+        <div class="card-content">
+            <!-- Mode Selection Buttons -->
+            <div class="mode-buttons">
+                <button mat-raised-button class="mode-btn" [class.active]="selectedMode === 'pallet'"
+                    (click)="onSelectMode('pallet')">
+                    <mat-icon>inventory_2</mat-icon>
+                    Pallet
+                </button>
+
+                <button mat-raised-button class="mode-btn" [class.active]="selectedMode === 'thung'"
+                    (click)="onSelectMode('thung')">
+                    <mat-icon>widgets</mat-icon>
+                    Thùng
+                </button>
+            </div>
+
+            <!-- Scan Input Fields -->
+            <div class="scan-inputs">
+                <mat-form-field class="scan-field" appearance="outline">
+                    <mat-label>Pallet scan...</mat-label>
+                    <input matInput [(ngModel)]="scanPallet" placeholder="Pallet scan..." #palletInput
+                        (keydown.enter)="onPalletScanEnter()" />
+                </mat-form-field>
+
+                <mat-form-field class="scan-field" appearance="outline">
+                    <mat-label>Location scan...</mat-label>
+                    <input matInput [(ngModel)]="scanLocation" placeholder="Location scan..." #locationInput
+                        (keydown.enter)="onLocationScanEnter()" />
+                </mat-form-field>
+            </div>
+        </div>
+    </mat-card>
+
+    <!-- Scanned List Card -->
+    <mat-card class="nhapkho-card">
+        <div class="table-header">
+            <div class="table-title">
+                <mat-icon>checklist</mat-icon>
+                <span>Danh sách đã scan</span>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table mat-table [dataSource]="scannedList" class="scan-table">
+
+                <!-- STT Column -->
+                <ng-container matColumnDef="stt">
+                    <th mat-header-cell *matHeaderCellDef>STT</th>
+                    <td mat-cell *matCellDef="let item; let i = index">{{ i + 1 }}</td>
+                </ng-container>
+
+                <!-- Mã sản phẩm -->
+                <ng-container matColumnDef="sapCode">
+                    <th mat-header-cell *matHeaderCellDef>Mã sản phẩm</th>
+                    <td mat-cell *matCellDef="let item">{{ item.sapCode }}</td>
+                </ng-container>
+
+                <!-- Tên sản phẩm -->
+                <ng-container matColumnDef="name">
+                    <th mat-header-cell *matHeaderCellDef>Tên sản phẩm</th>
+                    <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+                </ng-container>
+
+                <!-- Mã pallet -->
+                <ng-container matColumnDef="serialPallet">
+                    <th mat-header-cell *matHeaderCellDef>Mã pallet</th>
+                    <td mat-cell *matCellDef="let item">{{ item.serialPallet }}</td>
+                </ng-container>
+
+                <!-- Mã thùng -->
+                <ng-container matColumnDef="inventoryIdentifier">
+                    <th mat-header-cell *matHeaderCellDef>Mã thùng</th>
+                    <td mat-cell *matCellDef="let item">{{ item.inventoryIdentifier }}</td>
+                </ng-container>
+
+                <!-- Số lượng nhập -->
+                <!-- <ng-container matColumnDef="quantityImported">
+                    <th mat-header-cell *matHeaderCellDef>Số lượng nhập</th>
+                    <td mat-cell *matCellDef="let item">{{ item.quantityImported }}</td>
+                </ng-container> -->
+                <ng-container matColumnDef="quantityImported">
+                    <th mat-header-cell *matHeaderCellDef style="display:grid;">
+                        Số lượng scan
+                        <mat-form-field appearance="outline" class="header-quantity-input">
+                            <input matInput type="number" [(ngModel)]="globalQuantity"
+                                (keydown.enter)="applyGlobalQuantity()" (keydown.tab)="applyGlobalQuantity()" />
+                        </mat-form-field>
+                    </th>
+
+                    <td mat-cell *matCellDef="let item">
+                        <mat-form-field appearance="outline" class="header-quantity-input">
+                            <input matInput type="number" [(ngModel)]="item.quantityImported" min="0"
+                                class="quantity-input" />
+                        </mat-form-field>
+                    </td>
+                </ng-container>
+
+                <!-- Kho -->
+                <ng-container matColumnDef="locationId">
+                    <th mat-header-cell *matHeaderCellDef>Kho</th>
+                    <td mat-cell *matCellDef="let item">
+                        {{ getLocationCode(item.locationId) }}
+                    </td>
+                </ng-container>
+
+
+                <!-- Thời điểm scan -->
+                <ng-container matColumnDef="timeChecked">
+                    <th mat-header-cell *matHeaderCellDef>Thời điểm scan</th>
+                    <td mat-cell *matCellDef="let item">{{ item.timeChecked | date:'dd/MM/yyyy HH:mm' }}</td>
+                </ng-container>
+
+                <!-- Trạng thái scan -->
+                <ng-container matColumnDef="confirmed">
+                    <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+                    <td mat-cell *matCellDef="let item">
+                        <span class="status-badge"
+                            [ngClass]="{ 'scanned': item.confirmed, 'unscanned': !item.confirmed }">
+                            {{ item.confirmed ? 'Đã scan' : 'Chưa scan' }}
+                        </span>
+                    </td>
+                </ng-container>
+
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+            </table>
+
+        </div>
+        <div class="mobile-scan-list" *ngIf="scannedList.length > 0">
+            <div class="mobile-scan-card" *ngFor="let item of scannedList; let i = index">
+                <div class="scan-card-header">
+                    <div class="card-stt">
+                        <mat-icon>{{ item.confirmed ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                        <span>#{{ i + 1 }}</span>
+                    </div>
+                    <div class="card-time">{{ item.timeChecked | date: 'dd/MM/yyyy HH:mm' }}</div>
+                </div>
+
+                <div class="scan-card-content">
+                    <div class="info-row">
+                        <span class="info-label">Mã sản phẩm:</span>
+                        <span class="info-value">{{ item.sapCode }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Tên sản phẩm:</span>
+                        <span class="info-value">{{ item.name }}</span>
+                    </div>
+
+                    <div class="info-row highlight">
+                        <span class="info-label">Serial pallet:</span>
+                        <span class="info-value serial-badge">{{ item.serialPallet }}</span>
+                    </div>
+
+                    <div class="info-row highlight">
+                        <span class="info-label">Mã thùng:</span>
+                        <span class="info-value serial-badge">{{ item.inventoryIdentifier }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Số lượng nhập:</span>
+                        <span class="info-value quantity-badge">{{ item.quantityImported }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Kho:</span>
+                        <span class="info-value location-badge">{{ item.locationId }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Trạng thái:</span>
+                        <span class="status-badge"
+                            [ngClass]="{ 'scanned': item.confirmed, 'unscanned': !item.confirmed }">
+                            <mat-icon class="status-icon">
+                                {{ item.confirmed ? 'check_circle' : 'highlight_off' }}
+                            </mat-icon>
+                            {{ item.confirmed ? 'Đã scan' : 'Chưa scan' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Pagination -->
+        <div class="pagination">
+            <!-- <button mat-button class="pagination-btn" [disabled]="currentPage === 1">
+                <mat-icon>chevron_left</mat-icon>
+                Previous
+            </button> -->
+
+            <div class="pagination-numbers">
+                <button mat-button [class.active]="currentPage === 1" (click)="onPageChange(1)">1</button>
+                <button mat-button [class.active]="currentPage === 2" (click)="onPageChange(2)">2</button>
+                <button mat-button [class.active]="currentPage === 3" (click)="onPageChange(3)">3</button>
+                <span class="dots">...</span>
+                <button mat-button (click)="onPageChange(8)">8</button>
+                <button mat-button (click)="onPageChange(9)">9</button>
+            </div>
+
+            <!-- <button mat-button class="pagination-btn">
+                Next
+                <mat-icon>chevron_right</mat-icon>
+            </button> -->
+        </div>
+    </mat-card>
+
+    <!-- Action Buttons -->
+    <div class="action-footer">
+        <button mat-button class="cancel-btn" (click)="onCancel()">
+            <mat-icon>close</mat-icon>
+            Cancel
+        </button>
+        <!-- <button mat-raised-button class="reject-btn">
+            <mat-icon>block</mat-icon>
+            Từ chối
+        </button> -->
+        <button mat-raised-button color="primary" class="confirm-btn" (click)="confirmScannedItems()">
+            <mat-icon>check</mat-icon>
+            Xác nhận
+        </button>
+    </div>
+</div>

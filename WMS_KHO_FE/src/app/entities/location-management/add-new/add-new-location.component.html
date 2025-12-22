@@ -1,0 +1,292 @@
+<div class="location-container">
+    <!-- Header -->
+    <div class="location-header">
+        <div class="header-title">
+            <mat-icon class="title-icon">location_on</mat-icon>
+            <div>
+                <h1>{{ isEditMode ? 'Chỉnh sửa vị trí' : 'Thêm mới vị trí' }}</h1>
+                <p class="subtitle">Locations Management</p>
+            </div>
+        </div>
+        <button mat-raised-button color="primary" class="add-btn" [routerLink]="'/location'">
+            <mat-icon>arrow_back</mat-icon>
+            Quay lại danh sách
+        </button>
+
+    </div>
+
+    <!-- Content Card -->
+    <mat-card class="location-card">
+        <!-- Table Header -->
+        <div class="card-header">
+            <div class="table-title">
+                <mat-icon>add_circle_outline</mat-icon>
+                <span>Thông tin vị trí</span>
+            </div>
+            <!-- <div class="table-actions">
+                <button mat-raised-button (click)="onRefresh()" class="refresh-btn icon-only">
+                    <mat-icon color="primary">refresh</mat-icon>
+                </button>
+            </div> -->
+        </div>
+
+
+        <!-- Location Form -->
+        <div class="location-form">
+            <div class="form-row">
+                <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Mã vị trí</mat-label>
+                    <input matInput [(ngModel)]="location.code" placeholder="Nhập mã location" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Barcode</mat-label>
+                    <input matInput [value]="getBarcodeValue()" disabled placeholder="Mã barcode tự động" />
+                </mat-form-field>
+            </div>
+
+            <div class="form-row">
+                <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Chọn kho</mat-label>
+                    <mat-select [(ngModel)]="selectedAreaId" (selectionChange)="updateBarcode()">
+                        <mat-option *ngFor="let area of areaList" [value]="area.id">
+                            {{ area.name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+
+
+                <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Địa chỉ</mat-label>
+                    <input matInput [(ngModel)]="location.address" placeholder="Nhập địa chỉ" />
+                </mat-form-field>
+            </div>
+
+            <div class="form-row">
+                <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Description</mat-label>
+                    <textarea matInput [(ngModel)]="location.description" placeholder="Mô tả location"></textarea>
+                </mat-form-field>
+            </div>
+            <div class="form-row">
+                <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Độ ẩm (%)</mat-label>
+                    <input matInput type="number" [(ngModel)]="location.humidity" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Nhiệt độ (°C)</mat-label>
+                    <input matInput type="number" [(ngModel)]="location.temperature" />
+                </mat-form-field>
+
+            </div>
+
+
+            <div class="form-row">
+                <!-- <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Barcode</mat-label>
+                    <input matInput [value]="getBarcodeValue()" disabled placeholder="Mã barcode tự động" />
+                </mat-form-field> -->
+
+
+                <div class="toggle-slide">
+                    <mat-slide-toggle [(ngModel)]="location.is_multi_location">
+                        Restric Multi part (Enable để sinh chi tiết SubLocations con)
+                    </mat-slide-toggle>
+                </div>
+            </div>
+        </div>
+
+    </mat-card>
+    <div *ngIf="location.is_multi_location" class="sub-location-config">
+
+        <mat-card class="config-card shadow-card">
+            <div class="card-header">
+                <div class="table-title">
+                    <mat-icon>sell</mat-icon>
+                    <span>Prefix Configuration</span>
+                </div>
+            </div>
+            <div class="form-row">
+                <div style="display: flex; flex-direction: column;">
+                    <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>Prefix Name</mat-label>
+                        <input matInput [(ngModel)]="prefix.name" />
+                    </mat-form-field>
+                    <span class="info-configuration">*Tiền tố cho tên vị trí phụ</span>
+                </div>
+
+                <div style="display: flex; flex-direction: column;">
+                    <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>Prefix Separator</mat-label>
+                        <input matInput [(ngModel)]="prefix.separator" />
+                    </mat-form-field>
+                    <span class="info-configuration">*Ký tự ngăn cách prefix</span>
+                </div>
+                <mat-slide-toggle [(ngModel)]="appendMode">
+                    Thêm tiếp vị trí phụ (Tính từ vị trí phụ đã có hiện tại)
+                </mat-slide-toggle>
+            </div>
+        </mat-card>
+
+        <mat-card class="config-card shadow-card">
+            <div class="card-header">
+                <div class="table-title">
+                    <mat-icon>grid_on</mat-icon>
+                    <span>Grid Layout Configuration</span>
+                </div>
+            </div>
+            <div class="form-row">
+                <div style="display: flex; flex-direction: column;">
+                    <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>Rows</mat-label>
+                        <input matInput type="number" [(ngModel)]="grid.rows" />
+                    </mat-form-field>
+                    <span class="info-configuration">*Số hàng ngang</span>
+                </div>
+
+                <div style="display: flex; flex-direction: column;">
+                    <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>Columns</mat-label>
+                        <input matInput type="number" [(ngModel)]="grid.columns" />
+                    </mat-form-field>
+                    <span class="info-configuration">*Số hàng dọc</span>
+                </div>
+
+                <div style="display: flex; flex-direction: column;">
+                    <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>Starting Number</mat-label>
+                        <input matInput type="number" [(ngModel)]="grid.start" />
+                    </mat-form-field>
+                    <span class="info-configuration">*Bắt đầu từ số</span>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>Suffix Digit Length</mat-label>
+                        <input matInput type="number" [(ngModel)]="grid.suffixLength" />
+                    </mat-form-field>
+                    <span class="info-configuration">*Số đơn vị ô</span>
+                </div>
+
+                <div style="display: flex; flex-direction: column;">
+                    <mat-form-field appearance="outline" class="form-field">
+                        <mat-label>Suffix Separator</mat-label>
+                        <input matInput [(ngModel)]="grid.suffixSeparator" />
+                    </mat-form-field>
+                    <span class="info-configuration">*Ký tự ngăn cách giữa row và column</span>
+                </div>
+                <div style="display: flex; flex-direction: column;" class="preview">
+                    <mat-form-field appearance="outline" class="form-field">
+                        <input matInput [value]="getPreview()" disabled />
+                    </mat-form-field>
+                    <span class="info-configuration">*Preview</span>
+                </div>
+            </div>
+        </mat-card>
+
+        <mat-card class="config-card info-card shadow-card">
+            <mat-icon color="primary">info</mat-icon>
+            Tổng Locations: {{getTotalLocations()}} locations — phân bố: {{grid.rows}} hàng, {{grid.columns}} cột
+        </mat-card>
+
+        <mat-card class="location-card">
+            <div class="action-buttons">
+                <button mat-stroked-button color="warn" (click)="onClear()"
+                    matTooltip="Xoá tất cả sub-location">Clear</button>
+                <button mat-raised-button color="primary" (click)="onGenerate()">
+                    <mat-icon>play_arrow</mat-icon>
+                    Generate</button>
+            </div>
+        </mat-card>
+
+        <mat-card class="config-card shadow-card">
+            <div class="card-header">
+                <div class="table-title">
+                    <mat-icon>grid_on</mat-icon>
+                    <span>Generated Sub Location</span>
+                    <span class="location-count">{{ subLocations.length }}</span>
+                </div>
+                <div class="table-actions">
+                    <button mat-raised-button (click)="onExportExcel()" class="refresh-btn icon-only"
+                        matTooltip="Xuất excel">
+                        <mat-icon color="primary">ios_share</mat-icon>
+                    </button>
+                </div>
+            </div>
+            <div *ngIf="subLocations.length == 0" class="generate-placeholder">
+                <mat-icon>info</mat-icon>
+                <p>Click "Generate" để tạo kho</p>
+            </div>
+            <div class="sub-location-list" *ngIf="subLocations.length > 0">
+
+                <table mat-table [dataSource]="pagedSubLocations" class="sub-location-table">
+
+                    <!-- STT Column -->
+                    <ng-container matColumnDef="stt">
+                        <th mat-header-cell *matHeaderCellDef>STT</th>
+                        <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 + (pageIndex * pageSize) }}</td>
+                    </ng-container>
+
+                    <!-- Location -->
+                    <ng-container matColumnDef="location">
+                        <th mat-header-cell *matHeaderCellDef>Vị trí</th>
+                        <td mat-cell *matCellDef="let element">{{ element.locationCode }}</td>
+                    </ng-container>
+
+                    <!-- Sub Location -->
+                    <ng-container matColumnDef="subLocation">
+                        <th mat-header-cell *matHeaderCellDef>Tên vị trí phụ</th>
+                        <td mat-cell *matCellDef="let element">
+                            <ng-container *ngIf="!element.isEditing">{{ element.subCode }}</ng-container>
+                            <ng-container *ngIf="element.isEditing">
+                                <input matInput [(ngModel)]="element.subCode" />
+                            </ng-container>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="combined">
+                        <th mat-header-cell *matHeaderCellDef>Code</th>
+                        <td mat-cell *matCellDef="let element">
+                             {{ element.areaCode }}-{{ element.locationCode }}-{{ element.subCode }}
+                        </td>
+                    </ng-container>
+
+                    <!-- Actions Column -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef class="text-center" style="width: 10rem">Options</th>
+                        <td mat-cell *matCellDef="let element; let i = index" class="text-center">
+                            <button mat-icon-button color="accent" *ngIf="!element.isEditing"
+                                (click)="onEditSubLocation(i)" matTooltip="Chỉnh sửa">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button color="primary" *ngIf="element.isEditing"
+                                (click)="onConfirmEdit(i)"  matTooltip="Hoàn thành">
+                                <mat-icon>check</mat-icon>
+                            </button>
+                            <button mat-icon-button color="warn" (click)="onDeleteSubLocation(i)"  matTooltip="Xoá">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="subLocationColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: subLocationColumns;"></tr>
+                </table>
+                <mat-paginator [length]="subLocations.length" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 20]"
+                    (page)="onPageChangeSubs($event)">
+                </mat-paginator>
+            </div>
+        </mat-card>
+    </div>
+    <mat-card class="location-card">
+        <div class="action-buttons" *ngIf="location.is_multi_location">
+            <button mat-button [routerLink]="'/location'">Cancel</button>
+
+            <button mat-flat-button color="primary" (click)="onSave()">Lưu</button>
+        </div>
+        <div class="action-buttons" *ngIf="!location.is_multi_location">
+            <button mat-button [routerLink]="'/location'">Cancel</button>
+            <button mat-flat-button color="primary" (click)="onSave()">Lưu</button>
+        </div>
+    </mat-card>
+</div>

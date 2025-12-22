@@ -1,0 +1,28 @@
+.unauthorized-container {
+  text-align: center;
+  margin-top: 100px;
+
+  h1 {
+    font-size: 2rem;
+    color: #d9534f;
+  }
+
+  p {
+    font-size: 1.2rem;
+    margin: 20px 0;
+  }
+
+  .btn-back {
+    padding: 10px 20px;
+    background-color: #0275d8;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+
+    &:hover {
+      background-color: #025aa5;
+    }
+  }
+}

@@ -1,0 +1,195 @@
+@use "@angular/material" as mat;
+
+
+.area-container {
+    padding: 10px;
+    background-color: #f8fafc;
+    min-height: 100vh;
+}
+
+.shadow-card {
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+.area-card {
+    margin-bottom: 10px;
+}
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-success .mdc-snackbar__surface {
+    background-color: #14AE5C !important;
+    color: white !important;
+}
+
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-position {
+    margin-bottom: 75vh;
+}
+
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-warn .mdc-snackbar__surface {
+    background-color: #f59e0b;
+    color: #1e293b;
+}
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-error .mdc-snackbar__surface {
+    background-color: #dc2626 !important;
+    color: white !important;
+}
+
+.area-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 20px 24px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+
+    .header-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .title-icon {
+            font-size: 32px;
+            width: 32px;
+            height: 32px;
+            color: #1e293b;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .subtitle {
+            margin: 4px 0 0 0;
+            font-size: 14px;
+            color: #64748b;
+        }
+    }
+
+    .add-btn {
+        height: 40px;
+        padding: 0 20px;
+        font-weight: 500;
+
+        mat-icon {
+            margin-right: 4px;
+        }
+    }
+}
+
+.area-card {
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    border-radius: 8px;
+}
+
+::ng-deep .mat-mdc-raised-button>.mat-icon {
+    margin: 0 !important;
+}
+
+::ng-deep .icon-only {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    padding: 0 !important;
+    line-height: 1;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #0D6EFD !important;
+
+    mat-icon {
+        font-size: 24px;
+        line-height: 1;
+        margin: 0;
+    }
+}
+
+::ng-deep .input-field {
+    width: 120px;
+    margin-bottom: -1.75rem;
+    @include mat.form-field-density(-5);
+    @include mat.icon-button-density(-5);
+    @include mat.datepicker-density(-5);
+}
+
+.search-field-none {
+    display: none;
+}
+
+.area-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 1rem;
+}
+
+.info-configuration {
+    font-size: 12px;
+    color: #64748b;
+    font-style: italic;
+}
+
+.toggle-slide {
+    height: 30px;
+    padding: 15px;
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 8px 16px;
+}
+
+.form-field {
+    flex: 1;
+    min-width: 250px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #ccc;
+
+    .table-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: #1e293b;
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    .table-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+
+        .refresh-btn {
+            width: 40px;
+            height: 40px;
+        }
+    }
+}

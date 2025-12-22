@@ -1,0 +1,582 @@
+@use "@angular/material" as mat;
+
+
+.area-container {
+    padding: 10px;
+    background-color: #f8fafc;
+    min-height: 100vh;
+}
+
+.area-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 20px 24px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+
+    .header-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .title-icon {
+            font-size: 32px;
+            width: 32px;
+            height: 32px;
+            color: #1e293b;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .subtitle {
+            margin: 4px 0 0 0;
+            font-size: 14px;
+            color: #64748b;
+        }
+    }
+
+    .add-btn {
+        height: 40px;
+        padding: 0 20px;
+        font-weight: 500;
+
+        mat-icon {
+            margin-right: 4px;
+        }
+    }
+}
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-success .mdc-snackbar__surface {
+    background-color: #14AE5C !important;
+    color: white !important;
+}
+
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-position {
+    margin-bottom: 75vh;
+}
+
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-warn .mdc-snackbar__surface {
+    background-color: #f59e0b;
+    color: #1e293b;
+}
+
+::ng-deep .mat-mdc-snack-bar-container.snackbar-error .mdc-snackbar__surface {
+    background-color: #dc2626 !important;
+    color: white !important;
+}
+
+.area-card {
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    border-radius: 8px;
+}
+
+::ng-deep .mat-mdc-raised-button>.mat-icon {
+    margin: 0 !important;
+}
+
+.delete-btn {
+    background-color: #ef4444;
+    color: white;
+}
+
+.restore-btn {
+    background-color: #22c55e;
+    color: white;
+}
+
+::ng-deep .icon-only {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    padding: 0 !important;
+    line-height: 1;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #0D6EFD !important;
+
+    mat-icon {
+        font-size: 24px;
+        line-height: 1;
+        margin: 0;
+    }
+}
+
+::ng-deep .search-field {
+    width: 120px;
+    margin-bottom: -1.75rem;
+    @include mat.form-field-density(-5);
+    @include mat.icon-button-density(-5);
+    @include mat.datepicker-density(-5);
+}
+
+.search-field-none {
+    display: none;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #ccc;
+
+    .table-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: #1e293b;
+
+        mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    .table-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+
+        .refresh-btn {
+            width: 40px;
+            height: 40px;
+        }
+    }
+}
+
+.table-container {
+    overflow-x: auto;
+    padding: 20px;
+}
+
+.area-table {
+    width: 100%;
+
+    th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+        padding: 16px 24px;
+    }
+
+    td {
+        padding: 16px 24px;
+        color: #334155;
+        font-size: 14px;
+    }
+
+    .font-medium {
+        font-weight: 500;
+        color: #1e293b;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .table-row {
+        &:hover {
+            background-color: #f8fafc;
+        }
+    }
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    &.status-active-label {
+        background-color: #dbeafe;
+        color: #2563eb;
+    }
+
+    &.status-inactive-label {
+        background-color: #fed7aa;
+        color: #ea580c;
+    }
+}
+
+.multi-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+
+    &.multi-true {
+        background-color: #dbeafe;
+
+        mat-icon {
+            color: #2563eb;
+        }
+    }
+
+    &.multi-false {
+        background-color: #fee2e2;
+
+        mat-icon {
+            color: #dc2626;
+        }
+    }
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    margin: 0 4px;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
+    }
+
+    &.edit-btn {
+        background-color: #f59e0b;
+        color: white;
+
+        &:hover {
+            background-color: #d97706;
+        }
+    }
+
+    &.delete-btn {
+        background-color: #ef4444;
+        color: white;
+
+        &:hover {
+            background-color: #dc2626;
+        }
+    }
+}
+
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+
+    .page-size-select {
+        width: 80px;
+
+        ::ng-deep .mat-form-field-wrapper {
+            padding-bottom: 0;
+        }
+    }
+
+    .pagination-buttons {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+
+        button {
+            min-width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+
+        .page-active {
+            background-color: #1e293b;
+            color: white;
+            font-weight: 600;
+        }
+
+        .page-dots {
+            color: #64748b;
+            padding: 0 4px;
+        }
+    }
+}
+
+.desktop-view {
+    display: block;
+}
+
+.mobile-view {
+    display: none;
+}
+
+/* Mobile Filter Toggle */
+.mobile-filter-toggle {
+    display: none;
+    margin-bottom: 16px;
+}
+
+.filter-toggle-btn {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.toggle-icon {
+    margin-left: auto;
+}
+
+/* Mobile Filters Panel */
+.mobile-filters {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.mobile-filters.show {
+    display: flex;
+    max-height: 1000px;
+}
+
+.filter-field {
+    width: 100%;
+    margin: 0;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.filter-actions button {
+    flex: 1;
+}
+
+/* Mobile Card List */
+.mobile-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mobile-area-card {
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 12px;
+}
+
+.card-id {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: #1976d2;
+}
+
+.id-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.mobile-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.info-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+    font-size: 14px;
+    flex: 1;
+}
+
+.info-label mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: #999;
+}
+
+.info-value {
+    font-weight: 500;
+    text-align: right;
+    flex: 1;
+    font-size: 14px;
+}
+
+.type-badge {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.quantity-badge {
+    background: #f3e5f5;
+    color: #7b1fa2;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.mobile-card-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.mobile-card-actions button {
+    flex: 1;
+    font-size: 13px;
+}
+
+/* Responsive - Mobile screens */
+@media (max-width: 768px) {
+
+    /* Ẩn desktop view, hiện mobile view */
+    .desktop-view {
+        display: none !important;
+    }
+
+    .mobile-view,
+    .mobile-filter-toggle {
+        display: block;
+    }
+
+    /* Header adjustments */
+    .area-header {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .header-title h1 {
+        font-size: 20px;
+    }
+
+    .add-btn {
+        width: 100%;
+    }
+
+    .btn-text {
+        display: none;
+    }
+
+    .btn-text-mobile {
+        display: inline;
+    }
+
+    /* Card adjustments */
+    .area-card {
+        padding: 12px;
+        // margin: 12px;
+    }
+
+    .table-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .table-title span {
+        font-size: 14px;
+    }
+
+    /* Pagination adjustments */
+    .pagination {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .page-size-select {
+        width: 100%;
+    }
+
+    .pagination-buttons {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .pagination-buttons button {
+        min-width: 40px;
+        padding: 0 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .mobile-card-actions {
+        flex-direction: column;
+    }
+
+    .mobile-card-actions button {
+        width: 100%;
+    }
+
+    .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .info-value {
+        text-align: left;
+        width: 100%;
+        padding-left: 28px;
+    }
+}

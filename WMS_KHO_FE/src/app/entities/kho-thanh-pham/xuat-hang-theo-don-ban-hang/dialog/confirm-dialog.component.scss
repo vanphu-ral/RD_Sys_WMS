@@ -1,0 +1,152 @@
+.confirm-dialog {
+  padding: 8px;
+  max-width: 500px;
+
+  .dialog-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+    padding-top: 8px;
+
+    .warning-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      color: #f59e0b;
+      animation: pulse 2s ease-in-out infinite;
+    }
+  }
+
+  .dialog-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 16px 0;
+    padding: 0;
+  }
+
+  .dialog-content {
+    padding: 0 24px 24px;
+    max-height: 400px;
+    overflow-y: auto;
+
+    .dialog-message {
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #64748b;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+  }
+
+  .dialog-actions {
+    padding: 16px 24px 16px;
+    margin: 0;
+    gap: 12px;
+    justify-content: center;
+    border-top: 1px solid #e2e8f0;
+
+    button {
+      min-width: 120px;
+      height: 42px;
+      font-size: 15px;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        margin-right: 6px;
+      }
+
+      &.cancel-btn {
+        color: #64748b;
+        border-color: #cbd5e1;
+
+        &:hover {
+          background-color: #f8fafc;
+          border-color: #94a3b8;
+          color: #475569;
+        }
+      }
+
+      &.confirm-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+
+        &:hover {
+          box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+          transform: translateY(-2px);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+      }
+    }
+  }
+}
+
+// Animation cho icon
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+// Responsive
+@media (max-width: 600px) {
+  .confirm-dialog {
+    min-width: 280px;
+    
+    .dialog-icon .warning-icon {
+      font-size: 40px;
+      width: 40px;
+      height: 40px;
+    }
+
+    .dialog-title {
+      font-size: 20px;
+    }
+
+    .dialog-content .dialog-message {
+      font-size: 14px;
+    }
+
+    .dialog-actions button {
+      min-width: 100px;
+      height: 38px;
+      font-size: 14px;
+    }
+  }
+}
+
+// Custom scrollbar cho content
+.dialog-content {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+
+    &:hover {
+      background: #94a3b8;
+    }
+  }
+}

@@ -1,0 +1,227 @@
+<div class="chuyen-kho-detail-container">
+    <div class="chuyen-kho-detail-header">
+        <div class="header-title">
+            <mat-icon class="title-icon">qr_code_2</mat-icon>
+            <div>
+                <h1>Scan check xuất kho</h1>
+                <p class="subtitle">Ship goods according to sales orders</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin chi tiết Card -->
+    <mat-card class="chuyen-kho-detail-card">
+        <div class="table-header">
+            <div class="table-title">
+                <mat-icon>qr_code_scanner</mat-icon>
+                <span>Mode scan</span>
+            </div>
+        </div>
+
+        <div class="card-content">
+            <!-- Mode Selection Buttons -->
+            <div class="mode-buttons">
+                <button mat-raised-button class="mode-btn" [class.active]="selectedMode === 'pallet'"
+                    (click)="onSelectMode('pallet')">
+                    <mat-icon>inventory_2</mat-icon>
+                    Pallet
+                </button>
+
+                <button mat-raised-button class="mode-btn" [class.active]="selectedMode === 'thung'"
+                    (click)="onSelectMode('thung')">
+                    <mat-icon>widgets</mat-icon>
+                    Thùng
+                </button>
+            </div>
+
+            <!-- Scan Input Fields -->
+            <div class="scan-inputs">
+                <mat-form-field class="scan-field" appearance="outline">
+                    <mat-label>Pallet scan...</mat-label>
+                    <input matInput [(ngModel)]="scanPallet" placeholder="Pallet scan..." #palletInput
+                        (keydown.enter)="onPalletScanEnter()" />
+                </mat-form-field>
+
+                <mat-form-field class="scan-field" appearance="outline">
+                    <mat-label>Location scan...</mat-label>
+                    <input matInput [(ngModel)]="scanLocation" placeholder="Location scan..." #locationInput
+                        (keydown.enter)="onLocationScanEnter()" />
+                </mat-form-field>
+            </div>
+        </div>
+        <mat-card class="nhapkho-card">
+            <div class="table-header">
+                <div class="table-title">
+                    <mat-icon>checklist</mat-icon>
+                    <span>Danh sách đã scan</span>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table mat-table [dataSource]="scannedList" class="scan-table">
+                    <!-- STT Column -->
+                    <ng-container matColumnDef="stt">
+                        <th mat-header-cell *matHeaderCellDef>STT</th>
+                        <td mat-cell *matCellDef="let item; let i = index">{{i + 1}}</td>
+                    </ng-container>
+
+                    <!-- Mã hàng hoá Column -->
+                    <ng-container matColumnDef="productId">
+                        <th mat-header-cell *matHeaderCellDef>Mã sản phẩm</th>
+                        <td mat-cell *matCellDef="let item">{{item.productId}}</td>
+                    </ng-container>
+
+                    <!-- Tên hàng hoá Column -->
+                    <ng-container matColumnDef="productName">
+                        <th mat-header-cell *matHeaderCellDef>Tên hàng hoá</th>
+                        <td mat-cell *matCellDef="let item">{{item.productName}}</td>
+                    </ng-container>
+
+                    <!-- <ng-container matColumnDef="inventoryCode">
+                        <th mat-header-cell *matHeaderCellDef>Mã hàng hoá</th>
+                        <td mat-cell *matCellDef="let item">{{item.inventoryCode}}</td>
+                    </ng-container> -->
+
+                    <!-- Serial pallet Column -->
+                    <ng-container matColumnDef="serialPallet">
+                        <th mat-header-cell *matHeaderCellDef>
+                            {{ selectedMode === 'thung' ? 'Mã thùng' : 'Mã pallet' }}
+                        </th>
+                        <td mat-cell *matCellDef="let item">{{item.serialPallet}}</td>
+                    </ng-container>
+
+
+                    <!-- Serial box Column -->
+                    <!-- <ng-container matColumnDef="serialBox">
+                        <th mat-header-cell *matHeaderCellDef>Serial pallet</th>
+                        <td mat-cell *matCellDef="let item">{{item.serialBox}}</td>
+                    </ng-container> -->
+
+                    <!-- Số lượng/thùng Column -->
+                    <ng-container matColumnDef="quantity">
+                        <th mat-header-cell *matHeaderCellDef>Số lượng</th>
+                        <td mat-cell *matCellDef="let item">{{item.quantity}}</td>
+                    </ng-container>
+
+
+
+                    <ng-container matColumnDef="scanTime">
+                        <th mat-header-cell *matHeaderCellDef>Thời gian scan</th>
+                        <td mat-cell *matCellDef="let item">{{item.scanTime}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="warehouse">
+                        <th mat-header-cell *matHeaderCellDef>Kho</th>
+                        <td mat-cell *matCellDef="let item">{{item.warehouse}}</td>
+                    </ng-container>
+
+                    <!-- Area Column -->
+                    <!-- <ng-container matColumnDef="area">
+                        <th mat-header-cell *matHeaderCellDef>Area</th>
+                        <td mat-cell *matCellDef="let item">{{item.area}}</td>
+                    </ng-container> -->
+
+                    <!-- Location Column -->
+                    <!-- <ng-container matColumnDef="location">
+                        <th mat-header-cell *matHeaderCellDef>Location</th>
+                        <td mat-cell *matCellDef="let item">{{item.location}}</td>
+                    </ng-container> -->
+
+                    <!-- Thời điểm scan Column -->
+                    <!-- <ng-container matColumnDef="thoiDiemScan">
+                        <th mat-header-cell *matHeaderCellDef>Thời điểm scan</th>
+                        <td mat-cell *matCellDef="let item">{{item.thoiDiemScan}}</td>
+                    </ng-container> -->
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+                </table>
+            </div>
+
+            <div class="mobile-scan-list" *ngIf="scannedList.length > 0">
+                <div class="mobile-scan-card" *ngFor="let item of scannedList; let i = index">
+                    <div class="scan-card-header">
+                        <div class="card-stt">
+                            <mat-icon>check_circle</mat-icon>
+                            <span>#{{i + 1}}</span>
+                        </div>
+                        <div class="card-time">{{item.scanTime}}</div>
+                    </div>
+
+                    <div class="scan-card-content">
+                        <div class="info-row">
+                            <span class="info-label">Mã sản phẩm:</span>
+                            <span class="info-value">{{item.productId}}</span>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Tên hàng hoá:</span>
+                            <span class="info-value">{{item.productName}}</span>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Mã hàng hoá:</span>
+                            <span class="info-value">{{item.inventoryCode}}</span>
+                        </div>
+                        <div class="info-row highlight">
+                            <span class="info-label">Serial pallet:</span>
+                            <span class="info-value serial-badge">{{item.serialPallet}}</span>
+                        </div>
+
+                        <!-- <div class="info-row highlight">
+                            <span class="info-label">Serial box:</span>
+                            <span class="info-value serial-badge">{{item.serialBox}}</span>
+                        </div> -->
+
+                        <!-- <div class="info-row">
+                            <span class="info-label">Area:</span>
+                            <span class="info-value">{{item.area}}</span>
+                        </div>
+-->
+                        <div class="info-row">
+                            <span class="info-label">Kho:</span>
+                            <span class="info-value location-badge">{{item.warehouse}}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Số lượng/thùng:</span>
+                            <span class="info-value quantity-badge">{{item.quantity}}</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button mat-button class="pagination-btn" [disabled]="currentPage === 1">
+                    <mat-icon>chevron_left</mat-icon>
+                    Previous
+                </button>
+
+                <div class="pagination-numbers">
+                    <button mat-button [class.active]="currentPage === 1" (click)="onPageChange(1)">1</button>
+                    <button mat-button [class.active]="currentPage === 2" (click)="onPageChange(2)">2</button>
+                    <button mat-button [class.active]="currentPage === 3" (click)="onPageChange(3)">3</button>
+                    <span class="dots">...</span>
+                    <button mat-button (click)="onPageChange(8)">8</button>
+                    <button mat-button (click)="onPageChange(9)">9</button>
+                </div>
+
+                <button mat-button class="pagination-btn">
+                    Next
+                    <mat-icon>chevron_right</mat-icon>
+                </button>
+            </div>
+        </mat-card>
+    </mat-card>
+    <div class="action-footer">
+        <button mat-button class="cancel-btn" (click)="back()">
+            <mat-icon>arrow_back</mat-icon>
+            Back
+        </button>
+        <button mat-raised-button color="primary" class="confirm-btn" (click)="submitScan()">
+            <mat-icon>check</mat-icon>
+            Hoàn thành
+        </button>
+    </div>
+</div>

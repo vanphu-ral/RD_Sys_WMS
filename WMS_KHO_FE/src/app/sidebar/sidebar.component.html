@@ -1,0 +1,51 @@
+<div class="sidebar" [class.collapsed]="isCollapsed">
+    <nav id="manu-bar" style="max-width: 400px;">
+        <div class="sidebar-content">
+            <div class="title-sidebar">
+                <div class="main-title-sidebar">
+                    <img src="assets/logo-rang-dong-icon.svg">
+                    <h4>WMS RangDong</h4>
+                </div>
+                <div class="sub-title-sidebar">
+                    Warehouse Management System
+                </div>
+            </div>
+
+            <div class="sidebar-menu">
+                <ul style="list-style-type:  none; padding-left: 10px; margin-top: 2px;">
+                    <li class="sidebar-menu-item" style="marker: none; " *ngFor="let menu of menus"
+                        [ngClass]="{'active': menu.active , 'sidebar-dropdown':menu.type === 'dropdown' }">
+                        <div class="sidebar-menu-link" *ngIf="menu.type !== 'header'" (click)="toggle(menu)"
+                            style="height: 30px;">
+                            <div routerLink="/areas" style="display: flex; align-items: center;"
+                                *ngIf="menu.type === 'home'" (click)="onMenuClick(menu)">
+                                <mat-icon class="sidebar-menu-icon">map</mat-icon>
+                                <a>
+                                    <span class="sidebar-menu-title">{{menu.title}}</span>
+                                </a>
+                            </div>
+                            <div [routerLink]="menu.link" style="display: flex; align-items: center;"
+                                *ngIf="menu.type !== 'home'" (click)="onMenuClick(menu)">
+                                <mat-icon class="sidebar-menu-icon">{{menu.icon}}</mat-icon>
+                                <a>
+                                    <span class="sidebar-menu-title">{{menu.title}}</span>
+                                </a>
+                            </div>
+
+                        </div>
+                        <div *ngIf="menu.type === 'dropdown'" class="sidebar-submenu" [@slide]="getState(menu)">
+                            <ul>
+                                <li class="sidebar-submenu-item" *ngFor="let submenu of menu.submenus">
+                                    <div class="sidebar-submenu-link" (click)="onSubmenuClick(submenu)">
+                                        <a class="sidebar-submenu-title">{{ submenu.title }}</a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </nav>
+</div>
