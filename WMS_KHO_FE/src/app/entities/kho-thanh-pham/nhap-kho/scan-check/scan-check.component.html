@@ -23,13 +23,13 @@
             <div class="mode-buttons">
                 <button mat-raised-button class="mode-btn" [class.active]="selectedMode === 'pallet'"
                     (click)="onSelectMode('pallet')">
-                    <mat-icon>inventory_2</mat-icon>
+                    <mat-icon>layers</mat-icon>
                     Pallet
                 </button>
 
                 <button mat-raised-button class="mode-btn" [class.active]="selectedMode === 'thung'"
                     (click)="onSelectMode('thung')">
-                    <mat-icon>widgets</mat-icon>
+                    <mat-icon>view_in_ar</mat-icon>
                     Thùng
                 </button>
             </div>
@@ -82,7 +82,7 @@
             <!-- TAB PALLET -->
             <mat-tab>
                 <ng-template mat-tab-label>
-                    <mat-icon>inventory_2</mat-icon>
+                    <mat-icon>layers</mat-icon>
                     <span>Pallet ({{ scannedPallets.length }})</span>
                 </ng-template>
 
@@ -178,7 +178,7 @@
 
                         <!-- Empty State -->
                         <div class="empty-state" *ngIf="scannedPallets.length === 0">
-                            <mat-icon>inventory_2</mat-icon>
+                            <mat-icon>layers</mat-icon>
                             <p>Chưa scan pallet nào</p>
                         </div>
                     </div>
@@ -228,7 +228,7 @@
                                 <!-- Serial Pallet -->
                                 <div class="info-row highlight">
                                     <span class="info-label">
-                                        <mat-icon>inventory_2</mat-icon>
+                                        <mat-icon>layers</mat-icon>
                                         Serial Pallet
                                     </span>
                                     <span class="info-value serial-badge">{{ item.serialPallet }}</span>
@@ -318,7 +318,7 @@
             <!-- TAB THÙNG -->
             <mat-tab>
                 <ng-template mat-tab-label>
-                    <mat-icon>widgets</mat-icon>
+                    <mat-icon>view_in_ar</mat-icon>
                     <span>Thùng ({{ scannedBoxes.length }})</span>
                 </ng-template>
 
@@ -408,7 +408,7 @@
 
                         <!-- Empty State -->
                         <div class="empty-state" *ngIf="scannedBoxes.length === 0">
-                            <mat-icon>widgets</mat-icon>
+                            <mat-icon>view_in_ar</mat-icon>
                             <p>Chưa scan thùng nào</p>
                         </div>
                     </div>
@@ -464,7 +464,7 @@
                                 <!-- Box Code -->
                                 <div class="info-row highlight">
                                     <span class="info-label">
-                                        <mat-icon>widgets</mat-icon>
+                                        <mat-icon>view_in_ar</mat-icon>
                                         Mã thùng
                                     </span>
                                     <span class="info-value serial-badge">{{ item.boxCode }}</span>
@@ -473,7 +473,7 @@
                                 <!-- Pallet -->
                                 <div class="info-row" *ngIf="!item.isLooseBox">
                                     <span class="info-label">
-                                        <mat-icon>inventory_2</mat-icon>
+                                        <mat-icon>layers</mat-icon>
                                         Pallet
                                     </span>
                                     <span class="info-value">{{ item.serialPallet }}</span>

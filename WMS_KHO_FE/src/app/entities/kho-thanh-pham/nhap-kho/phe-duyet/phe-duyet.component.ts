@@ -63,6 +63,7 @@ export class PheDuyetComponent implements OnInit {
   //bien scan
   scanPallet: string = '';
   scanLocation: string = '';
+  selectedTabIndex: number = 0;
 
   showApproveButton: boolean = true;
 

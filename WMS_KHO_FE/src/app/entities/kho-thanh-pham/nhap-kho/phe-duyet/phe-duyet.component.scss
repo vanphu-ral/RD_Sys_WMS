@@ -78,6 +78,54 @@
   margin-bottom: 20px;
 }
 
+// ==========================================
+// TAB STYLES - DESKTOP & MOBILE
+// Thêm vào đầu file, ngay sau phần .nhapkho-card
+// ==========================================
+
+// Desktop Tab Styles
+::ng-deep .mat-mdc-tab-group {
+  .mat-mdc-tab-labels {
+    border-bottom: 2px solid #e2e8f0;
+    background: #f8fafc;
+  }
+
+  .mat-mdc-tab {
+    min-width: 150px;
+    height: 56px;
+
+    .mdc-tab__text-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      color: #64748b;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    &.mdc-tab--active {
+      .mdc-tab__text-label {
+        color: #0276ff;
+      }
+
+      mat-icon {
+        color: #0276ff;
+      }
+    }
+  }
+
+  .mat-mdc-tab-body-content {
+    padding: 0;
+    overflow: visible;
+  }
+}
+
 .table-header {
   display: flex;
   justify-content: space-between;
@@ -316,15 +364,16 @@
 }
 
 .mobile-main-info,
-.mobile-scan-list {
+.mobile-scan-list,
+.mobile-box-list {
   display: none;
 }
-::ng-deep .mat-mdc-tab-labels{
-  width: 30rem !important;
-  .mat-mdc-tab.mdc-tab .mdc-tab__text-label{
-    gap: 10px !important;
-  }
-}
+// ::ng-deep .mat-mdc-tab-labels {
+//   width: 30rem !important;
+//   .mat-mdc-tab.mdc-tab .mdc-tab__text-label {
+//     gap: 10px !important;
+//   }
+// }
 // ==========================================
 // MOBILE RESPONSIVE - Kiểm Duyệt Nhập Kho
 // Thêm vào CUỐI FILE SCSS hiện tại
@@ -341,7 +390,69 @@
   .mobile-main-info {
     display: block;
   }
+  .mobile-box-list {
+    display: block;
+    padding: 12px;
+  }
 
+  .mobile-box-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+
+    .box-header {
+      padding: 12px 14px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-bottom: 2px solid #e2e8f0;
+
+      .mobile-stt {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 32px;
+        padding: 0 10px;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        font-size: 14px;
+        font-weight: 700;
+        border-radius: 8px;
+      }
+    }
+
+    .box-info {
+      padding: 12px 14px;
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #f1f5f9;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .label {
+          font-size: 11px;
+          color: #64748b;
+          font-weight: 600;
+          text-transform: uppercase;
+        }
+
+        .value {
+          font-size: 13px;
+          color: #1e293b;
+          font-weight: 600;
+          font-family: "Courier New", monospace;
+        }
+      }
+    }
+  }
   // Header
   .nhapkho-header {
     padding: 12px 16px;
@@ -962,6 +1073,99 @@
       margin: 0;
     }
   }
+  ::ng-deep .mat-mdc-tab-group {
+    width: 100%;
+
+    .mat-mdc-tab-header {
+      border-bottom: 2px solid #e2e8f0;
+      background: #f8fafc;
+    }
+
+    .mat-mdc-tab-labels {
+      width: 100% !important; // Override fixed width
+      display: flex;
+      justify-content: space-around;
+      padding: 0;
+    }
+
+    .mat-mdc-tab {
+      flex: 1;
+      min-width: 0 !important;
+      max-width: none !important;
+      height: 52px;
+      padding: 0 12px;
+
+      .mdc-tab__content {
+        width: 100%;
+      }
+
+      .mdc-tab__text-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-weight: 600;
+        font-size: 13px;
+        color: #64748b;
+        white-space: nowrap;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      // Active tab
+      &.mdc-tab--active {
+        .mdc-tab__text-label {
+          color: #0276ff;
+          font-weight: 700;
+        }
+
+        mat-icon {
+          color: #0276ff;
+        }
+      }
+
+      // Tab indicator (underline)
+      .mdc-tab-indicator {
+        height: 3px;
+
+        .mdc-tab-indicator__content--underline {
+          background-color: #0276ff;
+          border-radius: 3px 3px 0 0;
+        }
+      }
+    }
+
+    // Tab content
+    .mat-mdc-tab-body-wrapper {
+      flex-grow: 1;
+      min-height: 0;
+    }
+
+    .mat-mdc-tab-body-content {
+      overflow: visible;
+      padding: 0;
+    }
+  }
+
+  // Table container trong tab - mobile
+  .table-container {
+    padding: 12px;
+
+    // Hide desktop table
+    .detail-table {
+      display: none;
+    }
+  }
+
+  // Mobile scan list trong tab
+  .mobile-scan-list {
+    display: block;
+    padding: 12px;
+  }
 }
 
 // Very small screens
@@ -1053,7 +1257,7 @@
     .pallet-info-row {
       padding: 8px 12px;
       gap: 6px;
-    //   grid-template-columns: 1fr;
+      //   grid-template-columns: 1fr;
 
       > div {
         font-size: 11px;
@@ -1116,6 +1320,36 @@
     height: 40px;
     font-size: 13px;
   }
+  ::ng-deep .mat-mdc-tab-group {
+    .mat-mdc-tab {
+      height: 48px;
+      padding: 0 8px;
+
+      .mdc-tab__text-label {
+        font-size: 12px;
+        gap: 4px;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+
+        // Hide text on very small screens, keep only icon + badge
+        span {
+          display: none;
+        }
+      }
+
+      // Show abbreviated text or just icon
+      &::after {
+        content: attr(data-label);
+        font-size: 10px;
+        font-weight: 600;
+        color: inherit;
+      }
+    }
+  }
 }
 
 // Landscape mobile
@@ -1123,6 +1357,30 @@
   .nhapkho-container {
     padding-top: 56px;
     padding-bottom: 60px;
+  }
+  ::ng-deep .mat-mdc-tab-group {
+    .mat-mdc-tab {
+      height: 44px;
+
+      .mdc-tab__text-label {
+        font-size: 12px;
+        gap: 4px;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+  }
+
+  .table-container {
+    padding: 8px;
+  }
+
+  .mobile-scan-list {
+    padding: 8px;
   }
 
   .mobile-main-info {

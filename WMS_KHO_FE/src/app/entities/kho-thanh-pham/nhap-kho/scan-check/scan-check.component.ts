@@ -226,6 +226,15 @@ export class ScanCheckComponent implements OnInit {
         // Load scanned items (nếu có trong DB)
         this.loadScannedItemsFromAPI(pallets);
 
+        // Hiển thị thông báo nếu có dữ liệu đã scan
+        if (this.scannedPallets.length > 0 || this.scannedBoxes.length > 0) {
+          const message = `Đã tải ${this.scannedPallets.length} pallet và ${this.scannedBoxes.length} thùng đã scan`;
+          this.snackBar.open(message, '', { 
+            duration: 3000,
+            panelClass: ['snackbar-success']
+          });
+        }
+
         this.isLoading = false;
       },
       error: (err) => {
@@ -237,43 +246,87 @@ export class ScanCheckComponent implements OnInit {
   }
 
   loadScannedItemsFromAPI(pallets: any[]): void {
-    // Load pallets đã scan
+    console.log('Loading scanned items from API...', pallets);
+
+    // ============================================
+    // LOAD PALLETS ĐÃ SCAN
+    // ============================================
     pallets.forEach((p: any) => {
-      if (p.scan_status === 'Đã scan' && p.serial_pallet) {
+      // Kiểm tra pallet đã scan: scan_status = true hoặc "Đã scan"
+      const isScanned = p.scan_status === true || 
+                       p.scan_status === 'Đã scan' || 
+                       p.confirmed === true;
+      
+      // Chỉ load pallet có serial_pallet (không rỗng)
+      if (isScanned && p.serial_pallet && p.serial_pallet.trim()) {
         const scannedPallet = this.mapPalletToScannedPallet(p);
         this.scannedPallets.push(scannedPallet);
+        console.log('Loaded pallet:', scannedPallet.serialPallet);
       }
     });
 
-    // Load boxes đã scan
+    // ============================================
+    // LOAD BOXES ĐÃ SCAN
+    // ============================================
     pallets.forEach((p: any) => {
+      const palletSerial = p.serial_pallet || '';
+      const isLoosePallet = !palletSerial || palletSerial.trim() === '';
+
       (p.list_box || []).forEach((box: any) => {
-        if (box.scan_status === 'Đã scan') {
-          const isLoose = !p.serial_pallet || p.serial_pallet.trim() === '';
+        // Kiểm tra box đã scan
+        const isBoxScanned = box.scan_status === true || 
+                            box.scan_status === 'Đã scan' || 
+                            box.confirmed === true;
+
+        if (isBoxScanned) {
           const scannedBox: ScannedBox = {
             id: box.id,
             boxCode: box.box_code,
             quantity: box.quantity || 0,
-            quantityImported: box.quantity || 0,
+            quantityImported: box.quantity_imported || box.quantity || 0, // Ưu tiên quantity_imported từ API
             locationId: box.location_id || 0,
             locationCode: box.location_code || '',
             note: box.note || '',
-            serialPallet: p.serial_pallet || '',
-            isLooseBox: isLoose,
+            serialPallet: palletSerial,
+            isLooseBox: isLoosePallet, // Đánh dấu thùng lẻ nếu không có pallet
             scanBy: box.scan_by || '',
-            timeChecked: box.scan_time || '',
+            timeChecked: box.scan_time || box.updated_date || '',
             sapCode: this.importRequirementInfo?.inventory_code || '',
             name: this.importRequirementInfo?.inventory_name || '',
             lot: this.importRequirementInfo?.lot_number || '',
-            confirmed: true,
+            confirmed: box.confirmed || false,
           };
+          
           this.scannedBoxes.push(scannedBox);
+          console.log('Loaded box:', scannedBox.boxCode, isLoosePallet ? '(Thùng lẻ)' : '');
         }
       });
     });
 
+    // Sắp xếp theo thời gian mới nhất
+    this.scannedPallets.sort((a, b) => {
+      const timeA = new Date(a.timeChecked || 0).getTime();
+      const timeB = new Date(b.timeChecked || 0).getTime();
+      return timeB - timeA; // Mới nhất lên đầu
+    });
+
+    this.scannedBoxes.sort((a, b) => {
+      const timeA = new Date(a.timeChecked || 0).getTime();
+      const timeB = new Date(b.timeChecked || 0).getTime();
+      return timeB - timeA; // Mới nhất lên đầu
+    });
+
+    console.log('Total loaded pallets:', this.scannedPallets.length);
+    console.log('Total loaded boxes:', this.scannedBoxes.length);
+
+    // Cập nhật pagination
     this.updatePalletPagination();
     this.updateBoxPagination();
+
+    // Tự động chuyển tab nếu có dữ liệu
+    if (this.scannedBoxes.length > 0 && this.scannedPallets.length === 0) {
+      this.activeTab = 'box';
+    }
   }
 
   onSelectMode(mode: 'pallet' | 'thung'): void {
@@ -390,10 +443,32 @@ export class ScanCheckComponent implements OnInit {
       return;
     }
 
-    const existing = this.scannedPallets.find(item => item.serialPallet?.toUpperCase() === code);
+    // Kiểm tra đã scan chưa (check trong scannedPallets)
+    const existing = this.scannedPallets.find(item => 
+      item.serialPallet?.toUpperCase() === code
+    );
+    
     if (existing) {
       this.playAudio('assets/audio/beep_warning.mp3');
-      this.dialog.open(AlertDialogComponent, { data: 'Pallet này đã được scan!' });
+      
+      // Cho phép cập nhật location nếu khác
+      if (existing.locationId !== locationId) {
+        const dialogRef = this.dialog.open(AlertDialogComponent, { 
+          data: `Pallet này đã được scan vào kho ${existing.locationCode}. Bạn có muốn cập nhật sang kho ${locationCode}?` 
+        });
+        
+        dialogRef.afterClosed().subscribe(result => {
+          if (result) {
+            existing.locationId = locationId;
+            existing.locationCode = locationCode;
+            existing.timeChecked = new Date().toISOString();
+            this.snackBar.open('✓ Đã cập nhật location cho pallet!', '', { duration: 2000 });
+          }
+        });
+      } else {
+        this.dialog.open(AlertDialogComponent, { data: 'Pallet này đã được scan!' });
+      }
+      
       this.resetScanInputs();
       return;
     }
@@ -458,10 +533,32 @@ export class ScanCheckComponent implements OnInit {
       return;
     }
 
-    const existing = this.scannedBoxes.find(item => item.boxCode === code);
+    // Kiểm tra trùng
+    const existing = this.scannedBoxes.find(item => 
+      item.boxCode.toUpperCase() === code
+    );
+    
     if (existing) {
       this.playAudio('assets/audio/beep_warning.mp3');
-      this.dialog.open(AlertDialogComponent, { data: 'Thùng này đã được scan!' });
+      
+      // Cho phép cập nhật location nếu khác
+      if (existing.locationId !== locationId) {
+        const dialogRef = this.dialog.open(AlertDialogComponent, { 
+          data: `Thùng này đã được scan vào kho ${existing.locationCode}. Bạn có muốn cập nhật sang kho ${locationCode}?` 
+        });
+        
+        dialogRef.afterClosed().subscribe(result => {
+          if (result) {
+            existing.locationId = locationId;
+            existing.locationCode = locationCode;
+            existing.timeChecked = new Date().toISOString();
+            this.snackBar.open('✓ Đã cập nhật location cho thùng!', '', { duration: 2000 });
+          }
+        });
+      } else {
+        this.dialog.open(AlertDialogComponent, { data: 'Thùng này đã được scan!' });
+      }
+      
       this.resetScanInputs();
       return;
     }
@@ -583,7 +680,7 @@ export class ScanCheckComponent implements OnInit {
           location_id: item.locationId, // Location
           scan_status: true, // Đã scan
           scan_by: username,
-          scan_time: new Date().toISOString(),
+          scan_time: new Date().toISOString()
         }))
       };
 
@@ -694,13 +791,23 @@ export class ScanCheckComponent implements OnInit {
   }
 
   private mapPalletToScannedPallet(pallet: any): ScannedPallet {
+    // Xác định scan status
+    let scanStatus: 'Đã scan' | 'Chưa scan' = 'Chưa scan';
+    if (pallet.scan_status === true || pallet.scan_status === 'Đã scan') {
+      scanStatus = 'Đã scan';
+    }
+
+    // Xác định confirmed
+    const confirmed = pallet.confirmed === true || scanStatus === 'Đã scan';
+
     return {
       id: pallet.id,
       serialPallet: pallet.serial_pallet,
-      numBoxInPallet: pallet.num_box_per_pallet,
-      totalQuantityInPallet: pallet.total_quantity,
-      quantityPerBox: pallet.quantity_per_box,
-      quantityImported: pallet.total_quantity,
+      numBoxInPallet: pallet.num_box_per_pallet || 0,
+      totalQuantityInPallet: pallet.total_quantity || 0,
+      quantityPerBox: pallet.quantity_per_box || 0,
+      // Ưu tiên quantity_imported từ API, fallback về total_quantity
+      quantityImported: pallet.quantity_imported || pallet.total_quantity || 0,
       locationId: pallet.location_id || 0,
       locationCode: pallet.location_code || '',
       poNumber: pallet.po_number || '',
@@ -709,14 +816,14 @@ export class ScanCheckComponent implements OnInit {
       dateCode: pallet.date_code || '',
       productionDecisionNumber: pallet.production_decision_number || '',
       note: pallet.note || '',
-      scanStatus: pallet.scan_status || 'Chưa scan',
+      scanStatus: scanStatus,
       scanBy: pallet.scan_by || '',
-      timeChecked: pallet.scan_time || '',
+      timeChecked: pallet.scan_time || pallet.updated_date || '',
       listBox: pallet.list_box || [],
       sapCode: this.importRequirementInfo?.inventory_code || '',
       name: this.importRequirementInfo?.inventory_name || '',
       lot: this.importRequirementInfo?.lot_number || '',
-      confirmed: pallet.scan_status === 'Đã scan',
+      confirmed: confirmed,
     };
   }
 }
