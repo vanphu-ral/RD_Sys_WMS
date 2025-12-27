@@ -4,6 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ChuyenKhoService } from '../service/chuyen-kho.service.component';
 import { AuthService } from '../../../../services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
+import { BarcodeFormat } from '@zxing/library';
 
 export interface ScannedItem {
   id?: number;
@@ -71,6 +72,13 @@ export class ScanDetailComponent implements OnInit {
 
   // ===== UI STATE =====
   isLoading = false;
+  //mobile scan
+  isMobile: boolean = false;
+  isScanning = false;
+  scannerActive: 'pallet' | 'location' | null = null;
+  lastScannedCode: string | null = null;
+  currentDevice: MediaDeviceInfo | undefined = undefined;
+  formats = [BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128];
 
   // ===== VIEWCHILD =====
   @ViewChild('palletInput') palletInput!: ElementRef;
@@ -183,6 +191,42 @@ export class ScanDetailComponent implements OnInit {
     } else {
       this.scanThungMode();
     }
+  }
+
+
+  openCameraScanner(field: 'pallet' | 'location'): void {
+    if (!this.selectedMode && field === 'pallet') {
+      this.snackBar.open('Vui lòng chọn mode scan!', 'Đóng', { duration: 3000 });
+      return;
+    }
+    this.scannerActive = field;
+    this.isScanning = true;
+  }
+
+  onScanSuccess(decodedText: string): void {
+    const code = decodedText.trim();
+    if (code === this.lastScannedCode) return;
+    this.lastScannedCode = code;
+
+    if (this.scannerActive === 'pallet') {
+      this.scanPallet = code;
+      this.snackBar.open('✓ Đã scan pallet/thùng!', '', { duration: 1500 });
+    } else {
+      this.scanLocation = code;
+      this.snackBar.open('✓ Đã scan location!', '', { duration: 1500 });
+    }
+
+    // Khi đã có đủ dữ liệu thì gọi lại logic sẵn có
+    if (this.scanPallet && this.scanLocation) {
+      this.stopScanning();
+      setTimeout(() => this.onLocationScanEnter(), 100);
+    }
+  }
+
+  stopScanning(): void {
+    this.lastScannedCode = null;
+    this.isScanning = false;
+    this.scannerActive = null;
   }
 
   // ===== SCAN MODE PALLET =====

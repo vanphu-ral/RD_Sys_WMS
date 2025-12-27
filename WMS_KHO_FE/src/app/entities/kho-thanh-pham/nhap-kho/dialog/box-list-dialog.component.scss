@@ -1,0 +1,28 @@
+.dialog-content {
+  min-height: 120px;
+  max-height: 60vh;
+  overflow: auto;
+}
+
+.pallet-summary {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.box-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.box-table th, .box-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  text-align: left;
+}
+
+.empty {
+  padding: 16px;
+  color: rgba(0,0,0,0.6);
+}

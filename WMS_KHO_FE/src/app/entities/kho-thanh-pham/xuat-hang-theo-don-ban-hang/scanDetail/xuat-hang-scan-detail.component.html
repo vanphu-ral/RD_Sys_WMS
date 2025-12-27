@@ -36,17 +36,36 @@
 
             <!-- Scan Input Fields -->
             <div class="scan-inputs">
-                <mat-form-field class="scan-field" appearance="outline">
-                    <mat-label>Pallet scan...</mat-label>
-                    <input matInput [(ngModel)]="scanPallet" placeholder="Pallet scan..." #palletInput
-                        (keydown.enter)="onPalletScanEnter()" inputmode="none"/>
-                </mat-form-field>
+                <!-- Pallet/Thùng Input với Camera Button -->
+                <div class="input-with-camera">
+                    <mat-form-field class="scan-field" appearance="outline">
+                        <mat-label>{{ getPalletPlaceholder() }}</mat-label>
+                        <input matInput [(ngModel)]="scanPallet" [placeholder]="getPalletPlaceholder()" #palletInput
+                            (keydown.enter)="onPalletScanEnter()" [disabled]="!selectedMode || isLoading"
+                            inputmode="none" />
+                    </mat-form-field>
 
-                <mat-form-field class="scan-field" appearance="outline">
-                    <mat-label>Location scan...</mat-label>
-                    <input matInput [(ngModel)]="scanLocation" placeholder="Location scan..." #locationInput
-                        (keydown.enter)="onLocationScanEnter()" inputmode="none"/>
-                </mat-form-field>
+                    <!-- Camera Button - chỉ hiện trên mobile -->
+                    <button mat-icon-button *ngIf="isMobile" class="camera-btn" (click)="openCameraScanner('pallet')"
+                        [disabled]="!selectedMode" matTooltip="Quét bằng camera">
+                        <mat-icon>photo_camera</mat-icon>
+                    </button>
+                </div>
+
+                <!-- Location Input với Camera Button -->
+                <div class="input-with-camera">
+                    <mat-form-field class="scan-field" appearance="outline">
+                        <mat-label>Location scan...</mat-label>
+                        <input matInput [(ngModel)]="scanLocation" placeholder="Location scan..." #locationInput
+                            (keydown.enter)="onLocationScanEnter()" inputmode="none" />
+                    </mat-form-field>
+
+                    <!-- Camera Button - chỉ hiện trên mobile -->
+                    <button mat-icon-button *ngIf="isMobile" class="camera-btn" (click)="openCameraScanner('location')"
+                        matTooltip="Quét bằng camera">
+                        <mat-icon>photo_camera</mat-icon>
+                    </button>
+                </div>
             </div>
         </div>
         <mat-card class="nhapkho-card">
@@ -224,5 +243,19 @@
             <mat-icon>check</mat-icon>
             Hoàn thành
         </button>
+    </div>
+</div>
+<div class="qr-scanner-overlay" *ngIf="isScanning" (click)="stopScanning()">
+    <div class="qr-scanner-modal" (click)="$event.stopPropagation()">
+        <div class="scanner-header">
+            <h3>Quét mã {{ scannerActive === 'pallet' ? 'Pallet/Thùng' : 'Location' }}</h3>
+            <button mat-icon-button (click)="stopScanning()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+        <zxing-scanner [device]="currentDevice" [formats]="formats" [autostart]="true"
+            (scanSuccess)="onScanSuccess($event)">
+        </zxing-scanner>
+        <p class="scanner-hint">Đưa mã vào khung hình để quét</p>
     </div>
 </div>

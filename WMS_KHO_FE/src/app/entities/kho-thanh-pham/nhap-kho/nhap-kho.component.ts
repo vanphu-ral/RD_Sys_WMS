@@ -9,6 +9,7 @@ export interface NhapKhoItem {
   inventory_name: string;
   number_of_pallet: number;
   number_of_box: number;
+  box_scan_progress?: number;
   quantity: number;
   wo_code: string;
   lot_number: string;
@@ -19,6 +20,9 @@ export interface NhapKhoItem {
   is_check_all: boolean;
   updated_by: string;
   updated_date: string;
+
+  scannedCount: number; // số đã scan
+  totalCount: number;
 }
 
 @Component({
@@ -37,7 +41,9 @@ export class NhapKhoComponent {
     'client_id',
     'wo_code',
     'lot_number',
-    'industry',
+    'branch',
+    'number_of_pallet',
+    'number_of_box',
     'production_team',
     'production_decision_number',
     'item_no_sku',
@@ -46,6 +52,7 @@ export class NhapKhoComponent {
     'updated_by',
     'updated_date',
     'status',
+    'progress',
     'actions',
   ];
 
@@ -84,9 +91,18 @@ export class NhapKhoComponent {
         // Sắp xếp theo id giảm dần
         const sorted = [...res].sort((a, b) => b.id - a.id);
 
-        this.originalList = sorted;
-        this.nhapKhoList = sorted.slice(0, this.pageSize);
-        this.totalItems = sorted.length;
+        // Map sang NhapKhoItem, đảm bảo có scannedCount/totalCount
+        const mapped: NhapKhoItem[] = sorted.map((r: any) => ({
+          ...r,
+
+          // Nếu API trả trực tiếp:
+          scannedCount: 1,
+          totalCount: 10,
+        }));
+
+        this.originalList = mapped;
+        this.nhapKhoList = mapped.slice(0, this.pageSize);
+        this.totalItems = mapped.length;
       },
       error: (err) => {
         console.error('Lỗi khi lấy danh sách nhập kho:', err);
@@ -98,6 +114,13 @@ export class NhapKhoComponent {
     return status ? 'status-active-label' : 'status-warn-label';
   }
 
+  computeProgressPercent(item: NhapKhoItem): number {
+    const total = Number(item.number_of_box ?? 0);
+    const scanned = Number(item.box_scan_progress ?? 0);
+    if (!total || total <= 0) return 0;
+    const pct = Math.round((scanned / total) * 100);
+    return Math.min(100, Math.max(0, pct));
+  }
 
   //naviagte
   onApprove(nhapkho: NhapKhoItem): void {

@@ -2,6 +2,7 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { XuatHangTheoDonBanService } from '../service/xuat-hang-theo-don-ban.service.component';
+import { BarcodeFormat } from '@zxing/library';
 
 export interface ScannedItem {
   productId: number;
@@ -42,7 +43,14 @@ export class ScanDetailXuatHangComponent implements OnInit {
   requestId: any;
   detailList: any;
 
-
+  //mobile scan
+  isLoading = false;
+  isMobile: boolean = false;
+  isScanning = false;
+  scannerActive: 'pallet' | 'location' | null = null;
+  lastScannedCode: string | null = null;
+  currentDevice: MediaDeviceInfo | undefined = undefined;
+  formats = [BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128];
 
   pageSize: number = 10;
   pageSizeOptions: number[] = [5, 10, 15, 20];
@@ -252,6 +260,46 @@ export class ScanDetailXuatHangComponent implements OnInit {
         this.resetInputs();
       }
     });
+  }
+
+
+  getPalletPlaceholder(): string {
+    return this.selectedMode === 'pallet' ? 'Scan mã Pallet...' : 'Scan mã Thùng...';
+  }
+  //camera mobile
+  openCameraScanner(field: 'pallet' | 'location'): void {
+    if (!this.selectedMode && field === 'pallet') {
+      this.snackBar.open('Vui lòng chọn mode scan!', 'Đóng', { duration: 3000 });
+      return;
+    }
+    this.scannerActive = field;
+    this.isScanning = true;
+  }
+
+  onScanSuccess(decodedText: string): void {
+    const code = decodedText.trim();
+    if (code === this.lastScannedCode) return;
+    this.lastScannedCode = code;
+
+    if (this.scannerActive === 'pallet') {
+      this.scanPallet = code;
+      this.snackBar.open('✓ Đã scan pallet/thùng!', '', { duration: 1500 });
+    } else {
+      this.scanLocation = code;
+      this.snackBar.open('✓ Đã scan location!', '', { duration: 1500 });
+    }
+
+    // Khi đã có đủ dữ liệu thì gọi lại logic sẵn có
+    if (this.scanPallet && this.scanLocation) {
+      this.stopScanning();
+      setTimeout(() => this.onLocationScanEnter(), 100);
+    }
+  }
+
+  stopScanning(): void {
+    this.lastScannedCode = null;
+    this.isScanning = false;
+    this.scannerActive = null;
   }
 
   /**

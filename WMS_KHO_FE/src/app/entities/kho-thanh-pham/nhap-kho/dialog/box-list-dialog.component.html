@@ -1,0 +1,42 @@
+<h2 mat-dialog-title>
+  Chi tiết hộp - Pallet: {{ pallet.palletCode || pallet.serial_pallet || '-' }}
+</h2>
+
+<mat-dialog-content class="dialog-content">
+  <div class="pallet-summary">
+    <div><strong>Mã PO:</strong> {{ pallet.poNumber || '-' }}</div>
+    <div><strong>Mã SP:</strong> {{ pallet.inventoryCode || pallet.inventory_name || '-' }}</div>
+    <div><strong>Tổng SP:</strong> {{ pallet.totalItems ?? ((pallet.boxesInPallet ?? 0) * (pallet.itemsPerBox ?? 0)) }}</div>
+  </div>
+
+  <div *ngIf="listBox.length; else noBox">
+    <table class="box-table" mat-table [dataSource]="listBox">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Box code</th>
+          <th>Số lượng</th>
+          <th>Ghi chú</th>
+          <th>Serial items</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let b of listBox; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ b.box_code ?? b.boxCode ?? '-' }}</td>
+          <td>{{ b.quantity ?? b.quantity_per_box ?? b.quantityPerBox ?? '-' }}</td>
+          <td>{{ b.note ?? '-' }}</td>
+          <td>{{ b.list_serial_items ?? b.listSerialItems ?? '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #noBox>
+    <div class="empty">Không có hộp trong pallet này</div>
+  </ng-template>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="close()">Đóng</button>
+</mat-dialog-actions>

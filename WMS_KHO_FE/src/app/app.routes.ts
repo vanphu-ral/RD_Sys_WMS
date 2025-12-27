@@ -178,6 +178,15 @@ export const routes: Routes = [
       roles: ['WMS_RD_PUTAWAY', 'WMS_RD_ADMIN']
     }
   },
+   {
+    path: 'kho-thanh-pham/nhap-kho-sx/phe-duyet/:id/scan',
+    component: ScanCheckComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Quét mã nhập kho',
+      roles: ['WMS_RD_PUTAWAY', 'WMS_RD_ADMIN']
+    }
+  },
   {
     path: 'kho-thanh-pham/quan-ly-kho',
     component: QuanLyKhoComponent,

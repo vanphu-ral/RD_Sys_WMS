@@ -1,1068 +1,1296 @@
 @use "@angular/material" as mat;
 
 .nhapkho-container {
-    padding: 10px;
-    background-color: #f8fafc;
-    min-height: 100vh;
+  padding: 10px;
+  background-color: #f8fafc;
+  min-height: 100vh;
 }
 
 .nhapkho-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+
+  .header-title {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
-    padding: 20px 24px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    gap: 12px;
 
-    .header-title {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .title-icon {
-            font-size: 32px;
-            width: 32px;
-            height: 32px;
-            color: #1e293b;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        .subtitle {
-            margin: 4px 0 0 0;
-            font-size: 14px;
-            color: #64748b;
-        }
+    .title-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: #1e293b;
     }
 
-    .add-btn {
-        height: 40px;
-        padding: 0 20px;
-        font-weight: 500;
-
-        mat-icon {
-            margin-right: 4px;
-        }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: #1e293b;
     }
+
+    .subtitle {
+      margin: 4px 0 0 0;
+      font-size: 14px;
+      color: #64748b;
+    }
+  }
+
+  .add-btn {
+    height: 40px;
+    padding: 0 20px;
+    font-weight: 500;
+
+    mat-icon {
+      margin-right: 4px;
+    }
+  }
 }
 
 .nhapkho-card {
-    // margin: 8px;
-    padding: 0;
-    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  // margin: 8px;
+  padding: 0;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
 .mobile-nhapkho-list,
 .mobile-filter-toggle,
 .mobile-filters {
-    display: none;
+  display: none;
 }
 
-
-::ng-deep .mat-mdc-raised-button>.mat-icon {
-    margin: 0 !important;
+::ng-deep .mat-mdc-raised-button > .mat-icon {
+  margin: 0 !important;
 }
 
 ::ng-deep .icon-only {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    padding: 0 !important;
-    line-height: 1;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid #0D6EFD !important;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0 !important;
+  line-height: 1;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #0d6efd !important;
 
-    mat-icon {
-        font-size: 24px;
-        line-height: 1;
-        margin: 0;
-    }
+  mat-icon {
+    font-size: 24px;
+    line-height: 1;
+    margin: 0;
+  }
 }
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-success .mdc-snackbar__surface {
-    background-color: #14AE5C !important;
-    color: white !important;
+  background-color: #14ae5c !important;
+  color: white !important;
 }
-
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-position {
-    margin-bottom: 75vh;
+  margin-bottom: 75vh;
 }
 
-
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-warn .mdc-snackbar__surface {
-    background-color: #f59e0b;
-    color: #1e293b;
+  background-color: #f59e0b;
+  color: #1e293b;
 }
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-error .mdc-snackbar__surface {
-    background-color: #dc2626 !important;
-    color: white !important;
+  background-color: #dc2626 !important;
+  color: white !important;
 }
 
 ::ng-deep .search-field {
-    width: 120px;
-    margin-bottom: -1.75rem;
-    @include mat.form-field-density(-5);
-    @include mat.icon-button-density(-5);
-    @include mat.datepicker-density(-5);
+  width: 120px;
+  margin-bottom: -1.75rem;
+  @include mat.form-field-density(-5);
+  @include mat.icon-button-density(-5);
+  @include mat.datepicker-density(-5);
 }
 
 .search-field-none {
-    display: none;
+  display: none;
 }
 
 .table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #ccc;
+
+  .table-title {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 16px 24px;
-    border-bottom: 1px solid #ccc;
+    gap: 8px;
+    font-weight: 600;
+    color: #1e293b;
 
-    .table-title {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 600;
-        color: #1e293b;
-
-        mat-icon {
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
-        }
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
+  }
 
-    .table-actions {
-        display: flex;
-        align-items: center;
-        gap: 12px;
+  .table-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 
-        .refresh-btn {
-            width: 40px;
-            height: 40px;
-        }
+    .refresh-btn {
+      width: 40px;
+      height: 40px;
     }
+  }
 }
 
 .table-container {
-    overflow-x: auto;
-    padding: 20px;
+  overflow-x: auto;
+  padding: 20px;
 }
 
 .nhapkho-table {
-    width: 100%;
-    table-layout: auto; // Cho phép các cột tự động điều chỉnh
+  width: 100%;
+  table-layout: auto; // Cho phép các cột tự động điều chỉnh
 
-    th {
-        background-color: #f8fafc;
-        color: #64748b;
-        font-weight: 600;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 16px 24px;
-        vertical-align: middle; // Căn giữa theo chiều dọc
-        white-space: nowrap; // Không cho text xuống dòng
+  th {
+    background-color: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 16px 15px;
+    vertical-align: middle; // Căn giữa theo chiều dọc
+    white-space: nowrap; // Không cho text xuống dòng
 
-        &.text-center {
-            text-align: center;
-        }
+    &.text-center {
+      text-align: center;
     }
+  }
 
-    td {
-        padding: 16px 24px;
-        color: #334155;
-        font-size: 14px;
-        vertical-align: middle; // QUAN TRỌNG: Căn giữa nội dung theo chiều dọc
+  td {
+    padding: 10px 5px;
+    color: #334155;
+    font-size: 14px;
+    vertical-align: middle; // QUAN TRỌNG: Căn giữa nội dung theo chiều dọc
 
-        &.text-center {
-            text-align: center;
-            padding: 12px 8px; // Giảm padding cho cột action
-        }
+    &.text-center {
+      text-align: center;
+      padding: 12px 8px; // Giảm padding cho cột action
     }
+  }
 
-    .font-medium {
-        font-weight: 500;
-        color: #1e293b;
-    }
+  .font-medium {
+    font-weight: 500;
+    color: #1e293b;
+  }
 
-    .table-row {
-        &:hover {
-            background-color: #f8fafc;
-        }
+  .table-row {
+    &:hover {
+      background-color: #f8fafc;
     }
+  }
 }
 
 .status-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.progress-cell {
+  display: flex;
+  align-items: center;
+  /* nếu cần chừa khoảng cho dot, thêm gap */
+}
+
+/* Track (nền) */
+.progress-track {
+  position: relative;
+  width: 100px; /* điều chỉnh kích thước tổng */
+  height: 20px; /* thanh hơi to như yêu cầu */
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Fill (phần màu) */
+.progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0%;
+  background: linear-gradient(
+    90deg,
+    #3b82f6,
+    #60a5fa
+  ); /* xanh dương gradient */
+  border-radius: 12px 0 0 12px;
+  transition: width 300ms ease;
+}
+
+/* Text nằm trên cùng, luôn ở giữa thanh */
+.progress-inner-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.65); /* mặc định chữ tối để đọc trên nền sáng */
+  pointer-events: none;
+  z-index: 2;
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
+/* Khi phần fill chiếm đủ để che chữ, đổi màu chữ thành trắng cho tương phản */
+.progress-track[data-filled-percent] .progress-inner-text {
+  /* mặc định giữ màu; sẽ override bằng JS/Angular class nếu cần */
+}
+
+/* Tùy chọn: đổi màu chữ khi fill >= 50% */
+.progress-track.filled-dark .progress-inner-text {
+  color: #ffffff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
 }
 
 .status-badge.status-active-label {
-    background-color: #d3f6e4 !important;
-    color: #14AE5C !important;
+  background-color: #d3f6e4 !important;
+  color: #14ae5c !important;
 }
 
 .status-badge.status-warn-label {
-    background-color: #fed7aa !important;
-    color: #ea580c !important;
+  background-color: #fed7aa !important;
+  color: #ea580c !important;
 }
 
 .multi-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &.multi-true {
+    background-color: #dbeafe;
 
     mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+      color: #2563eb;
     }
+  }
 
-    &.multi-true {
-        background-color: #dbeafe;
+  &.multi-false {
+    background-color: #fee2e2;
 
-        mat-icon {
-            color: #2563eb;
-        }
+    mat-icon {
+      color: #dc2626;
     }
-
-    &.multi-false {
-        background-color: #fee2e2;
-
-        mat-icon {
-            color: #dc2626;
-        }
-    }
+  }
 }
 
 // PHẦN SỬA CHÍNH CHO CÁC BUTTON ACTIONS
 .action-btn {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    margin: 0 4px;
-    padding: 0 !important;
-    display: inline-flex !important; // Dùng inline-flex thay vì flex
-    align-items: center;
-    justify-content: center;
-    vertical-align: middle; // Căn giữa theo dòng
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  margin: 0 4px;
+  padding: 0 !important;
+  display: inline-flex !important; // Dùng inline-flex thay vì flex
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle; // Căn giữa theo dòng
 
-    mat-icon {
-        font-size: 16px !important;
-        width: 16px !important;
-        height: 16px !important;
-        line-height: 16px !important;
+  mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    line-height: 16px !important;
+  }
+
+  &.approve-btn {
+    background: #14ae5c;
+    color: white;
+    border: none;
+
+    &:active {
+      background: #0f8b49;
     }
+  }
 
-    &.approve-btn {
-        background: #14AE5C;
-        color: white;
-        border: none;
+  &.detail-btn {
+    background-color: #0067ff;
+    color: white;
 
-        &:active {
-            background: #0f8b49;
-        }
+    &:hover {
+      background-color: #004dc1;
     }
+  }
 
-    &.detail-btn {
-        background-color: #0067FF;
-        color: white;
+  &.scan-btn {
+    background: white;
+    color: #7c3aed;
+    border: 1.5px solid #7c3aed;
 
-        &:hover {
-            background-color: #004dc1;
-        }
+    &:active {
+      background: #faf5ff;
     }
-
-    &.scan-btn {
-        background: white;
-        color: #7c3aed;
-        border: 1.5px solid #7c3aed;
-
-        &:active {
-            background: #faf5ff;
-        }
-    }
+  }
 }
 
 // Override Angular Material styles cho mini-fab
 ::ng-deep {
-    .nhapkho-table {
-        .mat-mdc-mini-fab {
-            width: 32px !important;
-            height: 32px !important;
-            padding: 0 !important;
+  .nhapkho-table {
+    .mat-mdc-mini-fab {
+      width: 32px !important;
+      height: 32px !important;
+      padding: 0 !important;
 
-            .mat-mdc-button-touch-target {
-                width: 32px !important;
-                height: 32px !important;
-            }
+      .mat-mdc-button-touch-target {
+        width: 32px !important;
+        height: 32px !important;
+      }
 
-            .mat-icon {
-                margin: 0 !important;
-            }
-        }
+      .mat-icon {
+        margin: 0 !important;
+      }
     }
+  }
 }
 
 td.actions-column {
-    .action-buttons-wrapper {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 4px !important;
-        min-width: 120px;
-    }
+  .action-buttons-wrapper {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    min-width: 120px;
+  }
 
-    button {
-        display: inline-block !important;
-        float: none !important;
-    }
+  button {
+    display: inline-block !important;
+    float: none !important;
+  }
 }
 
 ::ng-deep {
-    .actions-column {
-        .mat-mdc-icon-button {
-            display: inline-flex !important;
-            margin: 0 2px !important;
-        }
+  .actions-column {
+    .mat-mdc-icon-button {
+      display: inline-flex !important;
+      margin: 0 2px !important;
     }
+  }
 }
 
 .pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+
+  .page-size-select {
+    width: 80px;
+
+    ::ng-deep .mat-form-field-wrapper {
+      padding-bottom: 0;
+    }
+  }
+
+  .pagination-buttons {
     display: flex;
-    justify-content: space-between;
+    gap: 8px;
     align-items: center;
-    padding: 16px 24px;
-    border-top: 1px solid #e2e8f0;
+
+    button {
+      min-width: 40px;
+      height: 40px;
+      border-radius: 8px;
+    }
+
+    .page-active {
+      background-color: #1e293b;
+      color: white;
+      font-weight: 600;
+    }
+
+    .page-dots {
+      color: #64748b;
+      padding: 0 4px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  // Container - giảm padding
+  .nhapkho-container {
+    padding: 4px;
+    padding-top: 64px;
+  }
+
+  .mobile-nhapkho-list,
+  .mobile-filter-toggle {
+    display: block;
+  }
+
+  // Header - compact hơn
+  .nhapkho-header {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+
+    .header-title {
+      flex-direction: row; // Đổi lại thành row
+      align-items: center;
+      gap: 8px;
+
+      .title-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+
+      div {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      h1 {
+        font-size: 16px;
+        line-height: 1.2;
+      }
+
+      .subtitle {
+        font-size: 11px;
+        line-height: 1.2;
+      }
+    }
+  }
+
+  // Card - loại bỏ padding thừa
+  .nhapkho-card {
+    padding: 0;
+    box-shadow: none;
+  }
+
+  // Table Header - compact
+  .table-header {
+    padding: 8px 12px;
+    gap: 6px;
+
+    .table-title {
+      font-size: 13px;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+
+    .table-actions .refresh-btn {
+      width: 36px;
+      height: 36px;
+
+      mat-icon {
+        font-size: 20px;
+      }
+    }
+  }
+
+  // Hide table
+  .table-container {
+    padding: 0;
+
+    .nhapkho-table {
+      display: none;
+    }
+  }
+
+  // Mobile Filter Toggle - compact
+  .mobile-filter-toggle {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e2e8f0;
+
+    .filter-toggle-btn {
+      height: 40px;
+      font-size: 13px;
+
+      mat-icon {
+        font-size: 20px;
+      }
+    }
+  }
+
+  // Mobile Filters Panel
+  .mobile-filters {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+
+    &.show {
+      display: flex;
+      max-height: 800px;
+    }
+
+    .filter-field {
+      width: 100%;
+      margin: 0;
+
+      ::ng-deep .mdc-text-field {
+        min-height: 44px;
+      }
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+
+      button {
+        flex: 1;
+        height: 40px;
+        font-size: 13px;
+      }
+    }
+  }
+
+  // Mobile Card List - loại bỏ padding
+  .mobile-nhapkho-list {
+    display: block;
+    padding: 8px;
+  }
+
+  .mobile-nhapkho-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+
+    &:active {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    // Card Header
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-bottom: 2px solid #e2e8f0;
+
+      .card-id-section {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .card-id {
+          font-weight: 700;
+          color: #1e293b;
+          font-size: 16px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            color: #14ae5c;
+          }
+        }
+
+        .card-wo {
+          font-size: 11px;
+          color: #64748b;
+          font-weight: 600;
+          padding: 4px 8px;
+          background: white;
+          border-radius: 6px;
+          border: 1px solid #e2e8f0;
+          font-family: "Courier New", monospace;
+        }
+      }
+
+      .status-badge {
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 10px;
+        font-weight: 700;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+      }
+    }
+
+    // Card Content
+    .card-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-bottom: 1px solid #f8fafc;
+        transition: background 0.2s;
+
+        &:hover {
+          background: #fafbfc;
+        }
+
+        .info-label {
+          font-size: 11px;
+          color: #64748b;
+          font-weight: 600;
+          min-width: 110px;
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+            color: #94a3b8;
+          }
+        }
+
+        .info-value {
+          font-size: 13px;
+          color: #1e293b;
+          font-weight: 600;
+          text-align: right;
+          word-break: break-word;
+          flex: 1;
+        }
+
+        // Highlight row (Tên sản phẩm)
+        &.highlight {
+          background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+          border-bottom: 2px solid #0ea5e9;
+
+          .info-label {
+            color: #0369a1;
+          }
+
+          .info-value {
+            color: #0c4a6e;
+            font-weight: 700;
+          }
+        }
+
+        // Note row
+        &.note-row {
+          background: #fffbeb;
+          border-left: 4px solid #f59e0b;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
+
+          .info-label {
+            color: #92400e;
+          }
+
+          .info-value {
+            text-align: left;
+            color: #78350f;
+            font-weight: 500;
+            font-size: 12px;
+          }
+        }
+
+        // Progress row
+        &.progress-row {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+          padding: 12px 14px;
+          background: #f8fafc;
+
+          .progress-wrapper {
+            width: 100%;
+          }
+
+          .progress-track {
+            position: relative;
+            width: 100%;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+          }
+
+          .progress-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 12px 0 0 12px;
+            transition: width 300ms ease;
+          }
+
+          .progress-inner-text {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e293b;
+            z-index: 2;
+            font-family: "Courier New", monospace;
+          }
+        }
+      }
+
+      // Quantity Grid
+      .quantity-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 12px 14px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+
+        .qty-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px;
+          background: white;
+          border-radius: 8px;
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+          mat-icon {
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+          }
+
+          .qty-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+
+            .qty-label {
+              font-size: 9px;
+              color: #64748b;
+              text-transform: uppercase;
+              font-weight: 600;
+              letter-spacing: 0.5px;
+            }
+
+            .qty-value {
+              font-size: 16px;
+              font-weight: 700;
+              color: #1e293b;
+              font-family: "Courier New", monospace;
+            }
+          }
+
+          &.pallet {
+            mat-icon {
+              color: #0369a1;
+            }
+
+            .qty-value {
+              color: #0369a1;
+            }
+          }
+
+          &.box {
+            mat-icon {
+              color: #7c3aed;
+            }
+
+            .qty-value {
+              color: #7c3aed;
+            }
+          }
+        }
+      }
+    }
+
+    // Card Actions
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      padding: 12px 14px;
+      background: #fafbfc;
+      border-top: 1px solid #e2e8f0;
+
+      button {
+        flex: 1;
+        height: 42px;
+        font-size: 12px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border-radius: 8px;
+        transition: all 0.2s;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+
+        &.approve-btn {
+          background: linear-gradient(135deg, #14ae5c 0%, #0f8b49 100%);
+          color: white;
+          border: none;
+          box-shadow: 0 2px 6px rgba(20, 174, 92, 0.3);
+
+          &:active {
+            background: linear-gradient(135deg, #0f8b49 0%, #0a6b36 100%);
+            transform: scale(0.98);
+          }
+        }
+
+        &.detail-btn {
+          background: white;
+          color: #0369a1;
+          border: 2px solid #0369a1;
+
+          &:active {
+            background: #f0f9ff;
+            transform: scale(0.98);
+          }
+        }
+      }
+    }
+  }
+
+  // Empty State
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+
+    mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    p {
+      font-size: 16px;
+      margin: 0;
+      font-weight: 500;
+    }
+  }
+
+  // Pagination - compact
+  .pagination {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 12px;
 
     .page-size-select {
-        width: 80px;
+      width: 100%;
+      margin: 0;
 
-        ::ng-deep .mat-form-field-wrapper {
-            padding-bottom: 0;
-        }
+      ::ng-deep .mat-mdc-form-field {
+        font-size: 13px;
+      }
     }
 
     .pagination-buttons {
-        display: flex;
-        gap: 8px;
-        align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 4px;
+      width: 100%;
 
-        button {
-            min-width: 40px;
-            height: 40px;
-            border-radius: 8px;
-        }
-
-        .page-active {
-            background-color: #1e293b;
-            color: white;
-            font-weight: 600;
-        }
-
-        .page-dots {
-            color: #64748b;
-            padding: 0 4px;
-        }
+      button {
+        min-width: 34px;
+        height: 34px;
+        font-size: 12px;
+      }
     }
-}
+  }
 
-
-
-@media (max-width: 768px) {
-
-    // Container - giảm padding
-    .nhapkho-container {
-        padding: 4px;
-        padding-top: 64px;
+  // Status badge colors
+  .status-badge {
+    &.cho-nhap,
+    &.status-warn-label {
+      background: #fef3c7;
+      color: #92400e;
     }
 
-    .mobile-nhapkho-list,
-    .mobile-filter-toggle {
-        display: block;
+    &.da-nhap,
+    &.status-active-label {
+      background: #d1fae5;
+      color: #065f46;
     }
 
-    // Header - compact hơn
-    .nhapkho-header {
-        padding: 8px 12px;
-        margin-bottom: 8px;
-
-        .header-title {
-            flex-direction: row; // Đổi lại thành row
-            align-items: center;
-            gap: 8px;
-
-            .title-icon {
-                font-size: 24px;
-                width: 24px;
-                height: 24px;
-            }
-
-            div {
-                display: flex;
-                flex-direction: column;
-                gap: 2px;
-            }
-
-            h1 {
-                font-size: 16px;
-                line-height: 1.2;
-            }
-
-            .subtitle {
-                font-size: 11px;
-                line-height: 1.2;
-            }
-        }
+    &.dang-xu-ly {
+      background: #dbeafe;
+      color: #1e40af;
     }
-
-    // Card - loại bỏ padding thừa
-    .nhapkho-card {
-        padding: 0;
-        box-shadow: none;
-    }
-
-    // Table Header - compact
-    .table-header {
-        padding: 8px 12px;
-        gap: 6px;
-
-        .table-title {
-            font-size: 13px;
-
-            mat-icon {
-                font-size: 16px;
-                width: 16px;
-                height: 16px;
-            }
-        }
-
-        .table-actions .refresh-btn {
-            width: 36px;
-            height: 36px;
-
-            mat-icon {
-                font-size: 20px;
-            }
-        }
-    }
-
-    // Hide table
-    .table-container {
-        padding: 0;
-
-        .nhapkho-table {
-            display: none;
-        }
-    }
-
-    // Mobile Filter Toggle - compact
-    .mobile-filter-toggle {
-        padding: 8px 12px;
-        border-bottom: 1px solid #e2e8f0;
-
-        .filter-toggle-btn {
-            height: 40px;
-            font-size: 13px;
-
-            mat-icon {
-                font-size: 20px;
-            }
-        }
-    }
-
-    // Mobile Filters Panel
-    .mobile-filters {
-        display: none;
-        flex-direction: column;
-        gap: 10px;
-        padding: 12px;
-        background: #f8fafc;
-        border-bottom: 1px solid #e2e8f0;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-
-        &.show {
-            display: flex;
-            max-height: 800px;
-        }
-
-        .filter-field {
-            width: 100%;
-            margin: 0;
-
-            ::ng-deep .mdc-text-field {
-                min-height: 44px;
-            }
-        }
-
-        .filter-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 4px;
-
-            button {
-                flex: 1;
-                height: 40px;
-                font-size: 13px;
-            }
-        }
-    }
-
-    // Mobile Card List - loại bỏ padding
-    .mobile-nhapkho-list {
-        display: block;
-        padding: 8px;
-    }
-
-    .mobile-nhapkho-card {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 10px;
-        margin-bottom: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-        transition: box-shadow 0.2s;
-
-        &:active {
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        // Card Header - compact
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center; // Căn giữa thay vì flex-start
-            padding-bottom: 8px;
-            border-bottom: 1px solid #e2e8f0;
-            margin-bottom: 8px;
-
-            .card-id-section {
-                display: flex;
-                align-items: center; // Đặt cùng hàng
-                gap: 8px;
-
-                .card-id {
-                    font-weight: 700;
-                    color: #1e293b;
-                    font-size: 15px;
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                    line-height: 1;
-
-                    mat-icon {
-                        font-size: 16px;
-                        width: 16px;
-                        height: 16px;
-                        color: #14AE5C;
-                    }
-                }
-
-                .card-wo {
-                    font-size: 11px;
-                    color: #64748b;
-                    font-weight: 500;
-                    padding: 2px 6px;
-                    background: #f1f5f9;
-                    border-radius: 4px;
-                    line-height: 1;
-                }
-            }
-
-            .status-badge {
-                padding: 4px 10px;
-                border-radius: 12px;
-                font-size: 10px;
-                font-weight: 600;
-                white-space: nowrap;
-                text-transform: uppercase;
-                letter-spacing: 0.3px;
-                line-height: 1;
-            }
-        }
-
-        // Card Content - giảm gap
-        .card-content {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 8px;
-
-            .info-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: center; // Căn giữa để gọn hơn
-                gap: 8px;
-                padding: 4px 0;
-
-                .info-label {
-                    font-size: 11px;
-                    color: #64748b;
-                    font-weight: 500;
-                    min-width: 85px;
-                    flex-shrink: 0;
-                    display: flex;
-                    align-items: center;
-                    gap: 4px;
-                    line-height: 1.2;
-
-                    mat-icon {
-                        font-size: 14px;
-                        width: 14px;
-                        height: 14px;
-                        color: #94a3b8;
-                    }
-                }
-
-                .info-value {
-                    font-size: 12px;
-                    color: #1e293b;
-                    font-weight: 600;
-                    text-align: right;
-                    word-break: break-word;
-                    line-height: 1.3;
-                }
-            }
-
-            // Quantity section - compact hơn
-            .quantity-section {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 6px;
-                margin-top: 4px;
-                padding: 8px;
-                background: #f8fafc;
-                border-radius: 6px;
-
-                .quantity-item {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 2px;
-
-                    .qty-label {
-                        font-size: 9px;
-                        color: #64748b;
-                        text-transform: uppercase;
-                        font-weight: 600;
-                        letter-spacing: 0.5px;
-                        line-height: 1;
-                    }
-
-                    .qty-value {
-                        font-size: 15px;
-                        font-weight: 700;
-                        color: #1e293b;
-                        line-height: 1;
-                    }
-
-                    &.pallet .qty-value {
-                        color: #0369a1;
-                    }
-
-                    &.box .qty-value {
-                        color: #7c3aed;
-                    }
-
-                    &.product .qty-value {
-                        color: #14AE5C;
-                    }
-                }
-            }
-        }
-
-        // Card Actions - compact
-        .card-actions {
-            display: flex;
-            gap: 6px;
-            padding-top: 8px;
-            border-top: 1px solid #e2e8f0;
-
-            button {
-                flex: 1;
-                height: 38px;
-                font-size: 11px;
-                font-weight: 600;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 4px;
-                border-radius: 6px;
-                padding: 0 8px;
-
-                mat-icon {
-                    font-size: 16px;
-                    width: 16px;
-                    height: 16px;
-                }
-
-                &.approve-btn {
-                    background: #14AE5C;
-                    color: white;
-                    border: none;
-                    padding: 5px;
-
-                    &:active {
-                        background: #0f8b49;
-                    }
-                }
-
-                &.detail-btn {
-                    background: white;
-                    color: #0369a1;
-                    border: 1.5px solid #0369a1;
-                    padding: 5px;
-
-                    &:active {
-                        background: #f0f9ff;
-                    }
-                }
-
-                &.scan-btn {
-                    background: white;
-                    color: #7c3aed;
-                    border: 1.5px solid #7c3aed;
-                    padding: 5px;
-
-                    &:active {
-                        background: #faf5ff;
-                    }
-                }
-            }
-        }
-    }
-
-    // Pagination - compact
-    .pagination {
-        flex-direction: column;
-        gap: 10px;
-        padding: 10px 12px;
-
-        .page-size-select {
-            width: 100%;
-            margin: 0;
-
-            ::ng-deep .mat-mdc-form-field {
-                font-size: 13px;
-            }
-        }
-
-        .pagination-buttons {
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 4px;
-            width: 100%;
-
-            button {
-                min-width: 34px;
-                height: 34px;
-                font-size: 12px;
-            }
-        }
-    }
-
-    // Status badge colors
-    .status-badge {
-        &.cho-nhap,
-        &.status-warn-label {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        &.da-nhap,
-        &.status-active-label {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        &.dang-xu-ly {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-    }
+  }
 }
 
 // Very small screens - cực kỳ compact
 @media (max-width: 480px) {
-    .nhapkho-container {
-        padding: 4px;
+  .nhapkho-container {
+    padding: 4px;
+  }
+
+  .nhapkho-header {
+    padding: 6px 10px;
+    margin-bottom: 6px;
+
+    .header-title {
+      h1 {
+        font-size: 15px;
+      }
+
+      .subtitle {
+        font-size: 10px;
+      }
+
+      .title-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+      }
     }
+  }
 
-    .nhapkho-header {
-        padding: 6px 10px;
-        margin-bottom: 6px;
+  .mobile-nhapkho-list {
+    padding: 6px;
+  }
 
-        .header-title {
-            h1 {
-                font-size: 15px;
-            }
+  .mobile-nhapkho-card {
+    border-radius: 10px;
+    margin-bottom: 8px;
 
-            .subtitle {
-                font-size: 10px;
-            }
+    .card-header {
+      padding: 10px 12px;
+      flex-wrap: wrap;
+      gap: 8px;
 
-            .title-icon {
-                font-size: 22px;
-                width: 22px;
-                height: 22px;
-            }
-        }
-    }
-
-    .mobile-nhapkho-list {
-        padding: 6px;
-    }
-
-    .mobile-nhapkho-card {
-        padding: 8px;
-        margin-bottom: 6px;
-        border-radius: 8px;
-
-        .card-header {
-            padding-bottom: 6px;
-            margin-bottom: 6px;
-
-            .card-id-section {
-                gap: 6px;
-
-                .card-id {
-                    font-size: 14px;
-                }
-
-                .card-wo {
-                    font-size: 10px;
-                }
-            }
-
-            .status-badge {
-                padding: 3px 8px;
-                font-size: 9px;
-            }
-        }
-
-        .card-content {
-            gap: 5px;
-            margin-bottom: 6px;
-
-            .info-row {
-                padding: 3px 0;
-
-                .info-label {
-                    font-size: 10px;
-                    min-width: 75px;
-
-                    mat-icon {
-                        font-size: 13px;
-                        width: 13px;
-                        height: 13px;
-                    }
-                }
-
-                .info-value {
-                    font-size: 11px;
-                }
-            }
-
-            .quantity-section {
-                padding: 6px;
-                gap: 4px;
-                margin-top: 2px;
-
-                .quantity-item {
-                    .qty-label {
-                        font-size: 8px;
-                    }
-
-                    .qty-value {
-                        font-size: 14px;
-                    }
-                }
-            }
-        }
-
-        .card-actions {
-            padding-top: 6px;
-            gap: 5px;
-
-            button {
-                height: 36px;
-                font-size: 10px;
-                gap: 3px;
-
-                mat-icon {
-                    font-size: 15px;
-                    width: 15px;
-                    height: 15px;
-                }
-            }
-        }
-    }
-
-    .pagination {
-        padding: 8px 10px;
+      .card-id-section {
         gap: 8px;
 
-        .pagination-buttons button {
-            min-width: 32px;
-            height: 32px;
-            font-size: 11px;
+        .card-id {
+          font-size: 14px;
+
+          mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+          }
         }
+
+        .card-wo {
+          font-size: 10px;
+          padding: 3px 6px;
+        }
+      }
+
+      .status-badge {
+        padding: 5px 10px;
+        font-size: 9px;
+      }
     }
+
+    .card-content {
+      .info-row {
+        padding: 8px 12px;
+        gap: 8px; 
+
+        .info-label {
+          font-size: 10px;
+          min-width: 90px;
+
+          mat-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+          }
+        }
+
+        .info-value {
+          font-size: 12px;
+        }
+
+        &.progress-row {
+          padding: 10px 12px;
+
+          .progress-track {
+            height: 22px;
+          }
+
+          .progress-inner-text {
+            font-size: 11px;
+          }
+        }
+
+        &.note-row {
+          .info-value {
+            font-size: 11px;
+          }
+        }
+      }
+
+      .quantity-grid {
+        padding: 10px 12px;
+        gap: 8px;
+
+        .qty-item {
+          padding: 8px;
+          gap: 8px;
+
+          mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+
+          .qty-info {
+            .qty-label {
+              font-size: 8px;
+            }
+
+            .qty-value {
+              font-size: 14px;
+            }
+          }
+        }
+      }
+    }
+
+    .card-actions {
+      padding: 10px 12px;
+      gap: 6px;
+
+      button {
+        height: 38px;
+        font-size: 11px;
+        gap: 4px;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+  }
+
+  .pagination {
+    padding: 8px 10px;
+    gap: 8px;
+
+    .pagination-buttons button {
+      min-width: 32px;
+      height: 32px;
+      font-size: 11px;
+    }
+  }
 }
 
 // Landscape mobile - ultra compact
 @media (max-height: 500px) and (max-width: 768px) {
-    .nhapkho-container {
-        padding-top: 56px;
-        padding-left: 4px;
-        padding-right: 4px;
+  .nhapkho-container {
+    padding-top: 56px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .nhapkho-header {
+    padding: 6px 10px;
+    margin-bottom: 4px;
+  }
+
+  .mobile-nhapkho-list {
+    padding: 4px;
+  }
+
+  .mobile-nhapkho-card {
+    margin-bottom: 8px;
+
+    .card-header {
+      padding: 8px 12px;
     }
 
-    .nhapkho-header {
-        padding: 6px 10px;
-        margin-bottom: 4px;
-    }
+    .card-content {
+      .info-row {
+        padding: 6px 12px;
 
-    .mobile-nhapkho-list {
-        padding: 4px;
-    }
+        &.progress-row {
+          padding: 8px 12px;
 
-    .mobile-nhapkho-card {
-        padding: 8px;
-        margin-bottom: 4px;
-
-        .card-header {
-            padding-bottom: 6px;
-            margin-bottom: 6px;
+          .progress-track {
+            height: 20px;
+          }
         }
+      }
 
-        .card-content {
-            gap: 4px;
-            margin-bottom: 6px;
+      .quantity-grid {
+        padding: 8px 12px;
+        gap: 8px;
 
-            .info-row {
-                padding: 2px 0;
-            }
-
-            .quantity-section {
-                padding: 6px;
-                margin-top: 2px;
-            }
+        .qty-item {
+          padding: 6px;
         }
-
-        .card-actions {
-            padding-top: 6px;
-
-            button {
-                height: 34px;
-            }
-        }
+      }
     }
+
+    .card-actions {
+      padding: 8px 12px;
+
+      button {
+        height: 36px;
+        font-size: 11px;
+      }
+    }
+  }
 }
 // Very small screens
 @media (max-width: 480px) {
-    .nhapkho-container {
-        padding: 6px;
+  .nhapkho-container {
+    padding: 6px;
+  }
+
+  .nhapkho-header {
+    padding: 10px 12px;
+
+    .header-title {
+      h1 {
+        font-size: 16px;
+      }
+
+      .subtitle {
+        font-size: 11px;
+      }
+    }
+  }
+
+  .mobile-nhapkho-card {
+    padding: 12px;
+
+    .card-header {
+      flex-direction: row;
+      gap: 8px;
+      align-items: flex-start;
+
+      .status-badge {
+        align-self: flex-start;
+      }
     }
 
-    .nhapkho-header {
-        padding: 10px 12px;
+    .card-content {
+      .info-row {
+        flex-direction: row;
+        gap: 4px;
+        align-items: flex-start;
 
-        .header-title {
-            h1 {
-                font-size: 16px;
-            }
-
-            .subtitle {
-                font-size: 11px;
-            }
+        .info-label {
+          min-width: auto;
         }
+
+        .info-value {
+          text-align: left;
+        }
+      }
     }
 
-    .mobile-nhapkho-card {
-        padding: 12px;
+    .card-actions {
+      flex-direction: row;
 
-        .card-header {
-            flex-direction: column;
-            gap: 8px;
-            align-items: flex-start;
-
-            .status-badge {
-                align-self: flex-start;
-            }
-        }
-
-        .card-content {
-            .info-row {
-                flex-direction: column;
-                gap: 4px;
-                align-items: flex-start;
-
-                .info-label {
-                    min-width: auto;
-                }
-
-                .info-value {
-                    text-align: left;
-                }
-            }
-        }
-
-        .card-actions {
-            flex-direction: column;
-
-            button {
-                width: 100%;
-            }
-        }
+      button {
+        width: 100%;
+      }
     }
+  }
 
-    .pagination-buttons button {
-        min-width: 32px;
-        height: 32px;
-        font-size: 12px;
-    }
+  .pagination-buttons button {
+    min-width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
 }
 
 // Landscape mobile
 @media (max-height: 500px) and (max-width: 768px) {
-    .nhapkho-container {
-        padding-top: 56px;
+  .nhapkho-container {
+    padding-top: 56px;
+  }
+
+  .mobile-nhapkho-card {
+    padding: 10px;
+    margin-bottom: 8px;
+
+    .card-content .quantity-section {
+      padding: 8px;
     }
 
-    .mobile-nhapkho-card {
-        padding: 10px;
-        margin-bottom: 8px;
-
-        .card-content .quantity-section {
-            padding: 8px;
-        }
-
-        .card-actions button {
-            height: 40px;
-        }
+    .card-actions button {
+      height: 40px;
     }
+  }
 }

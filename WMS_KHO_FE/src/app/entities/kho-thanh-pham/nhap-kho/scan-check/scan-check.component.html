@@ -36,7 +36,6 @@
 
             <!-- Scan Input Fields -->
             <div class="scan-inputs">
-                <!-- Pallet/Thùng Input với Camera Button -->
                 <div class="input-with-camera">
                     <mat-form-field class="scan-field" appearance="outline">
                         <mat-label>{{ selectedMode === 'pallet' ? 'Pallet scan...' : 'Thùng scan...' }}</mat-label>
@@ -45,14 +44,12 @@
                             (keydown.enter)="onPalletScanEnter()" inputmode="none" />
                     </mat-form-field>
 
-                    <!-- Camera Button - CHỈ HIỆN TRÊN MOBILE -->
                     <button mat-icon-button *ngIf="isMobile" class="camera-btn" (click)="openCameraScanner('pallet')"
                         [disabled]="!selectedMode" matTooltip="Quét bằng camera">
                         <mat-icon>photo_camera</mat-icon>
                     </button>
                 </div>
 
-                <!-- Location Input với Camera Button -->
                 <div class="input-with-camera">
                     <mat-form-field class="scan-field" appearance="outline">
                         <mat-label>Location scan...</mat-label>
@@ -60,7 +57,6 @@
                             (keydown.enter)="onLocationScanEnter()" inputmode="none" />
                     </mat-form-field>
 
-                    <!-- Camera Button - CHỈ HIỆN TRÊN MOBILE -->
                     <button mat-icon-button *ngIf="isMobile" class="camera-btn" (click)="openCameraScanner('location')"
                         matTooltip="Quét bằng camera">
                         <mat-icon>photo_camera</mat-icon>
@@ -70,7 +66,7 @@
         </div>
     </mat-card>
 
-    <!-- Scanned List Card -->
+    <!-- Scanned List Card with Tabs -->
     <mat-card class="nhapkho-card">
         <div class="table-header">
             <div class="table-title">
@@ -79,182 +75,475 @@
             </div>
         </div>
 
-        <div class="table-container">
-            <table mat-table [dataSource]="scannedList" class="scan-table">
+        <!-- Tabs -->
+        <mat-tab-group [selectedIndex]="activeTab === 'pallet' ? 0 : 1"
+            (selectedIndexChange)="activeTab = $event === 0 ? 'pallet' : 'box'" class="scan-tabs">
 
-                <!-- STT Column -->
-                <ng-container matColumnDef="stt">
-                    <th mat-header-cell *matHeaderCellDef>STT</th>
-                    <td mat-cell *matCellDef="let item; let i = index">{{ i + 1 }}</td>
-                </ng-container>
+            <!-- TAB PALLET -->
+            <mat-tab>
+                <ng-template mat-tab-label>
+                    <mat-icon>inventory_2</mat-icon>
+                    <span>Pallet ({{ scannedPallets.length }})</span>
+                </ng-template>
 
-                <!-- Mã sản phẩm -->
-                <ng-container matColumnDef="sapCode">
-                    <th mat-header-cell *matHeaderCellDef>Mã sản phẩm</th>
-                    <td mat-cell *matCellDef="let item">{{ item.sapCode }}</td>
-                </ng-container>
+                <div class="tab-content">
+                    <!-- Desktop Table -->
+                    <div class="table-container">
+                        <table mat-table [dataSource]="pagedPallets" class="scan-table">
+                            <!-- STT -->
+                            <ng-container matColumnDef="stt">
+                                <th mat-header-cell *matHeaderCellDef>STT</th>
+                                <td mat-cell *matCellDef="let item; let i = index">
+                                    {{ (currentPagePallet - 1) * pageSizePallet + i + 1 }}
+                                </td>
+                            </ng-container>
 
-                <!-- Tên sản phẩm -->
-                <ng-container matColumnDef="name">
-                    <th mat-header-cell *matHeaderCellDef>Tên sản phẩm</th>
-                    <td mat-cell *matCellDef="let item">{{ item.name }}</td>
-                </ng-container>
+                            <!-- Mã pallet -->
+                            <ng-container matColumnDef="serialPallet">
+                                <th mat-header-cell *matHeaderCellDef>Mã pallet</th>
+                                <td mat-cell *matCellDef="let item">{{ item.serialPallet }}</td>
+                            </ng-container>
 
-                <!-- Mã pallet -->
-                <ng-container matColumnDef="serialPallet">
-                    <th mat-header-cell *matHeaderCellDef>Mã pallet</th>
-                    <td mat-cell *matCellDef="let item">{{ item.serialPallet }}</td>
-                </ng-container>
+                            <!-- PO Number -->
+                            <ng-container matColumnDef="poNumber">
+                                <th mat-header-cell *matHeaderCellDef>PO Number</th>
+                                <td mat-cell *matCellDef="let item">{{ item.poNumber || '-' }}</td>
+                            </ng-container>
 
-                <!-- Mã thùng -->
-                <ng-container matColumnDef="inventoryIdentifier">
-                    <th mat-header-cell *matHeaderCellDef>Mã thùng</th>
-                    <td mat-cell *matCellDef="let item">{{ item.inventoryIdentifier }}</td>
-                </ng-container>
+                            <!-- Khách hàng -->
+                            <ng-container matColumnDef="customerName">
+                                <th mat-header-cell *matHeaderCellDef>Khách hàng</th>
+                                <td mat-cell *matCellDef="let item">{{ item.customerName || '-' }}</td>
+                            </ng-container>
 
-                <!-- Số lượng nhập -->
-                <!-- <ng-container matColumnDef="quantityImported">
-                    <th mat-header-cell *matHeaderCellDef>Số lượng nhập</th>
-                    <td mat-cell *matCellDef="let item">{{ item.quantityImported }}</td>
-                </ng-container> -->
-                <ng-container matColumnDef="quantityImported">
-                    <th mat-header-cell *matHeaderCellDef style="display:grid;">
-                        Số lượng scan
-                        <mat-form-field appearance="outline" class="header-quantity-input">
-                            <input matInput type="number" [(ngModel)]="globalQuantity"
-                                (keydown.enter)="applyGlobalQuantity()" (keydown.tab)="applyGlobalQuantity()" />
-                        </mat-form-field>
-                    </th>
+                            <!-- Số thùng/Pallet -->
+                            <ng-container matColumnDef="numBoxInPallet">
+                                <th mat-header-cell *matHeaderCellDef>Số thùng</th>
+                                <td mat-cell *matCellDef="let item">{{ item.numBoxInPallet || '-' }}</td>
+                            </ng-container>
 
-                    <td mat-cell *matCellDef="let item">
-                        <mat-form-field appearance="outline" class="header-quantity-input">
-                            <input matInput type="number" [(ngModel)]="item.quantityImported" min="0"
-                                class="quantity-input" />
-                        </mat-form-field>
-                    </td>
-                </ng-container>
+                            <!-- SL/Thùng -->
+                            <ng-container matColumnDef="quantityPerBox">
+                                <th mat-header-cell *matHeaderCellDef>SL/Thùng</th>
+                                <td mat-cell *matCellDef="let item">{{ item.quantityPerBox || '-' }}</td>
+                            </ng-container>
 
-                <!-- Kho -->
-                <ng-container matColumnDef="locationId">
-                    <th mat-header-cell *matHeaderCellDef>Kho</th>
-                    <td mat-cell *matCellDef="let item">
-                        {{ getLocationCode(item.locationId) }}
-                    </td>
-                </ng-container>
+                            <!-- Tổng SL/Pallet -->
+                            <ng-container matColumnDef="totalQuantityInPallet">
+                                <th mat-header-cell *matHeaderCellDef>Tổng SL</th>
+                                <td mat-cell *matCellDef="let item">{{ item.totalQuantityInPallet || '-' }}</td>
+                            </ng-container>
 
+                            <!-- Số lượng scan -->
+                            <ng-container matColumnDef="quantityImported">
+                                <th mat-header-cell *matHeaderCellDef style="display:grid;">
+                                    Số lượng nhập
+                                    <mat-form-field appearance="outline" class="header-quantity-input">
+                                        <input matInput type="number" [(ngModel)]="globalQuantityPallet"
+                                            (keydown.enter)="applyGlobalQuantityPallet()"
+                                            (keydown.tab)="applyGlobalQuantityPallet()" />
+                                    </mat-form-field>
+                                </th>
+                                <td mat-cell *matCellDef="let item">
+                                    <mat-form-field appearance="outline" class="header-quantity-input">
+                                        <input matInput type="number" [(ngModel)]="item.quantityImported" min="0" />
+                                    </mat-form-field>
+                                </td>
+                            </ng-container>
 
-                <!-- Thời điểm scan -->
-                <ng-container matColumnDef="timeChecked">
-                    <th mat-header-cell *matHeaderCellDef>Thời điểm scan</th>
-                    <td mat-cell *matCellDef="let item">{{ item.timeChecked | date:'dd/MM/yyyy HH:mm' }}</td>
-                </ng-container>
+                            <!-- Kho -->
+                            <ng-container matColumnDef="locationId">
+                                <th mat-header-cell *matHeaderCellDef>Kho</th>
+                                <td mat-cell *matCellDef="let item">{{ getLocationCode(item.locationId) }}</td>
+                            </ng-container>
 
-                <!-- Trạng thái scan -->
-                <ng-container matColumnDef="confirmed">
-                    <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
-                    <td mat-cell *matCellDef="let item">
-                        <span class="status-badge"
-                            [ngClass]="{ 'scanned': item.confirmed, 'unscanned': !item.confirmed }">
-                            {{ item.confirmed ? 'Đã scan' : 'Chưa scan' }}
-                        </span>
-                    </td>
-                </ng-container>
+                            <!-- Trạng thái -->
+                            <ng-container matColumnDef="scanStatus">
+                                <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+                                <td mat-cell *matCellDef="let item">
+                                    <span class="status-badge scanned">{{ item.scanStatus }}</span>
+                                </td>
+                            </ng-container>
 
+                            <!-- Thời điểm -->
+                            <ng-container matColumnDef="timeChecked">
+                                <th mat-header-cell *matHeaderCellDef>Thời điểm</th>
+                                <td mat-cell *matCellDef="let item">{{ item.timeChecked | date:'dd/MM/yyyy HH:mm' }}
+                                </td>
+                            </ng-container>
 
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
-            </table>
+                            <tr mat-header-row *matHeaderRowDef="palletColumns"></tr>
+                            <tr mat-row *matRowDef="let row; columns: palletColumns;" class="table-row"></tr>
+                        </table>
 
-        </div>
-        <div class="mobile-scan-list" *ngIf="scannedList.length > 0">
-            <div class="mobile-global-quantity" *ngIf="scannedList.length > 0">
-                <mat-form-field appearance="outline" class="global-quantity-field">
-                    <mat-label>Số lượng chung</mat-label>
-                    <input matInput type="number" [(ngModel)]="globalQuantity" (keydown.enter)="applyGlobalQuantity()"
-                        (keydown.tab)="applyGlobalQuantity()" />
-                </mat-form-field>
-            </div>
-
-            <div class="mobile-scan-card" *ngFor="let item of scannedList; let i = index">
-                <div class="scan-card-header">
-                    <div class="card-stt">
-                        <mat-icon>{{ item.confirmed ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-                        <span>#{{ i + 1 }}</span>
+                        <!-- Empty State -->
+                        <div class="empty-state" *ngIf="scannedPallets.length === 0">
+                            <mat-icon>inventory_2</mat-icon>
+                            <p>Chưa scan pallet nào</p>
+                        </div>
                     </div>
-                    <div class="card-time">{{ item.timeChecked | date: 'dd/MM/yyyy HH:mm' }}</div>
+
+                    <!-- Mobile List -->
+                    <div class="mobile-scan-list" *ngIf="scannedPallets.length > 0">
+                        <!-- Global Quantity -->
+                        <div class="mobile-global-quantity">
+                            <div class="global-quantity-card">
+                                <div class="global-label">
+                                    <mat-icon>layers</mat-icon>
+                                    Áp dụng số lượng chung
+                                </div>
+                                <div class="global-input-group">
+                                    <mat-form-field appearance="outline" class="global-quantity-field">
+                                        <mat-label>Số lượng</mat-label>
+                                        <input matInput type="number" [(ngModel)]="globalQuantityPallet"
+                                            (keydown.enter)="applyGlobalQuantityPallet()"
+                                            (keydown.tab)="applyGlobalQuantityPallet()" />
+                                    </mat-form-field>
+                                    <button mat-raised-button class="apply-btn" (click)="applyGlobalQuantityPallet()">
+                                        <mat-icon>done_all</mat-icon>
+                                        Áp dụng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pallet Cards -->
+                        <div class="mobile-scan-card" *ngFor="let item of scannedPallets; let i = index"
+                            [class.confirmed]="item.confirmed">
+
+                            <div class="scan-card-header">
+                                <div class="card-stt">
+                                    <div class="stt-badge" [class.confirmed]="item.confirmed">
+                                        <mat-icon>{{ item.confirmed ? 'check_circle' : 'pending' }}</mat-icon>
+                                        #{{ i + 1 }}
+                                    </div>
+                                </div>
+                                <div class="card-time">
+                                    <mat-icon>schedule</mat-icon>
+                                    {{ item.timeChecked | date: 'dd/MM/yy HH:mm' }}
+                                </div>
+                            </div>
+
+                            <div class="scan-card-content">
+                                <!-- Serial Pallet -->
+                                <div class="info-row highlight">
+                                    <span class="info-label">
+                                        <mat-icon>inventory_2</mat-icon>
+                                        Serial Pallet
+                                    </span>
+                                    <span class="info-value serial-badge">{{ item.serialPallet }}</span>
+                                </div>
+
+                                <!-- PO Number -->
+                                <div class="info-row" *ngIf="item.poNumber">
+                                    <span class="info-label">
+                                        <mat-icon>description</mat-icon>
+                                        PO Number
+                                    </span>
+                                    <span class="info-value">{{ item.poNumber }}</span>
+                                </div>
+
+                                <!-- Customer -->
+                                <div class="info-row" *ngIf="item.customerName">
+                                    <span class="info-label">
+                                        <mat-icon>business</mat-icon>
+                                        Khách hàng
+                                    </span>
+                                    <span class="info-value">{{ item.customerName }}</span>
+                                </div>
+
+                                <!-- Số lượng Grid -->
+                                <div class="quantity-grid">
+                                    <div class="qty-box">
+                                        <div class="qty-label">Số thùng</div>
+                                        <div class="qty-value">{{ item.numBoxInPallet || 0 }}</div>
+                                    </div>
+                                    <div class="qty-box">
+                                        <div class="qty-label">SP/Thùng</div>
+                                        <div class="qty-value">{{ item.quantityPerBox || 0 }}</div>
+                                    </div>
+                                    <div class="qty-box total">
+                                        <div class="qty-label">Tổng SP</div>
+                                        <div class="qty-value">{{ item.totalQuantityInPallet || 0 }}</div>
+                                    </div>
+                                </div>
+
+                                <!-- Số lượng nhập -->
+                                <div class="info-row quantity-input-row">
+                                    <span class="info-label">
+                                        <mat-icon>input</mat-icon>
+                                        Số lượng nhập
+                                    </span>
+                                    <mat-form-field appearance="outline" class="mobile-quantity-input">
+                                        <input matInput type="number" [(ngModel)]="item.quantityImported" min="0" />
+                                    </mat-form-field>
+                                </div>
+
+                                <!-- Location -->
+                                <div class="info-row">
+                                    <span class="info-label">
+                                        <mat-icon>place</mat-icon>
+                                        Vị trí kho
+                                    </span>
+                                    <span class="info-value location-badge">
+                                        {{ item.locationCode || getLocationCode(item.locationId) }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination" *ngIf="scannedPallets.length > 0">
+                        <div class="page-size-select">
+                            <mat-form-field appearance="outline" class="page-size-field">
+                                <mat-label>Số bản ghi / trang</mat-label>
+                                <mat-select [(value)]="pageSizePallet"
+                                    (selectionChange)="onPageSizeChangePallet($event.value)">
+                                    <mat-option *ngFor="let size of pageSizeOptions" [value]="size">{{ size
+                                        }}</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                        <div class="pagination-numbers">
+                            <button mat-button *ngFor="let page of [].constructor(totalPagesPallet); let i = index"
+                                [class.active]="currentPagePallet === (i+1)" (click)="onPageChangePallet(i+1)">
+                                {{ i+1 }}
+                            </button>
+                        </div>
+                    </div>
                 </div>
+            </mat-tab>
 
-                <div class="scan-card-content">
-                    <div class="info-row">
-                        <span class="info-label">Mã sản phẩm:</span>
-                        <span class="info-value">{{ item.sapCode }}</span>
+            <!-- TAB THÙNG -->
+            <mat-tab>
+                <ng-template mat-tab-label>
+                    <mat-icon>widgets</mat-icon>
+                    <span>Thùng ({{ scannedBoxes.length }})</span>
+                </ng-template>
+
+                <div class="tab-content">
+                    <!-- Desktop Table -->
+                    <div class="table-container">
+                        <table mat-table [dataSource]="pagedBoxes" class="scan-table">
+                            <!-- STT -->
+                            <ng-container matColumnDef="stt">
+                                <th mat-header-cell *matHeaderCellDef>STT</th>
+                                <td mat-cell *matCellDef="let item; let i = index">
+                                    {{ (currentPageBox - 1) * pageSizeBox + i + 1 }}
+                                </td>
+                            </ng-container>
+
+                            <!-- Mã thùng -->
+                            <ng-container matColumnDef="boxCode">
+                                <th mat-header-cell *matHeaderCellDef>Mã thùng</th>
+                                <td mat-cell *matCellDef="let item">
+                                    <div class="box-code-cell">
+                                        {{ item.boxCode }}
+                                        <span class="loose-badge" *ngIf="item.isLooseBox">
+                                            <mat-icon>warning</mat-icon>
+                                            Thùng lẻ
+                                        </span>
+                                    </div>
+                                </td>
+                            </ng-container>
+
+                            <!-- Pallet chứa -->
+                            <ng-container matColumnDef="serialPallet">
+                                <th mat-header-cell *matHeaderCellDef>Pallet</th>
+                                <td mat-cell *matCellDef="let item">
+                                    <span *ngIf="!item.isLooseBox">{{ item.serialPallet }}</span>
+                                    <span class="loose-text" *ngIf="item.isLooseBox">-</span>
+                                </td>
+                            </ng-container>
+
+                            <!-- Số lượng -->
+                            <ng-container matColumnDef="quantity">
+                                <th mat-header-cell *matHeaderCellDef>Số lượng</th>
+                                <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+                            </ng-container>
+
+                            <!-- Số lượng nhập -->
+                            <ng-container matColumnDef="quantityImported">
+                                <th mat-header-cell *matHeaderCellDef style="display:grid;">
+                                    SL nhập
+                                    <mat-form-field appearance="outline" class="header-quantity-input">
+                                        <input matInput type="number" [(ngModel)]="globalQuantityBox"
+                                            (keydown.enter)="applyGlobalQuantityBox()"
+                                            (keydown.tab)="applyGlobalQuantityBox()" />
+                                    </mat-form-field>
+                                </th>
+                                <td mat-cell *matCellDef="let item">
+                                    <mat-form-field appearance="outline" class="header-quantity-input">
+                                        <input matInput type="number" [(ngModel)]="item.quantityImported" min="0" />
+                                    </mat-form-field>
+                                </td>
+                            </ng-container>
+
+                            <!-- Kho -->
+                            <ng-container matColumnDef="locationId">
+                                <th mat-header-cell *matHeaderCellDef>Kho</th>
+                                <td mat-cell *matCellDef="let item">{{ getLocationCode(item.locationId) }}</td>
+                            </ng-container>
+
+                            <!-- Trạng thái -->
+                            <ng-container matColumnDef="scanStatus">
+                                <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+                                <td mat-cell *matCellDef="let item">
+                                    <span class="status-badge scanned">Đã scan</span>
+                                </td>
+                            </ng-container>
+
+                            <!-- Thời điểm -->
+                            <ng-container matColumnDef="timeChecked">
+                                <th mat-header-cell *matHeaderCellDef>Thời điểm</th>
+                                <td mat-cell *matCellDef="let item">{{ item.timeChecked | date:'dd/MM/yyyy HH:mm' }}
+                                </td>
+                            </ng-container>
+
+                            <tr mat-header-row *matHeaderRowDef="boxColumns"></tr>
+                            <tr mat-row *matRowDef="let row; columns: boxColumns;" class="table-row"
+                                [class.loose-row]="row.isLooseBox"></tr>
+                        </table>
+
+                        <!-- Empty State -->
+                        <div class="empty-state" *ngIf="scannedBoxes.length === 0">
+                            <mat-icon>widgets</mat-icon>
+                            <p>Chưa scan thùng nào</p>
+                        </div>
                     </div>
 
-                    <div class="info-row">
-                        <span class="info-label">Tên sản phẩm:</span>
-                        <span class="info-value">{{ item.name }}</span>
+                    <!-- Mobile List -->
+                    <div class="mobile-scan-list" *ngIf="scannedBoxes.length > 0">
+                        <!-- Global Quantity -->
+                        <div class="mobile-global-quantity">
+                            <div class="global-quantity-card">
+                                <div class="global-label">
+                                    <mat-icon>layers</mat-icon>
+                                    Áp dụng số lượng chung
+                                </div>
+                                <div class="global-input-group">
+                                    <mat-form-field appearance="outline" class="global-quantity-field">
+                                        <mat-label>Số lượng</mat-label>
+                                        <input matInput type="number" [(ngModel)]="globalQuantityBox"
+                                            (keydown.enter)="applyGlobalQuantityBox()"
+                                            (keydown.tab)="applyGlobalQuantityBox()" />
+                                    </mat-form-field>
+                                    <button mat-raised-button class="apply-btn" (click)="applyGlobalQuantityBox()">
+                                        <mat-icon>done_all</mat-icon>
+                                        Áp dụng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Box Cards -->
+                        <div class="mobile-scan-card" *ngFor="let item of scannedBoxes; let i = index"
+                            [class.confirmed]="item.confirmed" [class.loose-box]="item.isLooseBox">
+
+                            <div class="scan-card-header">
+                                <div class="card-stt">
+                                    <div class="stt-badge" [class.confirmed]="item.confirmed">
+                                        <mat-icon>{{ item.confirmed ? 'check_circle' : 'pending' }}</mat-icon>
+                                        #{{ i + 1 }}
+                                    </div>
+                                </div>
+                                <div class="card-time">
+                                    <mat-icon>schedule</mat-icon>
+                                    {{ item.timeChecked | date: 'dd/MM/yy HH:mm' }}
+                                </div>
+                            </div>
+
+                            <div class="scan-card-content">
+                                <!-- Loose Box Badge -->
+                                <div class="loose-box-banner" *ngIf="item.isLooseBox">
+                                    <mat-icon>warning</mat-icon>
+                                    <span>THÙNG LẺ - Không thuộc pallet nào</span>
+                                </div>
+
+                                <!-- Box Code -->
+                                <div class="info-row highlight">
+                                    <span class="info-label">
+                                        <mat-icon>widgets</mat-icon>
+                                        Mã thùng
+                                    </span>
+                                    <span class="info-value serial-badge">{{ item.boxCode }}</span>
+                                </div>
+
+                                <!-- Pallet -->
+                                <div class="info-row" *ngIf="!item.isLooseBox">
+                                    <span class="info-label">
+                                        <mat-icon>inventory_2</mat-icon>
+                                        Pallet
+                                    </span>
+                                    <span class="info-value">{{ item.serialPallet }}</span>
+                                </div>
+
+                                <!-- Số lượng -->
+                                <div class="info-row">
+                                    <span class="info-label">
+                                        <mat-icon>pin</mat-icon>
+                                        Số lượng
+                                    </span>
+                                    <span class="info-value">{{ item.quantity }}</span>
+                                </div>
+
+                                <!-- Số lượng nhập -->
+                                <div class="info-row quantity-input-row">
+                                    <span class="info-label">
+                                        <mat-icon>input</mat-icon>
+                                        Số lượng nhập
+                                    </span>
+                                    <mat-form-field appearance="outline" class="mobile-quantity-input">
+                                        <input matInput type="number" [(ngModel)]="item.quantityImported" min="0" />
+                                    </mat-form-field>
+                                </div>
+
+                                <!-- Location -->
+                                <div class="info-row">
+                                    <span class="info-label">
+                                        <mat-icon>place</mat-icon>
+                                        Vị trí kho
+                                    </span>
+                                    <span class="info-value location-badge">
+                                        {{ item.locationCode || getLocationCode(item.locationId) }}
+                                    </span>
+                                </div>
+
+                                <!-- Note -->
+                                <div class="note-section" *ngIf="item.note">
+                                    <mat-icon>notes</mat-icon>
+                                    <div class="note-content">
+                                        <strong>Ghi chú:</strong>
+                                        <span>{{ item.note }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="info-row highlight">
-                        <span class="info-label">Serial pallet:</span>
-                        <span class="info-value serial-badge">{{ item.serialPallet }}</span>
-                    </div>
-
-                    <div class="info-row highlight">
-                        <span class="info-label">Mã thùng:</span>
-                        <span class="info-value serial-badge">{{ item.inventoryIdentifier }}</span>
-                    </div>
-
-                    <div class="info-row">
-                        <span class="info-label">Số lượng nhập:</span>
-                        <mat-form-field appearance="outline" class="mobile-quantity-input">
-                            <input matInput type="number" [(ngModel)]="item.quantityImported" min="0"
-                                class="quantity-input" />
-                        </mat-form-field>
-                    </div>
-
-
-                    <div class="info-row">
-                        <span class="info-label">Kho:</span>
-                        <span class="info-value location-badge">{{ item.locationId }}</span>
-                    </div>
-
-                    <div class="info-row">
-                        <span class="info-label">Trạng thái:</span>
-                        <span class="status-badge"
-                            [ngClass]="{ 'scanned': item.confirmed, 'unscanned': !item.confirmed }">
-                            <mat-icon class="status-icon">
-                                {{ item.confirmed ? 'check_circle' : 'highlight_off' }}
-                            </mat-icon>
-                            {{ item.confirmed ? 'Đã scan' : 'Chưa scan' }}
-                        </span>
+                    <!-- Pagination -->
+                    <div class="pagination" *ngIf="scannedBoxes.length > 0">
+                        <div class="page-size-select">
+                            <mat-form-field appearance="outline" class="page-size-field">
+                                <mat-label>Số bản ghi / trang</mat-label>
+                                <mat-select [(value)]="pageSizeBox"
+                                    (selectionChange)="onPageSizeChangeBox($event.value)">
+                                    <mat-option *ngFor="let size of pageSizeOptions" [value]="size">{{ size
+                                        }}</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                        <div class="pagination-numbers">
+                            <button mat-button *ngFor="let page of [].constructor(totalPagesBox); let i = index"
+                                [class.active]="currentPageBox === (i+1)" (click)="onPageChangeBox(i+1)">
+                                {{ i+1 }}
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <!-- Pagination -->
-        <div class="pagination">
-            <!-- Select số bản ghi -->
-            <div class="page-size-select">
-                <mat-form-field appearance="outline" class="page-size-field">
-                    <mat-label>Số bản ghi / trang</mat-label>
-                    <mat-select [(value)]="pageSize" (selectionChange)="onPageSizeChange($event.value)">
-                        <mat-option *ngFor="let size of pageSizeOptions" [value]="size">
-                            {{ size }}
-                        </mat-option>
-                    </mat-select>
-                </mat-form-field>
-            </div>
-
-            <!-- Nút số trang -->
-            <div class="pagination-numbers">
-                <button mat-button *ngFor="let page of [].constructor(totalPages); let i = index"
-                    [class.active]="currentPage === (i+1)" (click)="onPageChange(i+1)">
-                    {{ i+1 }}
-                </button>
-            </div>
-        </div>
-
+            </mat-tab>
+        </mat-tab-group>
     </mat-card>
 
     <!-- Action Buttons -->
@@ -263,20 +552,19 @@
             <mat-icon>close</mat-icon>
             Cancel
         </button>
-        <!-- <button mat-raised-button class="reject-btn">
-            <mat-icon>block</mat-icon>
-            Từ chối
-        </button> -->
         <button mat-raised-button color="primary" class="confirm-btn" (click)="confirmScannedItems()">
             <mat-icon>check</mat-icon>
             Xác nhận
         </button>
     </div>
 </div>
+
+<!-- Camera Scanner Overlay -->
 <div class="qr-scanner-overlay" *ngIf="isScanning" (click)="stopScanning()">
     <div class="qr-scanner-modal" (click)="$event.stopPropagation()">
         <div class="scanner-header">
-            <h3>Quét mã {{ scannerActive === 'pallet' ? 'Scan Pallet/Thùng' : 'Scan Location' }} và mã vị trí</h3>
+            <h3>Quét mã {{ scannerActive === 'pallet' ? (selectedMode === 'pallet' ? 'Pallet' : 'Thùng') : 'Location' }}
+            </h3>
             <button mat-icon-button (click)="stopScanning()">
                 <mat-icon>close</mat-icon>
             </button>
@@ -284,8 +572,6 @@
         <zxing-scanner [device]="currentDevice" [formats]="formats" [autostart]="true"
             (scanSuccess)="onScanSuccess($event)">
         </zxing-scanner>
-
-
-        <p class="scanner-hint">Đưa lần lượt 2 mã vào khung hình để quét</p>
+        <p class="scanner-hint">Đưa mã vào khung hình để quét</p>
     </div>
 </div>

@@ -8,152 +8,139 @@ import {
   transition,
   animate,
 } from '@angular/animations';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { InventoryGraphqlService } from './service/inventory-graphql.service'; 
+import { Observable, Subject } from 'rxjs';
+import { map, takeUntil } from 'rxjs/operators';
+import { InventoryGraphqlService } from './service/inventory-graphql.service';
 import { ErrorHandlerService } from './service/error-handler.service';
 import { LoadingService } from './service/loading.service';
+import { QuanLyKhoService } from './service/quan-ly-kho.service.component';
+
 
 interface WarehouseItem {
   id?: string;
-  maSanPham: string;
-  tenSP: string;
-  maKH: string;
-  tenKH: string;
-  maPallet: string;
-  maThung: string;
-  po: string;
-  soLuongTon: number;
-  soLuongGoc: number;
-  khuVuc: string;
-  area: string;
-  status: string;
-  createdDate: string;
-  updatedDate: string;
-  updatedBy: string;
+  identifier: string;          // mã thùng / mã sản phẩm
+  name: string;                // tên sản phẩm
+  vendor: string;              // mã KH / tên KH
+  serialPallet: string;        // mã pallet
+  sapCode: string;             // mã SAP
+  po: string;                  // số PO
+  availableQuantity: number;   // số lượng tồn
+  initialQuantity: number;     // số lượng gốc
+  locationId: number;          // khu vực / location
+  calculatedStatus: string;    // trạng thái
+  receivedDate: string;        // ngày nhập
+  updatedDate: string;         // ngày cập nhật
+  updatedBy: string;           // người cập nhật
 }
+
 
 // Interfaces cho các ViewMode
 interface POParent {
   po: string;
-  soLuongSP: number;
-  tongSLTon: number;
-  tongSLGoc: number;
-  soPallet: number;
-  soThung: number;
-  soKH: number;
-  ngayNhapSomNhat: string;
-  ngayCapNhat: string;
+  itemCount: number;              // số lượng sản phẩm
+  totalAvailableQuantity: number; // tổng SL tồn
+  totalInitialQuantity: number;   // tổng SL gốc
+  totalPallets: number;
+  totalContainers: number;
+  totalClients: number;
+  earliestReceivedDate: string;
+  lastUpdatedDate: string;
   expanded?: boolean;
   children?: POChild[];
   isLoadingChildren?: boolean;
 }
 
 interface POChild {
-  maSanPham: string;
-  tenSP: string;
-  maKH: string;
-  tenKH: string;
-  slTon: number;
-  slGoc: number;
-  soPallet: number;
-  soThung: number;
-  khuVuc: string;
-  status: string;
+  identifier: string;
+  name: string;
+  vendor: string;
+  po: string;
+  availableQuantity: number;
+  initialQuantity: number;
+  totalPallets: number;
+  totalContainers: number;
+  locationId: number;
+  calculatedStatus: string;
 }
 
 interface ProductParent {
-  maSanPham: string;
-  tenSP: string;
-  tongSLTon: number;
-  tongSLGoc: number;
-  soPO: number;
-  soKH: number;
-  soKhuVuc: number;
-  soPallet: number;
-  soThung: number;
-  ngayNhapSomNhat: string;
+  identifier: string;
+  name: string;
+  totalAvailableQuantity: number;
+  totalInitialQuantity: number;
+  totalPos: number;
+  totalClients: number;
+  totalLocations: number;
+  totalPallets: number;
+  totalContainers: number;
+  earliestReceivedDate: string;
   expanded?: boolean;
   children?: ProductChild[];
   isLoadingChildren?: boolean;
 }
-
 interface ProductChild {
   po: string;
-  maKH: string;
-  tenKH: string;
-  slTon: number;
-  slGoc: number;
-  khuVuc: string;
-  location: string;
-  maPallet: string;
-  maThung: string;
-  status: string;
-  ngayNhap: string;
+  vendor: string;
+  availableQuantity: number;
+  initialQuantity: number;
+  locationId: number;
+  serialPallet: string;
+  identifier: string;
+  calculatedStatus: string;
+  receivedDate: string;
 }
 
 interface AreaParent {
-  khuVuc: string;
-  tongSLTon: number;
-  tongSLGoc: number;
-  soSP: number;
-  soKH: number;
-  soPO: number;
-  soPallet: number;
-  soThung: number;
-  soLocation: number;
-  ngayCapNhat: string;
+  locationId: number;
+  totalAvailableQuantity: number;
+  totalInitialQuantity: number;
+  totalUniqueProducts: number;
+  totalClients: number;
+  totalPos: number;
+  totalPallets: number;
+  totalContainers: number;
+  totalLocations: number;
+  lastUpdatedDate: string;
   expanded?: boolean;
   children?: AreaChild[];
   isLoadingChildren?: boolean;
 }
 
 interface AreaChild {
-  location: string;
-  maSanPham: string;
-  tenSP: string;
-  maKH: string;
-  tenKH: string;
+  locationId: number;
+  identifier: string;
+  name: string;
+  vendor: string;
   po: string;
-  slTon: number;
-  slGoc: number;
-  maPallet: string;
-  maThung: string;
-  status: string;
-  ngayNhap: string;
+  availableQuantity: number;
+  initialQuantity: number;
+  serialPallet: string;
+  calculatedStatus: string;
+  receivedDate: string;
 }
-
 interface CustomerParent {
-  maKH: string;
-  tenKH: string;
-  tongSLTon: number;
-  tongSLGoc: number;
-  soSP: number;
-  soPO: number;
-  soKhuVuc: number;
-  soPallet: number;
-  soThung: number;
-  ngayNhapSomNhat: string;
+  vendor: string;                  // groupValue
+  totalAvailableQuantity: number;  // totalAvailableQuantity
+  itemCount: number;               // itemCount
+  totalClients: number;            // totalClients
   expanded?: boolean;
   children?: CustomerChild[];
   isLoadingChildren?: boolean;
 }
 
 interface CustomerChild {
-  maSanPham: string;
-  tenSP: string;
+  identifier: string;
+  name: string;
   po: string;
-  slTon: number;
-  slGoc: number;
-  khuVuc: string;
-  location: string;
-  maPallet: string;
-  maThung: string;
-  status: string;
-  ngayNhap: string;
-  ngayCapNhat: string;
+  availableQuantity: number;
+  initialQuantity: number;
+  locationId: number;
+  locationCode: number;
+  serialPallet: string;
+  calculatedStatus: string;
+  receivedDate: string;
+  updatedDate: string;
 }
-
 @Component({
   selector: 'app-quan-ly-kho',
   templateUrl: './quan-ly-kho.component.html',
@@ -175,7 +162,7 @@ interface CustomerChild {
 })
 export class QuanLyKhoComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  
+
   pageSize = 10;
   currentPage = 1;
   totalItems = 0;
@@ -183,183 +170,184 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
   isLoading = false;
 
   filterValues: { [key: string]: any } = {
-    name: '',
-    client_id: null,
-    serial_pallet: '',
     identifier: '',
+    name: '',
+    vendor: '',
+    serialPallet: '',
+    sapCode: '',
     po: '',
-    location_id: null,
-    area_id: null,
-    status: '',
-    updated_by: ''
+    availableQuantity: null,
+    initialQuantity: null,
+    locationId: null,
+    calculatedStatus: '',
+    updatedBy: '',
+    receivedDate: '',
+    updatedDate: ''
   };
+
+
   filterMode: string = 'constraint';
   displayedColumns: string[] = [];
-  
+
   //mobile
   showMobileFilter: boolean = false;
+
+  //get location
+  locationsMap = new Map<number, string>();
 
   //view mode:
   selectedViewMode: 'area' | 'po' | 'customer' | 'product' | null = null;
   currentViewMode: 'default' | 'po' | 'product' | 'area' | 'customer' = 'default';
 
   // Columns cho các ViewMode
-  poParentColumns: string[] = [
-    'expand',
-    'po',
-    'soLuongSP',
-    'tongSLTon',
-    'tongSLGoc',
-    'soPallet',
-    'soThung',
-    'soKH',
-    'ngayNhapSomNhat',
-    'ngayCapNhat',
-  ];
-  poChildColumns: string[] = [
-    'maSanPham',
-    'tenSP',
-    'maKH',
-    'tenKH',
-    'slTon',
-    'slGoc',
-    'soPallet',
-    'soThung',
-    'khuVuc',
-    'status',
+  poParentColumns = [
+    { key: 'expand', label: '' },
+    { key: 'po', label: 'PO' },
+    { key: 'itemCount', label: 'Số lượng SP' },
+    { key: 'totalAvailableQuantity', label: 'Tổng SL Tồn' },
+    { key: 'totalInitialQuantity', label: 'Tổng SL Gốc' },
+    { key: 'totalPallets', label: 'Tổng Pallet' },
+    { key: 'totalContainers', label: 'Tổng Thùng' },
+    { key: 'totalClients', label: 'Khách hàng' },
+    { key: 'earliestReceivedDate', label: 'Ngày nhập sớm nhất' },
+    { key: 'lastUpdatedDate', label: 'Ngày cập nhật' },
   ];
 
-  productParentColumns: string[] = [
-    'expand',
-    'maSanPham',
-    'tenSP',
-    'tongSLTon',
-    'tongSLGoc',
-    'soPO',
-    'soKH',
-    'soKhuVuc',
-    'soPallet',
-    'soThung',
-    'ngayNhapSomNhat',
-  ];
-  productChildColumns: string[] = [
-    'po',
-    'maKH',
-    'tenKH',
-    'slTon',
-    'slGoc',
-    'khuVuc',
-    'location',
-    'maPallet',
-    'maThung',
-    'status',
-    'ngayNhap',
+  poChildColumns = [
+    { key: 'identifier', label: 'Mã SP' },
+    { key: 'name', label: 'Tên SP' },
+    { key: 'vendor', label: 'Khách hàng' },
+    { key: 'availableQuantity', label: 'SL Tồn' },
+    { key: 'initialQuantity', label: 'SL Gốc' },
+    { key: 'totalPallets', label: 'Pallet' },
+    { key: 'totalContainers', label: 'Thùng' },
+    { key: 'locationId', label: 'Khu vực' },
+    { key: 'calculatedStatus', label: 'Trạng thái' },
   ];
 
-  areaParentColumns: string[] = [
-    'expand',
-    'khuVuc',
-    'tongSLTon',
-    'tongSLGoc',
-    'soSP',
-    'soKH',
-    'soPO',
-    'soPallet',
-    'soThung',
-    'soLocation',
-    'ngayCapNhat',
-  ];
-  areaChildColumns: string[] = [
-    'location',
-    'maSanPham',
-    'tenSP',
-    'maKH',
-    'tenKH',
-    'po',
-    'slTon',
-    'slGoc',
-    'maPallet',
-    'maThung',
-    'status',
-    'ngayNhap',
+  productParentColumns = [
+    { key: 'expand', label: '' },
+    { key: 'identifier', label: 'Mã SP' },
+    { key: 'name', label: 'Tên SP' },
+    { key: 'totalAvailableQuantity', label: 'Tổng SL Tồn' },
+    { key: 'totalInitialQuantity', label: 'Tổng SL Gốc' },
+    { key: 'totalPos', label: 'PO' },
+    { key: 'totalClients', label: 'Khách hàng' },
+    { key: 'totalLocations', label: 'Khu vực' },
+    { key: 'totalPallets', label: 'Tổng Pallet' },
+    { key: 'totalContainers', label: 'Tổng Thùng' },
+    { key: 'earliestReceivedDate', label: 'Ngày nhập sớm nhất' },
   ];
 
-  customerParentColumns: string[] = [
-    'expand',
-    'maKH',
-    'tenKH',
-    'tongSLTon',
-    'tongSLGoc',
-    'soSP',
-    'soPO',
-    'soKhuVuc',
-    'soPallet',
-    'soThung',
-    'ngayNhapSomNhat',
+  productChildColumns = [
+    { key: 'po', label: 'PO' },
+    { key: 'vendor', label: 'Khách hàng' },
+    { key: 'availableQuantity', label: 'SL Tồn' },
+    { key: 'initialQuantity', label: 'SL Gốc' },
+    { key: 'locationId', label: 'Khu vực' },
+    { key: 'serialPallet', label: 'Mã pallet' },
+    { key: 'identifier', label: 'Mã thùng' },
+    { key: 'calculatedStatus', label: 'Trạng thái' },
+    { key: 'receivedDate', label: 'Ngày nhập' },
   ];
-  customerChildColumns: string[] = [
-    'maSanPham',
-    'tenSP',
-    'po',
-    'slTon',
-    'slGoc',
-    'khuVuc',
-    'location',
-    'maPallet',
-    'maThung',
-    'status',
-    'ngayNhap',
-    'ngayCapNhat',
+
+  areaParentColumns = [
+    { key: 'expand', label: '' },
+    { key: 'locationCode', label: 'Kho' },
+    { key: 'totalAvailableQuantity', label: 'Tổng SL Tồn' },
+    { key: 'totalInitialQuantity', label: 'Tổng SL Gốc' },
+    { key: 'totalUniqueProducts', label: 'Sản phẩm' },
+    { key: 'totalClients', label: 'Khách hàng' },
+    { key: 'totalPos', label: 'PO' },
+    { key: 'totalPallets', label: 'Tổng Pallet' },
+    { key: 'totalContainers', label: 'Tổng Thùng' },
+    { key: 'totalLocations', label: 'Location' },
+    { key: 'lastUpdatedDate', label: 'Ngày cập nhật' },
   ];
+
+  areaChildColumns = [
+    { key: 'locationCode', label: 'Kho' },
+    { key: 'identifier', label: 'Mã Identifier' },
+    { key: 'name', label: 'Tên SP' },
+    { key: 'vendor', label: 'Khách hàng' },
+    { key: 'po', label: 'PO' },
+    { key: 'availableQuantity', label: 'SL Tồn' },
+    { key: 'initialQuantity', label: 'SL Gốc' },
+    { key: 'serialPallet', label: 'Mã pallet' },
+    { key: 'calculatedStatus', label: 'Trạng thái' },
+    { key: 'receivedDate', label: 'Ngày nhập' },
+  ];
+
+  customerParentColumns = [
+    { key: 'expand', label: '' },
+    { key: 'vendor', label: 'Khách hàng' },
+    { key: 'totalAvailableQuantity', label: 'Tổng SL Tồn' },
+    { key: 'itemCount', label: 'Tổng số lượng SP' },
+    { key: 'totalClients', label: 'Tổng KH' },
+  ];
+
+  customerChildColumns = [
+    { key: 'identifier', label: 'Mã SP' },
+    { key: 'name', label: 'Tên SP' },
+    { key: 'po', label: 'PO' },
+    { key: 'availableQuantity', label: 'SL Tồn' },
+    { key: 'initialQuantity', label: 'SL Gốc' },
+    { key: 'locationCode', label: 'Khu vực' },
+    { key: 'serialPallet', label: 'Mã pallet' },
+    { key: 'calculatedStatus', label: 'Trạng thái' },
+    { key: 'receivedDate', label: 'Ngày nhập' },
+    { key: 'updatedDate', label: 'Ngày cập nhật' },
+  ];
+
+
 
   //mobile
   mobileDefaultFields = [
-    { key: 'tenSP', label: 'Tên SP' },
-    { key: 'tenKH', label: 'Khách hàng' },
+    { key: 'name', label: 'Tên SP' },
+    { key: 'vendor', label: 'Khách hàng' },
     { key: 'po', label: 'PO' },
-    { key: 'area', label: 'Kho', badge: true },
-    { key: 'maPallet', label: 'Mã pallet', badge: true },
-    { key: 'maThung', label: 'Mã thùng', badge: true },
+    { key: 'locationId', label: 'Kho', badge: true },
+    { key: 'serialPallet', label: 'Mã pallet', badge: true },
+    { key: 'identifier', label: 'Mã thùng', badge: true },
   ];
 
   mobileQuantityFields = [
-    { key: 'soLuongTon', label: 'SL Tồn', class: 'stock' },
-    { key: 'soLuongGoc', label: 'SL Gốc' },
+    { key: 'availableQuantity', label: 'SL Tồn', class: 'stock' },
+    { key: 'initialQuantity', label: 'SL Gốc' },
   ];
-  
+
   mobilePOStats = [
-    { key: 'tongSLTon', label: 'SL Tồn' },
-    { key: 'soPallet', label: 'Pallet' },
-    { key: 'soThung', label: 'Thùng' },
+    { key: 'totalAvailableQuantity', label: 'SL Tồn' },
+    { key: 'totalPallets', label: 'Pallet' },
+    { key: 'totalContainers', label: 'Thùng' },
   ];
 
   mobilePOChildFields = [
-    { key: 'maSanPham', label: 'Mã SP', bold: true },
-    { key: 'tenSP', label: 'Tên SP' },
-    { key: 'tenKH', label: 'Khách hàng' },
-    { key: 'slTon', label: 'SL Tồn' },
-    { key: 'khuVuc', label: 'Khu vực' },
-    { key: 'status', label: 'Status', badge: true },
+    { key: 'identifier', label: 'Mã SP', bold: true },
+    { key: 'name', label: 'Tên SP' },
+    { key: 'vendor', label: 'Khách hàng' },
+    { key: 'availableQuantity', label: 'SL Tồn' },
+    { key: 'locationCode', label: 'Khu vực' },
+    { key: 'calculatedStatus', label: 'Status', badge: true },
   ];
+
 
   allColumns = [
     { key: 'stt', label: 'STT', visible: true },
-    { key: 'maSanPham', label: 'Mã sản phẩm', visible: true },
-    { key: 'tenSP', label: 'Tên SP', visible: true },
-    { key: 'maKH', label: 'Mã KH', visible: true },
-    { key: 'tenKH', label: 'Tên KH', visible: false },
-    { key: 'maPallet', label: 'Mã pallet', visible: true },
-    { key: 'maThung', label: 'Mã thùng', visible: false },
+    { key: 'identifier', label: 'Identifier', visible: true },
+    { key: 'name', label: 'Tên SP', visible: true },
+    { key: 'vendor', label: 'Khách hàng', visible: true },
+    { key: 'serialPallet', label: 'Mã pallet', visible: true },
     { key: 'po', label: 'PO', visible: true },
-    { key: 'soLuongTon', label: 'Số lượng tồn', visible: true },
-    { key: 'soLuongGoc', label: 'Số lượng gốc', visible: false },
-    { key: 'khuVuc', label: 'Khu vực', visible: true },
-    { key: 'area', label: 'Kho', visible: true },
-    { key: 'status', label: 'Status', visible: true },
-    { key: 'updatedBy', label: 'Cập nhật bởi', visible: false },
-    { key: 'createdDate', label: 'Ngày nhập', visible: false },
-    { key: 'updatedDate', label: 'Ngày cập nhật', visible: false },
+    { key: 'availableQuantity', label: 'Số lượng tồn', visible: true },
+    { key: 'initialQuantity', label: 'Số lượng gốc', visible: true },
+    { key: 'locationCode', label: 'Kho', visible: true },
+    { key: 'calculatedStatus', label: 'Status', visible: true },
+    { key: 'updatedBy', label: 'Cập nhật bởi', visible: true },
+    { key: 'receivedDate', label: 'Ngày nhập', visible: true },
+    { key: 'updatedDate', label: 'Ngày cập nhật', visible: true },
   ];
+
 
   // Data sources
   warehouseList: WarehouseItem[] = [];
@@ -373,10 +361,19 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
     private dialog: MatDialog,
     private inventoryService: InventoryGraphqlService,
     private errorHandler: ErrorHandlerService,
-    private loadingService: LoadingService
-  ) {}
+    private loadingService: LoadingService,
+    private quanLyKhoService: QuanLyKhoService
+  ) { }
 
   ngOnInit(): void {
+    this.quanLyKhoService.getLocations()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (locations) => {
+          this.locationsMap = new Map(locations.map(l => [l.id, l.code]));
+        },
+        error: (err) => console.error('[getLocations] Error:', err)
+      });
     this.updateDisplayedColumns();
     this.loadData();
   }
@@ -400,148 +397,197 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Load view mặc định (chi tiết từng inventory)
-   */
+ * Load view mặc định (chi tiết từng inventory)
+ */
   private loadDefaultView(): void {
     const params = {
       page: this.currentPage,
       size: this.pageSize,
-      ...this.getActiveFilters()
+      identifier: this.filterValues['identifier'] || undefined,
+      po: this.filterValues['po'] || undefined
     };
 
     this.inventoryService
-      .getInventoryDashboard(params)
+      .getAllInventories(params)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          this.warehouseList = response.data.map(item => ({
-            id: item.id,
-            maSanPham: item.identifier || '',
-            tenSP: item.name || '',
-            maKH: item.client_id?.toString() || '',
-            tenKH: '', // Cần join từ bảng client
-            maPallet: item.serial_pallet || '',
-            maThung: '', // Cần lấy từ container
-            po: item.po || '',
-            soLuongTon: item.available_quantity || 0,
-            soLuongGoc: item.initial_quantity || 0,
-            khuVuc: item.area_code || '',
-            area: item.area_name || '',
-            status: this.mapStatus(item.status),
-            updatedBy: item.updated_by || '',
-            createdDate: this.formatDate(item.received_date),
-            updatedDate: this.formatDate(item.updated_date)
-          }));
+          //  FIX: response.data.allInventories thay vì response.data
+          const inventories = response.data.allInventories;
 
-          this.totalItems = response.meta.total_items;
-          this.totalPages = response.meta.total_pages;
+          this.warehouseList = inventories.data.map(item => {
+            const locId = item.locationId ?? 0;
+            return {
+              id: item.id,
+              identifier: item.identifier || '',
+              name: item.name || '',
+              vendor: item.vendor || '',
+              serialPallet: item.serialPallet || '',
+              sapCode: item.sapCode || '',
+              po: item.po || '',
+              availableQuantity: item.availableQuantity || 0,
+              initialQuantity: item.initialQuantity || 0,
+              locationId: locId,
+              locationCode: this.locationsMap.get(locId) || 'N/A',
+              calculatedStatus: item.calculatedStatus || '',
+              updatedBy: item.updatedBy || '',
+              receivedDate: this.formatDate(item.receivedDate),
+              updatedDate: this.formatDate(item.updatedDate)
+            };
+          });
+
+          this.totalItems = inventories.meta.totalItems;
+          this.totalPages = inventories.meta.totalPages;
           this.isLoading = false;
+
+          console.log('[LoadDefaultView] Loaded items:', this.warehouseList.length);
         },
         error: (error) => {
-          console.error('Error loading inventory dashboard:', error);
+          console.error('[LoadDefaultView] Error:', error);
           this.isLoading = false;
-          // TODO: Show error message to user
         }
       });
   }
 
+
   /**
    * Load view nhóm (area, po, customer, product)
    */
+  get poParentColumnKeys(): string[] {
+    return this.poParentColumns.map(c => c.key);
+  }
+
+  get productParentColumnKeys(): string[] {
+    return this.productParentColumns.map(c => c.key);
+  }
+
+  get areaParentColumnKeys(): string[] {
+    return this.areaParentColumns.map(c => c.key);
+  }
+
+  get customerParentColumnKeys(): string[] {
+    return this.customerParentColumns.map(c => c.key);
+  }
+
+
+  /**
+ * Load view nhóm (area, po, customer, product)
+ */
   private loadGroupedView(): void {
     const groupBy = this.getGroupByParam();
-    const params = {
-      group_by: groupBy,
-      page: this.currentPage,
-      size: this.pageSize,
-      ...this.getActiveFilters()
-    };
 
-    this.inventoryService
-      .getInventoryDashboardGrouped(params)
+    let query$: Observable<any>;
+
+    switch (groupBy) {
+      case 'po':
+        query$ = this.inventoryService.getGroupedPo().pipe(
+          map(result => result.data)
+        );
+        break;
+      case 'product':
+        query$ = this.inventoryService.getGroupedSapCode().pipe(
+          map(result => result.data)
+        );
+        break;
+      case 'area':
+        query$ = this.inventoryService.getGroupedArea().pipe(
+          map(result => result.data)
+        );
+        break;
+      case 'client':
+        query$ = this.inventoryService.getGroupedClient().pipe(
+          map(result => result.data)
+        );
+        break;
+      default:
+        console.warn('[LoadGroupedView] Unsupported groupBy:', groupBy);
+        this.isLoading = false;
+        return;
+    }
+
+    query$
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          //  Giờ response đã là data rồi, không cần .data nữa
+          const grouped = response.inventoryDashboardGrouped;
+
           switch (this.currentViewMode) {
             case 'po':
-              this.poDataSource = response.data.map(item => ({
-                po: item.group_value,
-                soLuongSP: item.total_unique_products,
-                tongSLTon: item.total_available_quantity,
-                tongSLGoc: item.total_initial_quantity,
-                soPallet: item.total_pallets,
-                soThung: item.total_containers,
-                soKH: item.total_clients,
-                ngayNhapSomNhat: this.formatDate(item.last_received),
-                ngayCapNhat: this.formatDate(item.last_updated),
+              this.poDataSource = grouped.data.map((item: any) => ({
+                po: item.groupValue,
+                itemCount: item.itemCount,
+                totalAvailableQuantity: item.totalAvailableQuantity,
+                totalInitialQuantity: 0,
+                totalPallets: item.totalPallets,
+                totalContainers: 0,
+                totalClients: 0,
+                earliestReceivedDate: '',
+                lastUpdatedDate: '',
                 expanded: false,
                 children: []
               }));
               break;
 
             case 'product':
-              this.productDataSource = response.data.map(item => ({
-                maSanPham: item.group_key,
-                tenSP: item.group_value,
-                tongSLTon: item.total_available_quantity,
-                tongSLGoc: item.total_initial_quantity,
-                soPO: item.total_pos,
-                soKH: item.total_clients,
-                soKhuVuc: item.total_locations,
-                soPallet: item.total_pallets,
-                soThung: item.total_containers,
-                ngayNhapSomNhat: this.formatDate(item.last_received),
+              this.productDataSource = grouped.data.map((item: any) => ({
+                identifier: item.groupKey,
+                name: item.groupValue,
+                totalAvailableQuantity: item.totalAvailableQuantity,
+                totalInitialQuantity: 0,
+                totalPos: item.totalPos || 0,
+                totalClients: item.totalClients || 0,
+                totalLocations: item.totalLocations || 0,
+                totalPallets: item.totalPallets || 0,
+                totalContainers: item.totalContainers || 0,
+                earliestReceivedDate: '',
                 expanded: false,
                 children: []
               }));
               break;
 
             case 'area':
-              this.areaDataSource = response.data.map(item => ({
-                khuVuc: item.group_value,
-                tongSLTon: item.total_available_quantity,
-                tongSLGoc: item.total_initial_quantity,
-                soSP: item.total_unique_products,
-                soKH: item.total_clients,
-                soPO: item.total_pos,
-                soPallet: item.total_pallets,
-                soThung: item.total_containers,
-                soLocation: item.total_locations,
-                ngayCapNhat: this.formatDate(item.last_updated),
+              this.areaDataSource = grouped.data.map((item: any) => ({
+                locationCode: item.groupValue || 'N/A',
+                totalAvailableQuantity: item.totalAvailableQuantity,
+                totalInitialQuantity: 0,
+                totalUniqueProducts: item.totalUniqueProducts,
+                totalClients: item.totalClients,
+                totalPos: item.totalPos,
+                totalPallets: item.totalPallets,
+                totalContainers: item.totalContainers,
+                totalLocations: item.totalLocations,
+                lastUpdatedDate: '',
                 expanded: false,
                 children: []
               }));
               break;
 
+
+
             case 'customer':
-              this.customerDataSource = response.data.map(item => ({
-                maKH: item.group_key,
-                tenKH: item.group_value,
-                tongSLTon: item.total_available_quantity,
-                tongSLGoc: item.total_initial_quantity,
-                soSP: item.total_unique_products,
-                soPO: item.total_pos,
-                soKhuVuc: item.total_locations,
-                soPallet: item.total_pallets,
-                soThung: item.total_containers,
-                ngayNhapSomNhat: this.formatDate(item.last_received),
+              this.customerDataSource = grouped.data.map((item: any) => ({
+                vendor: item.groupValue,
+                totalAvailableQuantity: item.totalAvailableQuantity,
+                itemCount: item.itemCount,
+                totalClients: item.totalClients,
                 expanded: false,
                 children: []
               }));
               break;
           }
 
-          this.totalItems = response.meta.total_items;
-          this.totalPages = response.meta.total_pages;
+          this.totalItems = grouped.meta.totalItems;
+          this.totalPages = Math.ceil(this.totalItems / this.pageSize);
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error loading grouped inventory:', error);
+          console.error('[LoadGroupedView] Error:', error);
           this.isLoading = false;
-          // TODO: Show error message to user
         }
       });
   }
+
 
   /**
    * Load dữ liệu con khi expand row
@@ -562,17 +608,18 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
     parent.isLoadingChildren = true;
 
     const childFilters = this.getChildFilters(parent);
-    
+
     this.inventoryService
-      .getInventoryDashboard({
+      .getAllInventories({
         page: 1,
-        size: 100, // Load nhiều items cho children
+        size: 100,
         ...childFilters
       })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          parent.children = this.mapChildData(response.data);
+          const inventories = response.data.allInventories;
+          parent.children = this.mapChildData(inventories.data);
           parent.isLoadingChildren = false;
         },
         error: (error) => {
@@ -585,6 +632,9 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
   /**
    * Get filters for loading child data
    */
+  /**
+ * Get filters for loading child data
+ */
   private getChildFilters(parent: any): any {
     const filters: any = {};
 
@@ -593,19 +643,19 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
         filters.po = parent.po;
         break;
       case 'area':
-        // Cần map khuVuc về area_id
-        filters.area_id = this.getAreaIdByCode(parent.khuVuc);
+        filters.locationId = parent.locationId;
         break;
       case 'customer':
-        filters.client_id = parseInt(parent.maKH);
+        filters.vendor = parent.vendor;
         break;
       case 'product':
-        filters.identifier = parent.maSanPham;
+        filters.identifier = parent.identifier;
         break;
     }
 
     return filters;
   }
+
 
   /**
    * Map child data based on view mode
@@ -614,69 +664,66 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
     switch (this.currentViewMode) {
       case 'po':
         return data.map(item => ({
-          maSanPham: item.identifier || '',
-          tenSP: item.name || '',
-          maKH: item.client_id?.toString() || '',
-          tenKH: '', // TODO: Get from client table
-          slTon: item.available_quantity || 0,
-          slGoc: item.initial_quantity || 0,
-          soPallet: item.serial_pallet || '',
-          soThung: '', // TODO: Get from container
-          khuVuc: item.area_code || '',
-          status: this.mapStatus(item.status)
+          identifier: item.identifier || '',
+          name: item.name || '',
+          vendor: item.vendor || '',
+          po: item.po || '',
+          availableQuantity: item.availableQuantity || 0,
+          initialQuantity: item.initialQuantity || 0,
+          locationId: item.locationId || 0,
+          locationCode: this.locationsMap.get(item.locationId) || 'N/A',
+          calculatedStatus: this.mapStatus(item.calculatedStatus)
         }));
 
       case 'product':
         return data.map(item => ({
           po: item.po || '',
-          maKH: item.client_id?.toString() || '',
-          tenKH: '', // TODO: Get from client table
-          slTon: item.available_quantity || 0,
-          slGoc: item.initial_quantity || 0,
-          khuVuc: item.area_code || '',
-          location: item.location_id?.toString() || '',
-          maPallet: item.serial_pallet || '',
-          maThung: '', // TODO: Get from container
-          status: this.mapStatus(item.status),
-          ngayNhap: this.formatDate(item.received_date)
+          vendor: item.vendor || '',
+          availableQuantity: item.availableQuantity || 0,
+          initialQuantity: item.initialQuantity || 0,
+          locationId: item.locationId || 0,
+          locationCode: this.locationsMap.get(item.locationId) || 'N/A',
+          serialPallet: item.serialPallet || '',
+          identifier: item.identifier || '',
+          calculatedStatus: this.mapStatus(item.calculatedStatus),
+          receivedDate: this.formatDate(item.receivedDate)
         }));
 
       case 'area':
         return data.map(item => ({
-          location: item.location_id?.toString() || '',
-          maSanPham: item.identifier || '',
-          tenSP: item.name || '',
-          maKH: item.client_id?.toString() || '',
-          tenKH: '', // TODO: Get from client table
+          locationId: item.locationId || 0,
+          locationCode: this.locationsMap.get(item.locationId) || 'N/A',
+          identifier: item.identifier || '',
+          name: item.name || '',
+          vendor: item.vendor || '',
           po: item.po || '',
-          slTon: item.available_quantity || 0,
-          slGoc: item.initial_quantity || 0,
-          maPallet: item.serial_pallet || '',
-          maThung: '', // TODO: Get from container
-          status: this.mapStatus(item.status),
-          ngayNhap: this.formatDate(item.received_date)
+          availableQuantity: item.availableQuantity || 0,
+          initialQuantity: item.initialQuantity || 0,
+          serialPallet: item.serialPallet || '',
+          calculatedStatus: this.mapStatus(item.calculatedStatus),
+          receivedDate: this.formatDate(item.receivedDate)
         }));
 
       case 'customer':
         return data.map(item => ({
-          maSanPham: item.identifier || '',
-          tenSP: item.name || '',
+          identifier: item.identifier || '',
+          name: item.name || '',
           po: item.po || '',
-          slTon: item.available_quantity || 0,
-          slGoc: item.initial_quantity || 0,
-          khuVuc: item.area_code || '',
-          location: item.location_id?.toString() || '',
-          maPallet: item.serial_pallet || '',
-          maThung: '', // TODO: Get from container
-          status: this.mapStatus(item.status),
-          ngayNhap: this.formatDate(item.received_date),
-          ngayCapNhat: this.formatDate(item.updated_date)
+          availableQuantity: item.availableQuantity || 0,
+          initialQuantity: item.initialQuantity || 0,
+          locationId: item.locationId || 0,
+          locationCode: this.locationsMap.get(item.locationId) || 'N/A',
+          serialPallet: item.serialPallet || '',
+          calculatedStatus: this.mapStatus(item.calculatedStatus),
+          receivedDate: this.formatDate(item.receivedDate),
+          updatedDate: this.formatDate(item.updatedDate)
         }));
 
       default:
         return [];
     }
   }
+
 
   /**
    * Helper methods
@@ -692,7 +739,7 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
 
   private getActiveFilters(): any {
     const filters: any = {};
-    
+
     Object.keys(this.filterValues).forEach(key => {
       const value = this.filterValues[key];
       if (value !== null && value !== undefined && value !== '') {
@@ -705,7 +752,7 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
 
   private mapStatus(status: string | null): string {
     if (!status) return 'Không xác định';
-    
+
     const statusMap: { [key: string]: string } = {
       'available': 'Có sẵn',
       'reserved': 'Đã đặt',
@@ -718,7 +765,7 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
 
   private formatDate(dateString: string | null): string {
     if (!dateString) return '';
-    
+
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN', {
       day: '2-digit',
@@ -766,11 +813,12 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
     this.showMobileFilter = !this.showMobileFilter;
   }
 
-  getFilterColumn(): string[] {
+  getFilterColumn(): { key: string; label: string }[] {
     return this.customerParentColumns.filter(col =>
-      col !== 'expand' && col !== 'maKH'
+      col.key !== 'expand' && col.key !== 'vendor'
     );
   }
+
 
   getColumnLabel(col: string): string {
     const labels: { [key: string]: string } = {
@@ -866,13 +914,15 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
    * Pagination
    */
   onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
     this.loadData();
   }
 
+  // Hàm thay đổi pageSize
   onPageSizeChange(size: number): void {
     this.pageSize = size;
-    this.currentPage = 1;
+    this.currentPage = 1; // reset về trang đầu
     this.loadData();
   }
 

@@ -1,5 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, Observable, timer, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, timer, Subscription, fromEvent, merge, throttleTime, switchMap } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
@@ -35,16 +35,18 @@ export class AuthService {
   // private readonly REALM = 'rangdong';
   // private readonly CLIENT_ID = 'RD_KHO';
 
-  
+
   private readonly KEYCLOAK_URL = 'http://192.168.68.90:8080/auth';
   private readonly REALM = 'QLSX';
   private readonly CLIENT_ID = 'WMS_KHO';
 
   // Session timeout: 30 phút
   private readonly SESSION_TIMEOUT = 30 * 60 * 1000;
+  private readonly WARNING_BEFORE = 60 * 1000;
   private sessionTimer?: Subscription;
   private tokenRefreshTimer?: Subscription;
-
+  private activitySub?: Subscription;
+  private warningSub?: Subscription;
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -99,44 +101,44 @@ export class AuthService {
 
   // ============= LOGIN FLOW =============
   async initiateLogin(returnUrl?: string): Promise<void> {
-  try {
-    if (returnUrl) {
-      sessionStorage.setItem('returnUrl', returnUrl);
+    try {
+      if (returnUrl) {
+        sessionStorage.setItem('returnUrl', returnUrl);
+      }
+
+      const codeVerifier = this.generateCodeVerifier();
+
+      const codeChallenge = await this.generateCodeChallenge(codeVerifier);
+      const state = this.generateState();
+
+      sessionStorage.setItem('code_verifier', codeVerifier);
+      sessionStorage.setItem('auth_state', state);
+
+      const redirectUri = `${window.location.origin}/auth/callback`;
+
+      // ✅ FIXED: Thêm "&" sau max_age=0 và xóa kc_action
+      const loginUrl =
+        `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/auth?` +
+        `client_id=${this.CLIENT_ID}&` +
+        `response_type=code&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+        `scope=openid profile email&` +
+        `state=${state}&` +
+        `code_challenge=${codeChallenge}&` +
+        `code_challenge_method=S256&` +
+        `prompt=login&` +
+        `max_age=0`;
+
+      console.log('[AuthService] Redirecting to Keycloak login');
+      console.log('[AuthService] Login URL:', loginUrl); // Debug URL
+
+      window.location.href = loginUrl;
+
+    } catch (error) {
+      console.error('[AuthService] Error initiating login:', error);
+      throw error;
     }
-
-    const codeVerifier = this.generateCodeVerifier();
-
-    const codeChallenge = await this.generateCodeChallenge(codeVerifier);
-    const state = this.generateState();
-
-    sessionStorage.setItem('code_verifier', codeVerifier);
-    sessionStorage.setItem('auth_state', state);
-
-    const redirectUri = `${window.location.origin}/auth/callback`;
-
-    // ✅ FIXED: Thêm "&" sau max_age=0 và xóa kc_action
-    const loginUrl =
-      `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/auth?` +
-      `client_id=${this.CLIENT_ID}&` +
-      `response_type=code&` +
-      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-      `scope=openid profile email&` +
-      `state=${state}&` +
-      `code_challenge=${codeChallenge}&` +
-      `code_challenge_method=S256&` +
-      `prompt=login&` +
-      `max_age=0`;  
-
-    console.log('[AuthService] Redirecting to Keycloak login');
-    console.log('[AuthService] Login URL:', loginUrl); // Debug URL
-    
-    window.location.href = loginUrl;
-
-  } catch (error) {
-    console.error('[AuthService] Error initiating login:', error);
-    throw error;
   }
-}
 
   // ============= HANDLE CALLBACK =============
   async handleCallback(code: string, state: string): Promise<string> {
@@ -192,15 +194,15 @@ export class AuthService {
 
   // ============= TOKEN MANAGEMENT =============
   setToken(accessToken: string, refreshToken: string, idToken: string): void {
-  localStorage.setItem('access_token', accessToken);
-  localStorage.setItem('refresh_token', refreshToken);
-  localStorage.setItem('id_token', idToken);
-  localStorage.setItem('login_time', Date.now().toString());
-  
-  this.isLoggedInSubject.next(true);
-  this.startSessionTimer();
-  this.startTokenRefresh();
-}
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('refresh_token', refreshToken);
+    localStorage.setItem('id_token', idToken);
+    localStorage.setItem('login_time', Date.now().toString());
+
+    this.isLoggedInSubject.next(true);
+    this.startSessionTimer();
+    this.startTokenRefresh();
+  }
 
   setUsername(username: string): void {
     localStorage.setItem('username', username);
@@ -240,6 +242,36 @@ export class AuthService {
 
     console.log(`[AuthService] Session will expire in ${Math.round(remaining / 1000)}s`);
   }
+
+
+  ngOnDestroy(): void {
+    this.activitySub?.unsubscribe();
+    this.warningSub?.unsubscribe();
+  }
+  // private showTimeoutWarning(): void {
+  //   // Hiển thị modal/alert cho user, cho phép họ "Keep me logged in" 
+  //   // Nếu họ tương tác (nhấn nút), gọi this.resetSession() để reset timer 
+  //   alert('Phiên đăng nhập sẽ hết hạn sau 60 giây. Nhấn OK để tiếp tục phiên.');
+  //   // Nếu user xác nhận, reset timer 
+  //   this.resetSession();
+  // }
+  resetSession(): void {
+    // Cập nhật last activity và restart timer 
+    localStorage.setItem('last_activity', Date.now().toString());
+    this.startSessionTimer();
+    // Optionally call server to refresh session token 
+    // this.refreshToken().subscribe();
+  }
+
+  // private handleSessionExpired(): void {
+  //   console.log('[AuthService] Session expired due to inactivity');
+  //   // Thực hiện logout, chuyển về login page, show message... // 
+  //   this.logout().subscribe();
+  //   alert('Phiên đăng nhập đã hết hạn do không hoạt động. Vui lòng đăng nhập lại.');
+  //   // cleanup timers 
+  //   this.activitySub?.unsubscribe();
+  //   this.warningSub?.unsubscribe();
+  // }
 
   private startTokenRefresh(): void {
     this.tokenRefreshTimer?.unsubscribe();
@@ -304,34 +336,34 @@ export class AuthService {
 
   // ============= LOGOUT =============
   logout(): Observable<void> {
-  console.log('[AuthService] Logging out...');
+    console.log('[AuthService] Logging out...');
 
-  this.sessionTimer?.unsubscribe();
-  this.tokenRefreshTimer?.unsubscribe();
+    this.sessionTimer?.unsubscribe();
+    this.tokenRefreshTimer?.unsubscribe();
 
-  const idToken = localStorage.getItem('id_token'); // Cần lưu id_token khi login
-  
-  return new Observable((observer) => {
-    // Xóa dữ liệu phía client ngay
-    this.clearAuthData();
-    
-    observer.next();
-    observer.complete();
+    const idToken = localStorage.getItem('id_token'); // Cần lưu id_token khi login
 
-    // Redirect đến Keycloak logout endpoint để xóa SSO session
-    const postLogoutRedirectUri = encodeURIComponent(
-      `${window.location.origin}/home`
-    );
-    
-    const logoutUrl = 
-      `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/logout?` +
-      `post_logout_redirect_uri=${postLogoutRedirectUri}` +
-      (idToken ? `&id_token_hint=${idToken}` : '');
+    return new Observable((observer) => {
+      // Xóa dữ liệu phía client ngay
+      this.clearAuthData();
 
-    console.log('[AuthService] Redirecting to Keycloak logout (clear SSO session)');
-    window.location.href = logoutUrl;
-  });
-}
+      observer.next();
+      observer.complete();
+
+      // Redirect đến Keycloak logout endpoint để xóa SSO session
+      const postLogoutRedirectUri = encodeURIComponent(
+        `${window.location.origin}/home`
+      );
+
+      const logoutUrl =
+        `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/logout?` +
+        `post_logout_redirect_uri=${postLogoutRedirectUri}` +
+        (idToken ? `&id_token_hint=${idToken}` : '');
+
+      console.log('[AuthService] Redirecting to Keycloak logout (clear SSO session)');
+      window.location.href = logoutUrl;
+    });
+  }
 
 
   clearAuthData(): void {

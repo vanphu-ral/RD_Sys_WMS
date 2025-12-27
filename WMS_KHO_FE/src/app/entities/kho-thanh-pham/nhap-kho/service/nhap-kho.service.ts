@@ -84,6 +84,53 @@ export interface UpdateLocationPayload {
   location_id: number;
   updated_by: string;
 }
+export interface PalletUpdatePayload {
+  updates: Array<{
+    id: number;
+    serial_pallet: string;
+    quantity_per_box: number;
+    num_box_per_pallet: number;
+    total_quantity: number;
+    po_number: string;
+    customer_name: string;
+    production_decision_number: string;
+    item_no_sku: string;
+    date_code: string;
+    note: string;
+    scan_status: boolean;
+    confirmed: boolean;
+    location_id?: number;
+    scan_by?: string;
+    scan_time?: string;
+  }>;
+}
+
+// Container Inventories (Box) Update Payload
+export interface ContainerInventoriesPayload {
+  updates: Array<{
+    id: number;
+    inventory_identifier: string;
+    quantity_imported: number;
+    confirmed: boolean;
+    location_id?: number;
+    scan_status?: boolean;
+    scan_by?: string;
+    scan_time?: string;
+  }>;
+}
+
+// Response types
+export interface PalletUpdateResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+}
+
+export interface ContainerInventoriesResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+}
 @Injectable({ providedIn: 'root' })
 export class NhapKhoService {
   private apiUrl = `${environment.apiUrl}/import-requirements`;   // dùng biến môi trường
@@ -143,8 +190,31 @@ export class NhapKhoService {
   }
 
   // PATCH: Cập nhật số lượng và confirmed cho container inventories
-  updateContainerInventories(batchPayload: { updates: any[] }): Observable<any> {
-    return this.http.patch(`${this.baseUrl}/warehouse-import/container-inventories`, batchPayload);
+  // updateContainerInventories(batchPayload: { updates: any[] }): Observable<any> {
+  //   return this.http.patch(`${this.baseUrl}/warehouse-import/container-inventories`, batchPayload);
+  // }
+
+
+  /**
+   * Cập nhật thông tin pallet (scan status, confirmed, quantities)
+   * PATCH /api/warehouse-import/import-pallet-info
+   */
+  updatePalletInfo(payload: PalletUpdatePayload): Observable<PalletUpdateResponse> {
+    return this.http.patch<PalletUpdateResponse>(
+      `${this.baseUrl}/warehouse-import/import-pallet-info`,
+      payload
+    );
+  }
+
+  /**
+   * Cập nhật container inventories (box)
+   * PATCH /api/warehouse-import/container-inventories
+   */
+  updateContainerInventories(payload: ContainerInventoriesPayload): Observable<ContainerInventoriesResponse> {
+    return this.http.patch<ContainerInventoriesResponse>(
+      `${this.baseUrl}/warehouse-import/container-inventories`,
+      payload
+    );
   }
 
   // Validate mã scan
@@ -167,43 +237,53 @@ export class NhapKhoService {
   }
 
   // Method chain để confirm full flow
-  confirmAndSyncInventories(
-    batchPayload: { updates: Array<{ import_container_id: number; inventory_identifier: string; quantity_imported?: number; location_id?: number; confirmed?: boolean }> },
-    inventoriesPayload: PushInventoryPayload,
-    requirementId: number,
-    // status: string,
-    username: string
-  ): Observable<any> {
-    return this.updateContainerInventories(batchPayload).pipe(
-      switchMap(() => {
-        const updates = inventoriesPayload.inventories.map(item =>
-          forkJoin([
-            this.updateInventoryQuantity({
-              available_quantity: item.initial_quantity,
-              inventory_identifier: item.identifier,
-              updated_by: username
-            }),
-            // this.updateInventoryLocation({
-            //   inventory_identifier: item.identifier,
-            //   location_id: item.location_id,
-            //   updated_by: username
-            // })
-          ])
-        );
-        return forkJoin(updates);
-      }),
-      switchMap(() => this.pushInventoriesToSystem(inventoriesPayload)),
-      switchMap(() => this.updateImportRequirementStatus(requirementId, status)),
-      catchError(err => {
-        console.error('Error in confirm flow:', err);
-        return throwError(() => err);
-      })
-    );
-  }
+  // confirmAndSyncInventories(
+  //   batchPayload: {
+  //     updates: Array<{
+  //       pallet_id: number;
+  //       serial_pallet: string;
+  //       location_id: number;
+  //       quantity_imported?: number;
+  //       scan_status?: string;
+  //       scan_by: string;
+  //       confirmed?: boolean;
+  //     }>
+  //   },
+  //   inventoriesPayload: PushInventoryPayload,
+  //   requirementId: number,
+  //   // status: string,
+  //   username: string
+  // ): Observable<any> {
+  //   return this.updateContainerInventories(batchPayload).pipe(
+  //     switchMap(() => {
+  //       const updates = inventoriesPayload.inventories.map(item =>
+  //         forkJoin([
+  //           this.updateInventoryQuantity({
+  //             available_quantity: item.initial_quantity,
+  //             inventory_identifier: item.identifier,
+  //             updated_by: username
+  //           }),
+  //           // this.updateInventoryLocation({
+  //           //   inventory_identifier: item.identifier,
+  //           //   location_id: item.location_id,
+  //           //   updated_by: username
+  //           // })
+  //         ])
+  //       );
+  //       return forkJoin(updates);
+  //     }),
+  //     switchMap(() => this.pushInventoriesToSystem(inventoriesPayload)),
+  //     switchMap(() => this.updateImportRequirementStatus(requirementId, status)),
+  //     catchError(err => {
+  //       console.error('Error in confirm flow:', err);
+  //       return throwError(() => err);
+  //     })
+  //   );
+  // }
 
   // Hàm đổi trạng thái yêu cầu nhập kho
   updateStatus(id: number, status: boolean): Observable<any> {
     const url = `${this.baseUrl}/warehouse-import/requirements/${id}/status?status=${status}`;
-    return this.http.patch(url, {}); 
+    return this.http.patch(url, {});
   }
 }
