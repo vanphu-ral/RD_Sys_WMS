@@ -170,6 +170,23 @@ export class AuthService {
       return false;
     }
   }
+  async checkSSOSession(): Promise<boolean> {
+    try {
+      // Gọi API để check xem có SSO session không
+      const response = await this.http.get(
+        `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/userinfo`,
+        {
+          withCredentials: true // Quan trọng để gửi cookies
+        }
+      ).toPromise();
+
+      console.log('[AuthService] SSO session exists:', !!response);
+      return !!response;
+    } catch (err) {
+      console.log('[AuthService] No SSO session');
+      return false;
+    }
+  }
   // ============= LOGIN FLOW =============
   async initiateLogin(returnUrl?: string): Promise<void> {
     try {
