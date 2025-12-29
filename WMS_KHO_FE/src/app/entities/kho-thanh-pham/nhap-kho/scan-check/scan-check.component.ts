@@ -7,6 +7,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AlertDialogComponent } from '../dialog/alert-dialog.component';
 import { BarcodeFormat } from '@zxing/library';
 import { forkJoin } from 'rxjs';
+import { ZXingScannerComponent } from '@zxing/ngx-scanner';
 
 export interface ScannedPallet {
   id: number;
@@ -66,7 +67,7 @@ export class ScanCheckComponent implements OnInit {
   allowedBoxCodes: string[] = [];
 
   importRequirementInfo: any;
-  
+
   // Scan inputs
   scanPallet: string = '';
   scanLocation: string = '';
@@ -131,11 +132,19 @@ export class ScanCheckComponent implements OnInit {
 
   @ViewChild('palletInput') palletInput!: ElementRef;
   @ViewChild('locationInput') locationInput!: ElementRef;
-  
+  @ViewChild(ZXingScannerComponent) scanner!: ZXingScannerComponent;
+
   locations: { id: number; code: string }[] = [];
   currentDevice: MediaDeviceInfo | undefined = undefined;
   availableDevices: MediaDeviceInfo[] = [];
-  formats: BarcodeFormat[] = [BarcodeFormat.QR_CODE];
+  formats: BarcodeFormat[] = [
+    BarcodeFormat.QR_CODE,
+    BarcodeFormat.CODE_128,
+    BarcodeFormat.CODE_39,
+    BarcodeFormat.EAN_13,
+    BarcodeFormat.EAN_8
+  ];
+  hasPermission: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -144,7 +153,7 @@ export class ScanCheckComponent implements OnInit {
     private nhapKhoService: NhapKhoService,
     private authService: AuthService,
     private dialog: MatDialog
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.checkIfMobile();
@@ -229,7 +238,7 @@ export class ScanCheckComponent implements OnInit {
         // Hiển thị thông báo nếu có dữ liệu đã scan
         if (this.scannedPallets.length > 0 || this.scannedBoxes.length > 0) {
           const message = `Đã tải ${this.scannedPallets.length} pallet và ${this.scannedBoxes.length} thùng đã scan`;
-          this.snackBar.open(message, '', { 
+          this.snackBar.open(message, '', {
             duration: 3000,
             panelClass: ['snackbar-success']
           });
@@ -253,10 +262,10 @@ export class ScanCheckComponent implements OnInit {
     // ============================================
     pallets.forEach((p: any) => {
       // Kiểm tra pallet đã scan: scan_status = true hoặc "Đã scan"
-      const isScanned = p.scan_status === true || 
-                       p.scan_status === 'Đã scan' || 
-                       p.confirmed === true;
-      
+      const isScanned = p.scan_status === true ||
+        p.scan_status === 'Đã scan' ||
+        p.confirmed === true;
+
       // Chỉ load pallet có serial_pallet (không rỗng)
       if (isScanned && p.serial_pallet && p.serial_pallet.trim()) {
         const scannedPallet = this.mapPalletToScannedPallet(p);
@@ -274,9 +283,9 @@ export class ScanCheckComponent implements OnInit {
 
       (p.list_box || []).forEach((box: any) => {
         // Kiểm tra box đã scan
-        const isBoxScanned = box.scan_status === true || 
-                            box.scan_status === 'Đã scan' || 
-                            box.confirmed === true;
+        const isBoxScanned = box.scan_status === true ||
+          box.scan_status === 'Đã scan' ||
+          box.confirmed === true;
 
         if (isBoxScanned) {
           const scannedBox: ScannedBox = {
@@ -296,7 +305,7 @@ export class ScanCheckComponent implements OnInit {
             lot: this.importRequirementInfo?.lot_number || '',
             confirmed: box.confirmed || false,
           };
-          
+
           this.scannedBoxes.push(scannedBox);
           console.log('Loaded box:', scannedBox.boxCode, isLoosePallet ? '(Thùng lẻ)' : '');
         }
@@ -361,10 +370,93 @@ export class ScanCheckComponent implements OnInit {
       this.snackBar.open('Vui lòng chọn mode scan!', 'Đóng', { duration: 3000 });
       return;
     }
+
     this.scannerActive = field;
     this.isScanning = true;
+
+    // Đợi một chút để dialog render
+    setTimeout(() => {
+      this.initCamera();
+    }, 300);
   }
 
+  //khởi tạo camera
+  initCamera(): void {
+    // Lấy danh sách cameras
+    navigator.mediaDevices.enumerateDevices()
+      .then((devices) => {
+        this.availableDevices = devices.filter(d => d.kind === 'videoinput');
+
+        console.log('Available cameras:', this.availableDevices);
+
+        if (this.availableDevices.length === 0) {
+          this.snackBar.open('Không tìm thấy camera!', 'Đóng', { duration: 3000 });
+          this.stopScanning();
+          return;
+        }
+
+        // Ưu tiên camera sau (back camera trên mobile)
+        const backCamera = this.availableDevices.find(d =>
+          d.label.toLowerCase().includes('back') ||
+          d.label.toLowerCase().includes('rear') ||
+          d.label.toLowerCase().includes('environment')
+        );
+
+        this.currentDevice = backCamera || this.availableDevices[0];
+
+        console.log('Selected camera:', this.currentDevice);
+
+        // Yêu cầu quyền camera
+        this.requestCameraPermission();
+      })
+      .catch((err) => {
+        console.error('Error enumerating devices:', err);
+        this.snackBar.open('Lỗi khi truy cập camera!', 'Đóng', { duration: 3000 });
+        this.stopScanning();
+      });
+  }
+  //yêu cầu quyền camera
+  requestCameraPermission(): void {
+    navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'environment' // Ưu tiên camera sau
+      }
+    })
+      .then((stream) => {
+        console.log('Camera permission granted');
+        this.hasPermission = true;
+
+        // Dừng stream này vì zxing-scanner sẽ tự quản lý
+        stream.getTracks().forEach(track => track.stop());
+      })
+      .catch((err) => {
+        console.error('Camera permission denied:', err);
+        this.hasPermission = false;
+
+        let errorMessage = 'Không thể truy cập camera!';
+
+        if (err.name === 'NotAllowedError') {
+          errorMessage = 'Bạn đã từ chối quyền truy cập camera. Vui lòng bật trong cài đặt trình duyệt.';
+        } else if (err.name === 'NotFoundError') {
+          errorMessage = 'Không tìm thấy camera trên thiết bị!';
+        } else if (err.name === 'NotReadableError') {
+          errorMessage = 'Camera đang được sử dụng bởi ứng dụng khác!';
+        }
+
+        this.snackBar.open(errorMessage, 'Đóng', { duration: 5000 });
+        this.stopScanning();
+      });
+  }
+  onCamerasNotFound(): void {
+    console.error('No cameras found');
+    this.snackBar.open('Không tìm thấy camera!', 'Đóng', { duration: 3000 });
+    this.stopScanning();
+  }
+  onPermissionDenied(): void {
+    console.error('Camera permission denied');
+    this.snackBar.open('Bạn cần cấp quyền camera để quét mã!', 'Đóng', { duration: 3000 });
+    this.stopScanning();
+  }
   onScanSuccess(decodedText: string): void {
     const code = decodedText.trim();
     if (code === this.lastScannedCode) return;
@@ -444,19 +536,19 @@ export class ScanCheckComponent implements OnInit {
     }
 
     // Kiểm tra đã scan chưa (check trong scannedPallets)
-    const existing = this.scannedPallets.find(item => 
+    const existing = this.scannedPallets.find(item =>
       item.serialPallet?.toUpperCase() === code
     );
-    
+
     if (existing) {
       this.playAudio('assets/audio/beep_warning.mp3');
-      
+
       // Cho phép cập nhật location nếu khác
       if (existing.locationId !== locationId) {
-        const dialogRef = this.dialog.open(AlertDialogComponent, { 
-          data: `Pallet này đã được scan vào kho ${existing.locationCode}. Bạn có muốn cập nhật sang kho ${locationCode}?` 
+        const dialogRef = this.dialog.open(AlertDialogComponent, {
+          data: `Pallet này đã được scan vào kho ${existing.locationCode}. Bạn có muốn cập nhật sang kho ${locationCode}?`
         });
-        
+
         dialogRef.afterClosed().subscribe(result => {
           if (result) {
             existing.locationId = locationId;
@@ -468,7 +560,7 @@ export class ScanCheckComponent implements OnInit {
       } else {
         this.dialog.open(AlertDialogComponent, { data: 'Pallet này đã được scan!' });
       }
-      
+
       this.resetScanInputs();
       return;
     }
@@ -534,19 +626,19 @@ export class ScanCheckComponent implements OnInit {
     }
 
     // Kiểm tra trùng
-    const existing = this.scannedBoxes.find(item => 
+    const existing = this.scannedBoxes.find(item =>
       item.boxCode.toUpperCase() === code
     );
-    
+
     if (existing) {
       this.playAudio('assets/audio/beep_warning.mp3');
-      
+
       // Cho phép cập nhật location nếu khác
       if (existing.locationId !== locationId) {
-        const dialogRef = this.dialog.open(AlertDialogComponent, { 
-          data: `Thùng này đã được scan vào kho ${existing.locationCode}. Bạn có muốn cập nhật sang kho ${locationCode}?` 
+        const dialogRef = this.dialog.open(AlertDialogComponent, {
+          data: `Thùng này đã được scan vào kho ${existing.locationCode}. Bạn có muốn cập nhật sang kho ${locationCode}?`
         });
-        
+
         dialogRef.afterClosed().subscribe(result => {
           if (result) {
             existing.locationId = locationId;
@@ -558,7 +650,7 @@ export class ScanCheckComponent implements OnInit {
       } else {
         this.dialog.open(AlertDialogComponent, { data: 'Thùng này đã được scan!' });
       }
-      
+
       this.resetScanInputs();
       return;
     }
@@ -721,21 +813,21 @@ export class ScanCheckComponent implements OnInit {
       },
       error: (err) => {
         console.error('Lỗi xác nhận:', err);
-        
+
         // Xử lý lỗi chi tiết
         let errorMessage = 'Lỗi khi xác nhận! Vui lòng thử lại.';
-        
+
         if (err.error && err.error.message) {
           errorMessage = err.error.message;
         } else if (err.message) {
           errorMessage = err.message;
         }
 
-        this.snackBar.open(errorMessage, 'Đóng', { 
+        this.snackBar.open(errorMessage, 'Đóng', {
           duration: 5000,
           panelClass: ['snackbar-error']
         });
-        
+
         this.isLoading = false;
       },
       complete: () => {
