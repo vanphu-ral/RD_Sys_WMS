@@ -570,16 +570,17 @@
             </button>
         </div>
         <zxing-scanner 
-            *ngIf="hasPermission && currentDevice"
-            [device]="currentDevice" 
-            [formats]="formats" 
-            [autostart]="true"
-            (scanSuccess)="onScanSuccess($event)"
-            (camerasFound)="availableDevices = $event"
-            (camerasNotFound)="onCamerasNotFound()"
-            (permissionResponse)="hasPermission = $event"
-            [style.width.%]="100"
-            [style.height.px]="300">
+        *ngIf="hasPermission && currentDevice"
+        [device]="currentDevice" 
+        [formats]="formats" 
+        [autostart]="true"
+        (scanSuccess)="onScanSuccess($event)"
+        (camerasFound)="availableDevices = $event"
+        (camerasNotFound)="onCamerasNotFound()"
+        (permissionResponse)="hasPermission = $event"
+        (scanError)="onCameraError($event)"
+        [style.width.%]="100"
+        [style.height.px]="300">
         </zxing-scanner>
 
             <!-- Thêm loading state khi chưa có permission -->
