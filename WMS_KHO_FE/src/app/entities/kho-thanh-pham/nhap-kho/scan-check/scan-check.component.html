@@ -569,9 +569,24 @@
                 <mat-icon>close</mat-icon>
             </button>
         </div>
-        <zxing-scanner [device]="currentDevice" [formats]="formats" [autostart]="true"
-            (scanSuccess)="onScanSuccess($event)">
+        <zxing-scanner 
+            *ngIf="hasPermission && currentDevice"
+            [device]="currentDevice" 
+            [formats]="formats" 
+            [autostart]="true"
+            (scanSuccess)="onScanSuccess($event)"
+            (camerasFound)="availableDevices = $event"
+            (camerasNotFound)="onCamerasNotFound()"
+            (permissionResponse)="hasPermission = $event"
+            [style.width.%]="100"
+            [style.height.px]="300">
         </zxing-scanner>
+
+            <!-- Thêm loading state khi chưa có permission -->
+        <div *ngIf="!hasPermission || !currentDevice" class="camera-loading">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Đang khởi động camera...</p>
+        </div>
         <p class="scanner-hint">Đưa mã vào khung hình để quét</p>
     </div>
 </div>
