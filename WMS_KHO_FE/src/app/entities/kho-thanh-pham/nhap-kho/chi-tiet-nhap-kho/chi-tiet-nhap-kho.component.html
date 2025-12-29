@@ -1,12 +1,16 @@
 <div class="nhapkho-container">
     <div class="nhapkho-header">
         <div class="header-title">
-            <mat-icon class="title-icon">playlist_add_check</mat-icon>
+            <mat-icon class="title-icon">visibility</mat-icon>
             <div>
-                <h1>Chi tiết nhập kho</h1>
-                <p class="subtitle">Warehouse management from production</p>
+                <h1>Chi tiết nhập Kho</h1>
+                <p class="subtitle">Warehouse entry details</p>
             </div>
         </div>
+        <!-- <button mat-raised-button class="warehouse-btn" (click)="onScanAll()">
+            <mat-icon>qr_code_2</mat-icon>
+            Scan List
+        </button> -->
     </div>
 
     <!-- Mode Scan Card -->
@@ -18,44 +22,49 @@
             </div>
         </div>
 
+        <!-- MAIN INFO (desktop) -->
         <div class="info-content">
             <div class="info-table-wrapper">
                 <table class="info-table">
                     <thead>
                         <tr>
-                            <th>Mã PO</th>
-                            <th>Mã sản phẩm</th>
-                            <th>Mã khách hàng</th>
+                            <th *ngIf="mainInfo.po_code">Mã PO</th>
                             <th>Tên sản phẩm</th>
-                            <th>Số pallet</th>
-                            <th>Số thùng</th>
-                            <th>Số lượng SP</th>
+                            <th *ngIf="mainInfo.client_id">Mã khách hàng</th>
+                            <th>Tổng số pallet</th>
+                            <th>Tổng số thùng</th>
+                            <th>Tổng số lượng SP</th>
+                            <th>Ngành</th>
                             <th>Mã WO</th>
-                            <th>Số LOT</th>
-                            <th>Ngày nhập</th>
-                            <th>Ghi chú</th>
+                            <th *ngIf="mainInfo.lot_number">Mã LOT</th>
+                            <!-- <th>Ngày nhập</th> -->
+                            <th *ngIf="mainInfo.note">Ghi chú</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>{{mainInfo.maPO}}</td>
-                            <td>{{mainInfo.maSanPham}}</td>
-                            <td>{{mainInfo.maKhachHang}}</td>
-                            <td>{{mainInfo.tenSanPham}}</td>
-                            <td>{{mainInfo.soPallet}}</td>
-                            <td>{{mainInfo.soThung}}</td>
-                            <td>{{mainInfo.soLuongSP}}</td>
-                            <td>{{mainInfo.maWO}}</td>
-                            <td>{{mainInfo.soLOT}}</td>
-                            <td>{{mainInfo.ngayNhap}}</td>
-                            <td>{{mainInfo.ghiChu}}</td>
+                            <td *ngIf="mainInfo.po_code">{{ mainInfo.po_code }}</td>
+                            <td>
+                                <!-- Nếu có inventory_code ưu tiên hiển thị, nếu không hiển thị inventory_name -->
+                                {{ mainInfo.inventory_name || '-' }}
+                            </td>
+                            <td *ngIf="mainInfo.client_id">{{ mainInfo.client_id }}</td>
+                            <td>{{ mainInfo.soPallet }}</td>
+                            <td>{{ mainInfo.soThung }}</td>
+                            <td>{{ mainInfo.soLuongSP }}</td>
+                            <td>{{ mainInfo.production_team }}</td>
+                            <td>{{ mainInfo.wo_code }}</td>
+                            <td *ngIf="mainInfo.lot_number">{{ mainInfo.lot_number }}</td>
+                            <!-- <td>{{ mainInfo.updated_date || '-' }}</td> -->
+                            <td *ngIf="mainInfo.note">{{ mainInfo.note }}</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <!-- MAIN INFO (mobile) -->
         <div class="mobile-main-info">
-            <!-- Summary Header -->
             <div class="summary-header">
                 <div class="header-row">
                     <span class="header-label">Thông tin nhập kho</span>
@@ -63,69 +72,63 @@
                 </div>
 
                 <div class="main-codes">
-                    <div class="code-box">
+                    <div class="code-box" *ngIf="mainInfo.po_code">
                         <div class="code-label">Mã PO</div>
-                        <div class="code-value">{{mainInfo.maPO}}</div>
+                        <div class="code-value">{{ mainInfo.po_code }}</div>
                     </div>
-                    <div class="code-box">
-                        <div class="code-label">Mã SP</div>
-                        <div class="code-value">{{mainInfo.maSanPham}}</div>
-                    </div>
-                    <div class="code-box">
+
+                    <div class="code-box" *ngIf="mainInfo.client_id">
                         <div class="code-label">Mã KH</div>
-                        <div class="code-value">{{mainInfo.maKhachHang}}</div>
+                        <div class="code-value">{{ mainInfo.client_id }}</div>
                     </div>
-                    <div class="code-box">
+
+                    <div class="code-box" *ngIf="mainInfo.wo_code">
                         <div class="code-label">Mã WO</div>
-                        <div class="code-value">{{mainInfo.maWO}}</div>
+                        <div class="code-value">{{ mainInfo.wo_code }}</div>
                     </div>
                 </div>
 
-                <div class="product-name">{{mainInfo.tenSanPham}}</div>
+                <div class="product-name">
+                    <!-- hiển thị tên/mã sản phẩm rõ ràng trên mobile -->
+                    {{ mainInfo.inventory_name || '-' }}
+                </div>
             </div>
 
-            <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-box">
-                    <div class="stat-icon pallet">
-                        <mat-icon>inventory_2</mat-icon>
-                    </div>
+                    <div class="stat-icon pallet"><mat-icon>inventory_2</mat-icon></div>
                     <div class="stat-label">Pallet</div>
-                    <div class="stat-value">{{mainInfo.soPallet}}</div>
+                    <div class="stat-value">{{ mainInfo.soPallet }}</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-icon box">
-                        <mat-icon>widgets</mat-icon>
-                    </div>
+                    <div class="stat-icon box"><mat-icon>widgets</mat-icon></div>
                     <div class="stat-label">Thùng</div>
-                    <div class="stat-value">{{mainInfo.soThung}}</div>
+                    <div class="stat-value">{{ mainInfo.soThung }}</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-icon product">
-                        <mat-icon>category</mat-icon>
-                    </div>
+                    <div class="stat-icon product"><mat-icon>category</mat-icon></div>
                     <div class="stat-label">Sản phẩm</div>
-                    <div class="stat-value">{{mainInfo.soLuongSP}}</div>
+                    <div class="stat-value">{{ mainInfo.soLuongSP }}</div>
                 </div>
             </div>
 
-            <!-- Additional Info -->
             <div class="additional-info">
-                <div class="info-row">
+                <div class="info-row" *ngIf="mainInfo.lot_number">
                     <span class="label">Số LOT</span>
-                    <span class="value">{{mainInfo.soLOT}}</span>
+                    <span class="value">{{ mainInfo.lot_number }}</span>
                 </div>
-                <div class="info-row">
+                <!-- <div class="info-row">
                     <span class="label">Ngày nhập</span>
-                    <span class="value">{{mainInfo.ngayNhap}}</span>
-                </div>
-                <div class="info-row" *ngIf="mainInfo.ghiChu">
+                    <span class="value">{{ mainInfo.updated_date || '-' }}</span>
+                </div> -->
+                <div class="info-row" *ngIf="mainInfo.note">
                     <span class="label">Ghi chú</span>
-                    <span class="value">{{mainInfo.ghiChu}}</span>
+                    <span class="value">{{ mainInfo.note }}</span>
                 </div>
             </div>
         </div>
     </mat-card>
+
 
     <!-- Thông tin chi tiết Card -->
     <mat-card class="nhapkho-card">
@@ -135,118 +138,310 @@
                 <span>Thông tin chi tiết</span>
             </div>
         </div>
+        <mat-tab-group [(selectedIndex)]="selectedTabIndex">
+            <mat-tab>
+                <ng-template mat-tab-label> <mat-icon>layers</mat-icon> <span>Pallet</span> </ng-template>
+                <div class="table-container">
+                    <table mat-table [dataSource]="pagedDetailList" class="detail-table">
 
-        <div class="table-container">
-            <table mat-table [dataSource]="pagedDetailList" class="detail-table">
-                <!-- STT Column -->
-                <ng-container matColumnDef="stt">
-                    <th mat-header-cell *matHeaderCellDef>STT</th>
-                    <td mat-cell *matCellDef="let item; let i = index">{{ i + 1 }}</td>
-                </ng-container>
+                        <!-- STT -->
+                        <ng-container matColumnDef="stt">
+                            <th mat-header-cell *matHeaderCellDef>STT</th>
+                            <td mat-cell *matCellDef="let item; let i = index">{{ i + 1 + (currentPage - 1) * pageSize
+                                }}</td>
+                        </ng-container>
 
-                <!-- Pallet code Column -->
-                <ng-container matColumnDef="palletCode">
-                    <th mat-header-cell *matHeaderCellDef>Pallet code</th>
-                    <td mat-cell *matCellDef="let item">{{ item.palletCode }}</td>
-                </ng-container>
+                        <!-- PO number -->
+                        <ng-container matColumnDef="poNumber">
+                            <th mat-header-cell *matHeaderCellDef>Mã PO</th>
+                            <td mat-cell *matCellDef="let item">{{ item.poNumber || '-' }}</td>
+                        </ng-container>
 
-                <!-- Box code Column -->
-                <ng-container matColumnDef="boxCode">
-                    <th mat-header-cell *matHeaderCellDef>Box code</th>
-                    <td mat-cell *matCellDef="let item">{{ item.boxCode }}</td>
-                </ng-container>
+                        <!-- Inventory code -->
+                        <ng-container matColumnDef="inventoryCode">
+                            <th mat-header-cell *matHeaderCellDef>Mã sản phẩm</th>
+                            <td mat-cell *matCellDef="let item">{{ item.inventoryCode || '-' }}</td>
+                        </ng-container>
 
-                <!-- Box quantity Column -->
-                <ng-container matColumnDef="boxQuantity">
-                    <th mat-header-cell *matHeaderCellDef>Số lượng thùng</th>
-                    <td mat-cell *matCellDef="let item">{{ item.boxQuantity }}</td>
-                </ng-container>
+                        <!-- Pallet code -->
+                        <ng-container matColumnDef="palletCode">
+                            <th mat-header-cell *matHeaderCellDef>Mã Pallet</th>
+                            <td mat-cell *matCellDef="let item">{{ item.palletCode || '-' }}</td>
+                        </ng-container>
 
-                <!-- Người cập nhật -->
-                <ng-container matColumnDef="updatedBy">
-                    <th mat-header-cell *matHeaderCellDef>Người cập nhật</th>
-                    <td mat-cell *matCellDef="let item">{{ item.updatedBy }}</td>
-                </ng-container>
+                        <!-- Boxes in pallet -->
+                        <ng-container matColumnDef="boxesInPallet">
+                            <th mat-header-cell *matHeaderCellDef>Số thùng</th>
+                            <td mat-cell *matCellDef="let item">{{ item.boxesInPallet ?? (item.listBox?.length ?? 0) }}
+                            </td>
+                        </ng-container>
 
-                <!-- Trạng thái quét -->
-                <!-- <ng-container matColumnDef="scanStatus">
-                    <th mat-header-cell *matHeaderCellDef>Trạng thái quét</th>
-                    <td mat-cell *matCellDef="let item">
-                        <span class="status-badge"
-                            [ngClass]="{ 'scanned': item.scanStatus === 'Đã scan', 'unscanned': item.scanStatus === 'Chưa scan' }">
-                            {{ item.scanStatus }}
-                        </span>
-                    </td>
-                </ng-container> -->
+                        <!-- Items per box -->
+                        <ng-container matColumnDef="itemsPerBox">
+                            <th mat-header-cell *matHeaderCellDef>Số sp/thùng</th>
+                            <td mat-cell *matCellDef="let item">{{ item.itemsPerBox ?? '-' }}</td>
+                        </ng-container>
 
+                        <!-- Total items -->
+                        <ng-container matColumnDef="totalItems">
+                            <th mat-header-cell *matHeaderCellDef>Tổng số SP</th>
+                            <td mat-cell *matCellDef="let item">{{ item.totalItems ?? ( (item.boxesInPallet ?? 0) *
+                                (item.itemsPerBox ?? 0) ) }}</td>
+                        </ng-container>
 
-                <!-- Updated date Column -->
-                <ng-container matColumnDef="updatedDate">
-                    <th mat-header-cell *matHeaderCellDef>Ngày cập nhật</th>
-                    <td mat-cell *matCellDef="let item">{{ item.updatedDate }}</td>
-                </ng-container>
-                <!-- <ng-container matColumnDef="actions">
-                    <th mat-header-cell *matHeaderCellDef>Thao tác</th>
-                    <td mat-cell *matCellDef="let item">
-                        <button mat-stroked-button class="scan-btn" (click)="onScan(item)">
-                            <mat-icon>qr_code_scanner</mat-icon>
-                            Scan
-                        </button>
-                    </td>
-                </ng-container> -->
+                        <!-- Item no / SKU -->
+                        <ng-container matColumnDef="itemNoSku">
+                            <th mat-header-cell *matHeaderCellDef>Item no / SKU</th>
+                            <td mat-cell *matCellDef="let item">{{ item.itemNoSku || '-' }}</td>
+                        </ng-container>
 
+                        <!-- Client -->
+                        <ng-container matColumnDef="client">
+                            <th mat-header-cell *matHeaderCellDef>Khách hàng</th>
+                            <td mat-cell *matCellDef="let item">{{ item.client || '-' }}</td>
+                        </ng-container>
 
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
-            </table>
+                        <!-- Date code -->
+                        <ng-container matColumnDef="dateCode">
+                            <th mat-header-cell *matHeaderCellDef>Date_code</th>
+                            <td mat-cell *matCellDef="let item">{{ item.dateCode || '-' }}</td>
+                        </ng-container>
 
-        </div>
-        <div class="mobile-scan-list">
-            <div class="mobile-scan-card" *ngFor="let item of detailList; let i = index">
-                <div class="scan-header">
-                    <!-- <div class="scan-number">
-                        <mat-icon>
-                            {{ item.scanStatus === 'Đã scan' ? 'check_circle' : 'radio_button_unchecked' }}
-                        </mat-icon>
-                        <span>#{{ i + 1 }}</span>
-                    </div>
-                    <div class="scan-status-badge" [class.scanned]="item.scanStatus === 'Đã scan'"
-                        [class.unscanned]="item.scanStatus === 'Chưa scan'">
-                        <mat-icon>{{ item.scanStatus === 'Đã scan' ? 'verified' : 'pending' }}</mat-icon>
-                        {{ item.scanStatus }}
-                    </div> -->
+                        <!-- Production decision number -->
+                        <ng-container matColumnDef="productionDecisionNumber">
+                            <th mat-header-cell *matHeaderCellDef>QĐSX</th>
+                            <td mat-cell *matCellDef="let item">{{ item.productionDecisionNumber || '-' }}</td>
+                        </ng-container>
+
+                        <!-- Production team (QDSX) -->
+                        <!-- <ng-container matColumnDef="productionTeam">
+                            <th mat-header-cell *matHeaderCellDef>Ngành</th>
+                            <td mat-cell *matCellDef="let item">{{ item.productionTeam || '-' }}</td>
+                        </ng-container> -->
+
+                        <!-- Note -->
+                        <ng-container matColumnDef="note">
+                            <th mat-header-cell *matHeaderCellDef>Ghi chú</th>
+                            <td mat-cell *matCellDef="let item">{{ item.note || '-' }}</td>
+                        </ng-container>
+
+                        <!-- Scan status -->
+                        <ng-container matColumnDef="scanStatus">
+                            <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+                            <td mat-cell *matCellDef="let item">
+                                <span
+                                    [ngClass]="{'scanned': item.scanStatus === 'Đã scan', 'unscanned': item.scanStatus === 'Chưa scan'}">
+                                    {{ item.scanStatus }}
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Actions -->
+                        <!-- <ng-container matColumnDef="actions">
+                            <th mat-header-cell *matHeaderCellDef>Thao tác</th>
+                            <td mat-cell *matCellDef="let item">
+                                <button mat-stroked-button class="scan-btn" (click)="onScan(item)">
+                                    <mat-icon>qr_code_scanner</mat-icon>
+                                    Scan
+                                </button>
+                            </td>
+                        </ng-container> -->
+
+                        <!-- Header / Rows -->
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+                    </table>
+                </div>
+            </mat-tab>
+            <mat-tab>
+                <ng-template mat-tab-label> <mat-icon>view_in_ar</mat-icon> <span>Thùng</span> </ng-template>
+                <div class="table-container">
+                    <table mat-table [dataSource]="pagedBoxList" class="detail-table">
+                        <!-- STT -->
+                        <ng-container matColumnDef="stt">
+                            <th mat-header-cell *matHeaderCellDef>STT</th>
+                            <td mat-cell *matCellDef="let item; let i = index"> {{ i + 1 + (currentPageBox - 1) *
+                                pageSizeBox }} </td>
+                        </ng-container>
+                        <!-- Mã thùng -->
+                        <ng-container matColumnDef="boxCode">
+                            <th mat-header-cell *matHeaderCellDef>Mã Thùng</th>
+                            <td mat-cell *matCellDef="let item">{{ item.boxCode || '-' }}</td>
+                        </ng-container>
+                        <!-- Số lượng -->
+                        <ng-container matColumnDef="quantity">
+                            <th mat-header-cell *matHeaderCellDef>Số lượng sp</th>
+                            <td mat-cell *matCellDef="let item">{{ item.quantity || '-' }}</td>
+                        </ng-container>
+                        <!-- Date code -->
+                        <ng-container matColumnDef="timeChecked">
+                            <th mat-header-cell *matHeaderCellDef>Thời gian check</th>
+                            <td mat-cell *matCellDef="let item">{{ item.timeChecked || '-' }}</td>
+                        </ng-container>
+                        <!-- Người scan -->
+                        <ng-container matColumnDef="scanBy">
+                            <th mat-header-cell *matHeaderCellDef>Người scan</th>
+                            <td mat-cell *matCellDef="let item">{{ item.scanBy || '-' }}</td>
+                        </ng-container>
+                        <tr mat-header-row *matHeaderRowDef="displayedBoxColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedBoxColumns;"></tr>
+                    </table>
+                </div>
+            </mat-tab>
+        </mat-tab-group>
+        <div class="mobile-box-list" *ngIf="selectedTabIndex === 1">
+            <div class="mobile-box-card" *ngFor="let item of pagedBoxList; let i = index">
+                <div class="box-header">
+                    <div class="mobile-stt">#{{ i + 1 + (currentPageBox - 1) * pageSizeBox }}</div>
                 </div>
 
+                <div class="box-info">
+                    <div class="info-row">
+                        <span class="label">Mã Thùng</span>
+                        <span class="value">{{ item.boxCode || '-' }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Số lượng SP</span>
+                        <span class="value">{{ item.quantity || '-' }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Thời gian check</span>
+                        <span class="value">{{ item.timeChecked || '-' }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Người scan</span>
+                        <span class="value">{{ item.scanBy || '-' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty state -->
+            <div class="empty-state" *ngIf="pagedBoxList.length === 0">
+                <mat-icon>inbox</mat-icon>
+                <p>Chưa có dữ liệu thùng</p>
+            </div>
+        </div>
+
+
+        <!-- Mobile list (responsive) -->
+        <div class="mobile-scan-list" *ngIf="selectedTabIndex === 0">
+            <div class="mobile-scan-card" *ngFor="let item of detailList; let i = index">
+                <!-- Header: STT + Trạng thái -->
+                <div class="scan-header">
+                    <div class="mobile-stt">#{{ i + 1 }}</div>
+                    <div class="mobile-status"
+                        [ngClass]="{'scanned': item.scanStatus === 'Đã scan', 'not-scanned': item.scanStatus === 'Chưa scan'}">
+                        {{ item.scanStatus }}
+                    </div>
+                </div>
+
+                <!-- Mã Pallet và Số thùng (nổi bật) -->
                 <div class="scan-codes">
                     <div class="code-section">
                         <div class="code-label">
                             <mat-icon>qr_code</mat-icon>
-                            Pallet Code
+                            Mã Pallet
                         </div>
-                        <div class="code-value">{{ item.palletCode }}</div>
+                        <div class="code-value">{{ item.palletCode || '-' }}</div>
                     </div>
 
                     <div class="code-section">
                         <div class="code-label">
-                            <mat-icon>qr_code_2</mat-icon>
-                            Box Code
+                            <mat-icon>inventory_2</mat-icon>
+                            Số Thùng
                         </div>
-                        <div class="code-value">{{ item.boxCode }}</div>
+                        <div class="code-value">{{ item.boxesInPallet ?? (item.listBox?.length ?? 0) }}</div>
                     </div>
                 </div>
 
-                <div class="pallet-count">
-                    <mat-icon>inventory</mat-icon>
-                    <span class="count-label">Số lượng thùng:</span>
-                    <span class="count-value">{{ item.boxQuantity }}</span>
+                <!-- Thông tin cơ bản -->
+                <div class="pallet-info-row">
+                    <div>
+                        <strong>Mã PO</strong>
+                        <span>{{ item.poNumber || '-' }}</span>
+                    </div>
+                    <div>
+                        <strong>Mã SP</strong>
+                        <span>{{ item.inventoryCode || '-' }}</span>
+                    </div>
                 </div>
-                <!-- <div class="pallet-count">
-                    <button mat-stroked-button class="scan-btn" (click)="onScan(item)">
+
+                <div class="pallet-info-row">
+                    <div>
+                        <strong>Item No/SKU</strong>
+                        <span>{{ item.itemNoSku || '-' }}</span>
+                    </div>
+                    <div>
+                        <strong>Khách hàng</strong>
+                        <span>{{ item.client || '-' }}</span>
+                    </div>
+                </div>
+
+                <!-- Số lượng -->
+                <div class="pallet-info-row">
+                    <div>
+                        <strong>Số sp/thùng</strong>
+                        <span>{{ item.itemsPerBox ?? '-' }}</span>
+                    </div>
+                    <div>
+                        <strong>Tổng SP</strong>
+                        <span>{{ item.totalItems ?? ((item.boxesInPallet ?? 0) * (item.itemsPerBox ?? 0)) }}</span>
+                    </div>
+                </div>
+
+                <!-- Thông tin sản xuất -->
+                <div class="pallet-info-row">
+                    <div>
+                        <strong>Date Code</strong>
+                        <span>{{ item.dateCode || '-' }}</span>
+                    </div>
+                    <div>
+                        <strong>QĐ SX</strong>
+                        <span>{{ item.productionDecisionNumber || '-' }}</span>
+                    </div>
+                </div>
+
+                <div class="pallet-info-row" *ngIf="item.productionTeam">
+                    <div>
+                        <strong>Ngành</strong>
+                        <span>{{ item.productionTeam }}</span>
+                    </div>
+                </div>
+
+                <!-- Ghi chú pallet -->
+                <div class="pallet-note" *ngIf="item.note">
+                    <strong>Ghi chú Pallet</strong>
+                    {{ item.note }}
+                </div>
+
+                <!-- Danh sách Box (nếu có) -->
+                <div class="box-list" *ngIf="item.listBox?.length">
+                    <div class="box-item" *ngFor="let b of item.listBox; let idx = index">
+                        <div>
+                            <strong>Box #{{ idx + 1 }}</strong>
+                            <span>{{ b.box_code || b.boxCode || '-' }}</span>
+                        </div>
+                        <div>
+                            <strong>Số lượng</strong>
+                            <span>{{ b.quantity ?? b.quantity_per_box ?? '-' }}</span>
+                        </div>
+                        <div *ngIf="b.note">
+                            <strong>Ghi chú</strong>
+                            <span>{{ b.note }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút Scan -->
+                <!-- <div class="pallet-actions">
+                    <button mat-raised-button class="scan-btn" (click)="onScan(item)">
                         <mat-icon>qr_code_scanner</mat-icon>
-                        Scan
+                        Scan Pallet
                     </button>
                 </div> -->
             </div>
+
+            <!-- Empty state -->
             <div class="empty-state" *ngIf="detailList.length === 0">
                 <mat-icon>inbox</mat-icon>
                 <p>Chưa có dữ liệu scan</p>
@@ -262,22 +457,15 @@
                 </button>
             </div>
         </div>
-
     </mat-card>
+
+
 
     <!-- Action Buttons -->
     <div class="action-footer">
         <button mat-button class="cancel-btn" (click)="onCancel()">
-            <mat-icon>close</mat-icon>
-            Cancel
+            <mat-icon>keyboard_backspace</mat-icon>
+            Trở lại
         </button>
-        <!-- <button mat-raised-button class="warehouse-btn" (click)="onScan()">
-            <mat-icon>qr_code_2</mat-icon>
-            Scan vật tư
-        </button> -->
-        <!-- <button mat-raised-button color="primary" class="confirm-btn" (click)="onConfirm()" *ngIf="showApproveButton">
-            <mat-icon>check</mat-icon>
-            Phê duyệt
-        </button> -->
     </div>
 </div>

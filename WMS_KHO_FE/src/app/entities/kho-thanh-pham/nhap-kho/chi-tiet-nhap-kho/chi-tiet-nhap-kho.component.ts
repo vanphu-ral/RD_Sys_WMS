@@ -3,29 +3,51 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { NhapKhoService } from '../service/nhap-kho.service';
+import { BoxListDialogComponent } from '../dialog/box-list-dialog.component';
+import { ConfirmDialogComponent } from '../../chuyen-kho/dialog/confirm-dialog.component';
 export interface DetailItem {
   id: number;
-  warehouse_import_requirement_id: number;
+  // nếu không có trường warehouse_import_requirement_id trong API mới, có thể để optional
+  warehouse_import_requirement_id?: number;
+  poNumber: string;
+  inventoryCode: string;
   palletCode: string;
-  boxCode: string;
-  boxQuantity: number;
-  updatedBy: string;
-  updatedDate: string;
+  boxesInPallet: number;        // num_box_per_pallet hoặc list_box.length
+  itemsPerBox: number;         // quantity_per_box
+  totalItems: number;          // total_quantity (hoặc boxesInPallet * itemsPerBox)
+  itemNoSku: string;
+  client: string;              // customer_name hoặc general_info.client_id
+  dateCode: string;
+  productionDecisionNumber: string; // production_decision_number
+  productionTeam: string;      // QDSX (từ general_info.production_team)
+  note: string;
   scanStatus: 'Đã scan' | 'Chưa scan';
+  listBox?: any[];             // giữ list_box nếu cần hiển thị chi tiết hộp
+}
+
+export interface BoxItem {
+  boxCode: string;
+  quantity: number;
+  note: string;
+  importPalletId: number;
+  confirm: boolean;
+  scanBy: string;
+  timeChecked: string;
+  listSerialItem: string;
 }
 
 export interface MainInfo {
-  maPO: string;
-  maSanPham: string;
-  maKhachHang: string;
-  tenSanPham: string;
   soPallet: number;
   soThung: number;
   soLuongSP: number;
-  maWO: number;
-  soLOT: string;
-  ngayNhap: string;
-  ghiChu: string;
+  wo_code: string;
+  lot_number: string;
+  updated_date: string;
+  production_team: string;
+  po_code?: string;
+  inventory_name?: string;
+  client_id?: string;
+  note?: string;
 }
 @Component({
   selector: 'app-nhap-kho-component',
@@ -39,33 +61,49 @@ export class ChiTietNhapKhoComponent implements OnInit {
   //bien scan
   scanPallet: string = '';
   scanLocation: string = '';
+selectedTabIndex: number = 0;
 
   showApproveButton: boolean = true;
 
   displayedColumns: string[] = [
     'stt',
+    'poNumber',
+    'inventoryCode',
     'palletCode',
-    'boxCode',
-    'boxQuantity',
-    'updatedBy',
-    'updatedDate',
-    // 'scanStatus',
+    'boxesInPallet',
+    'itemsPerBox',
+    'totalItems',
+    'itemNoSku',
+    'client',
+    'dateCode',
+    'productionDecisionNumber',
+    // 'productionTeam',
+    'note',
+    'scanStatus',
     // 'actions'
+  ];
+
+  displayedBoxColumns: string[] = [
+    'stt',
+    'boxCode',
+    'quantity',
+    'timeChecked',
+    'scanBy'
   ];
 
 
   mainInfo: MainInfo = {
-    maPO: '',
-    maSanPham: '',
-    maKhachHang: '',
-    tenSanPham: '',
+    po_code: '',
+    inventory_name: '',
+    client_id: '',
     soPallet: 0,
     soThung: 0,
     soLuongSP: 0,
-    maWO: 0,
-    soLOT: '',
-    ngayNhap: '',
-    ghiChu: '',
+    production_team: '',
+    wo_code: '',
+    lot_number: '',
+    updated_date: '',
+    note: '',
   };
 
   pageSize: number = 10;
@@ -74,8 +112,16 @@ export class ChiTietNhapKhoComponent implements OnInit {
   totalPages: number = 0;
   pagedDetailList: DetailItem[] = [];
 
+  currentPageBox: number = 1;
+  pageSizeBox: number = 10;
+
+  pagedBoxList: BoxItem[] = [];
+
   detailList: DetailItem[] = [];
   selectedMode: 'pallet' | 'thung' | null = null;
+
+  //confirm
+  isProcessingApprove = false;
 
   @ViewChild('palletInput') palletInput!: ElementRef;
   @ViewChild('locationInput') locationInput!: ElementRef;
@@ -105,52 +151,103 @@ export class ChiTietNhapKhoComponent implements OnInit {
   loadData(id: number): void {
     this.nhapKhoService.getImportRequirement(id).subscribe({
       next: (res) => {
-        const info = res.data.import_requirement;
-        this.showApproveButton = !info.status;
+        const info = res?.data?.general_info ?? res?.general_info ?? {};
 
-        const containers = res.data.containers || [];
+        this.showApproveButton = info.status === undefined ? true : !info.status;
 
-        // Tính toán từ containers
-        const uniquePallets = new Set(containers.map((c: any) => c.serial_pallet));
-        const soPallet = uniquePallets.size;
-        const soThung = containers.length;
-        const soLuongSP = containers.reduce((sum: number, c: any) => sum + (c.box_quantity || 0), 0);
+        const pallets = Array.isArray(info.list_pallet) ? info.list_pallet
+          : Array.isArray(info.listPallet) ? info.listPallet
+            : [];
+
+        const soPallet = pallets.length;
+        const soThung = pallets.reduce((sum: number, p: any) => {
+          const boxesFromNum = Number(p.num_box_per_pallet ?? p.numBoxPerPallet ?? 0);
+          const boxesFromList = Array.isArray(p.list_box) ? p.list_box.length : (Array.isArray(p.listBox) ? p.listBox.length : 0);
+          const boxes = Math.max(boxesFromNum, boxesFromList);
+          return sum + boxes;
+        }, 0);
+        const soLuongSP = pallets.reduce((sum: number, p: any) => sum + Number(p.total_quantity ?? p.totalQuantity ?? 0), 0);
 
         this.mainInfo = {
-          maPO: info.po_code || '',
-          maSanPham: '',
-          maKhachHang: String(info.client_id),
-          tenSanPham: info.inventory_name || '',
-          soPallet: soPallet,
-          soThung: soThung,
-          soLuongSP: soLuongSP,
-          maWO: Number(info.wo_code) || 0,
-          soLOT: info.lot_number || '',
-          ngayNhap: this.formatDate(info.updated_date),
-          ghiChu: info.note || '',
+          soPallet,
+          soThung,
+          soLuongSP,
+          wo_code: info.wo_code || info.woCode || '',
+          lot_number: info.lot_number || info.lotNumber || '',
+          updated_date: this.formatDate(info.production_date) || '',
+          production_team: info.production_team || info.productionTeam || '',
+          po_code: undefined,
+          inventory_name: info.inventory_name || info.inventoryName || '',
+          client_id: info.client_id || info.clientId || '',
+          note: info.note || ''
         };
 
-        this.detailList = containers.map((c: any): DetailItem => ({
-          id: c.id,
-          warehouse_import_requirement_id: c.warehouse_import_requirement_id,
-          palletCode: c.serial_pallet,
-          boxCode: c.box_code,
-          boxQuantity: c.box_quantity,
-          updatedBy: c.updated_by,
-          updatedDate: this.formatDate(c.updated_date),
-          scanStatus: 'Chưa scan',
-        }));
+        // reset danh sách
+        this.detailList = [];
+        this.pagedBoxList = [];
+
+        // Map pallets -> detailList hoặc pagedBoxList
+        pallets.forEach((p: any, index: number) => {
+          const itemsPerBox = Number(p.quantity_per_box ?? p.quantityPerBox ?? 0);
+          const boxesInPallet = Number(
+            p.num_box_per_pallet ?? p.numBoxPerPallet ??
+            (Array.isArray(p.list_box) ? p.list_box.length :
+              (Array.isArray(p.listBox) ? p.listBox.length : 0))
+          );
+          const totalItems = Number(p.total_quantity ?? p.totalQuantity ?? (boxesInPallet * itemsPerBox));
+
+          const serialPallet = p.serial_pallet ?? p.serialPallet ?? '';
+
+          if (serialPallet && serialPallet.trim() !== '') {
+            // có mã pallet -> đưa vào detailList (tab pallet)
+            const mapped: DetailItem = {
+              id: Number(p.id ?? index),
+              warehouse_import_requirement_id: undefined,
+              poNumber: p.po_number ?? p.poNumber ?? '',
+              inventoryCode: info.inventory_code ?? info.inventoryName ?? '',
+              palletCode: serialPallet,
+              boxesInPallet,
+              itemsPerBox,
+              totalItems,
+              itemNoSku: p.item_no_sku ?? p.itemNoSku ?? '',
+              client: p.customer_name ?? info.client_id ?? '',
+              dateCode: p.date_code ?? info.production_date ?? '',
+              productionDecisionNumber: p.production_decision_number ?? '',
+              productionTeam: (info.production_team ?? '').toString().trim(),
+              note: p.note ?? '',
+              scanStatus: p.scan_status ? 'Đã scan' : 'Chưa scan',
+              listBox: Array.isArray(p.list_box) ? p.list_box : []
+            };
+            this.detailList.push(mapped);
+          } else if (Array.isArray(p.list_box) && p.list_box.length > 0) {
+            // không có mã pallet nhưng có box -> đưa từng box vào pagedBoxList (tab thùng)
+            p.list_box.forEach((b: any) => {
+              const boxItem: BoxItem = {
+                boxCode: b.box_code ?? '',
+                quantity: Number(b.quantity ?? b.quantity_per_box ?? 0),
+                note: b.note ?? '',
+                importPalletId: Number(b.import_pallet_id ?? p.id ?? 0),
+                confirm: Boolean(b.confirmed),
+                scanBy: b.scan_by ?? '',
+                timeChecked: b.time_checked ?? '',
+                listSerialItem: b.list_serial_items ?? ''
+              };
+              this.pagedBoxList.push(boxItem);
+            });
+          }
+        });
+
         this.totalItems = this.detailList.length;
         this.totalPages = Math.ceil(this.totalItems / this.pageSize);
 
-        // Lấy dữ liệu trang đầu tiên
         this.setPagedData();
       },
       error: (err) => {
-        console.error('Lỗi khi lấy dữ liệu nhập kho:', err);
-      },
+        console.error('[loadData] Lỗi khi lấy dữ liệu nhập kho:', err);
+      }
     });
   }
+
   formatDate(dateStr: string): string {
     const d = new Date(dateStr);
     const yyyy = d.getFullYear();
@@ -177,66 +274,24 @@ export class ChiTietNhapKhoComponent implements OnInit {
       }, 100);
     }
   }
-  //scan
-  onScan(item: DetailItem): void {
-    if (!this.importId || !item?.id) {
-      console.error('Thiếu dữ liệu để điều hướng:', this.importId, item?.id);
+
+  onScanAll(): void {
+    if (!this.importId) {
+      console.error('Thiếu dữ liệu để điều hướng:', this.importId);
       return;
     }
 
-    this.router.navigate([
-      '/kho-thanh-pham/nhap-kho-sx/phe-duyet',
-      this.importId,
-      'scan',
-      item.id
-    ]);
+    // Navigate với mode='all'
+    this.router.navigate(
+      ['/kho-thanh-pham/nhap-kho-sx/phe-duyet', this.importId, 'scan'],
+      {
+        queryParams: {
+          mode: 'all'
+        }
+      }
+    );
   }
 
-
-
-  onPalletScanEnter() {
-    // chuyển focus sang input location
-    this.locationInput?.nativeElement?.focus();
-  }
-
-  // onLocationScanEnter() {
-  //   if (!this.scanPallet || !this.scanLocation) return;
-
-  //   const now = new Date();
-  //   const formattedTime = now.toLocaleString('vi-VN', {
-  //     hour: '2-digit',
-  //     minute: '2-digit',
-  //     day: '2-digit',
-  //     month: '2-digit',
-  //     year: 'numeric',
-  //   });
-
-  //   const newItem: ScannedItem = {
-  //     maHangHoa: 'LED000035',
-  //     tenHangHoa: 'Đèn LED cắm ứng 8W',
-  //     serialPallet: this.scanPallet,
-  //     serialBox: this.selectedMode === 'thung' ? this.scanPallet : '',
-  //     soLuong: 1,
-  //     area: 'RD-01',
-  //     location: this.scanLocation,
-  //     thoiDiemScan: formattedTime,
-  //   };
-
-  //   this.snackBar.open('Lưu thành công!', 'Đóng', {
-  //     duration: 3000,
-  //     horizontalPosition: 'right',
-  //     verticalPosition: 'bottom',
-  //     panelClass: ['snackbar-success', 'snackbar-position'],
-  //   });
-
-  //   // reset input
-  //   this.scanPallet = '';
-  //   this.scanLocation = '';
-  //   this.selectedMode = null;
-
-  //   // focus lại vào pallet để scan tiếp
-  //   setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
-  // }
 
   setPagedData(): void {
     const startIndex = (this.currentPage - 1) * this.pageSize;
@@ -258,35 +313,10 @@ export class ChiTietNhapKhoComponent implements OnInit {
     // Xử lý từ chối
   }
 
-  onConfirm(): void {
-    if (this.importId !== undefined) {
-      this.nhapKhoService.updateStatus(this.importId, true).subscribe({
-        next: () => {
-          this.snackBar.open('Phê duyệt thành công!', 'Đóng', {
-            duration: 3000,
-            panelClass: ['snackbar-success'],
-          });
-          this.loadData(this.importId!);
-        },
-        error: (err) => {
-          console.error('Lỗi khi phê duyệt:', err);
-          this.snackBar.open('Phê duyệt thất bại!', 'Đóng', {
-            duration: 3000,
-            panelClass: ['snackbar-error'],
-          });
-        }
-      });
-    } else {
-      this.snackBar.open('Không tìm thấy ID yêu cầu nhập kho!', 'Đóng', {
-        duration: 3000,
-        panelClass: ['snackbar-error'],
-      });
-    }
-  }
-
 
 
   goBack(): void {
     this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']);
   }
+
 }
