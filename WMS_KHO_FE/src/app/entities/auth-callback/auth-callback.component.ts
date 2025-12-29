@@ -126,7 +126,6 @@ export class AuthCallbackComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     try {
-      // Lấy params từ URL
       const code = this.route.snapshot.queryParamMap.get('code');
       const state = this.route.snapshot.queryParamMap.get('state');
       const error = this.route.snapshot.queryParamMap.get('error');
@@ -139,56 +138,84 @@ export class AuthCallbackComponent implements OnInit, OnDestroy {
         hasState: !!state,
         error,
         errorDescription,
-        isSilentLogin
+        isSilentLogin,
+        url: window.location.href
       });
 
-      // Kiểm tra lỗi từ Keycloak
+      // Xử lý lỗi từ Keycloak
       if (error) {
         if (isSilentLogin) {
-          if (error === 'login_required' || error === 'interaction_required') {
-            console.log('[AuthCallback] Silent login failed - user interaction required');
-            window.parent.postMessage({ type: 'SILENT_LOGIN_FAILED' }, window.location.origin);
+          // Với silent login, login_required là bình thường
+          if (error === 'login_required' || error === 'interaction_required' || error === 'consent_required') {
+            console.log('[AuthCallback] Silent login failed - user interaction required:', error);
+            sessionStorage.removeItem('silent_login');
+            sessionStorage.removeItem('code_verifier');
+            sessionStorage.removeItem('auth_state');
+
+            // Gửi message TRƯỚC KHI return
+            if (window.parent !== window) {
+              window.parent.postMessage({ type: 'SILENT_LOGIN_FAILED', error }, window.location.origin);
+            }
             return;
           }
         }
         throw new Error(this.getErrorMessage(error, errorDescription));
       }
 
-      // Kiểm tra code và state
       if (!code || !state) {
+        if (isSilentLogin) {
+          console.error('[AuthCallback] Missing code/state in silent login');
+          sessionStorage.removeItem('silent_login');
+          sessionStorage.removeItem('code_verifier');
+          sessionStorage.removeItem('auth_state');
+
+          if (window.parent !== window) {
+            window.parent.postMessage({ type: 'SILENT_LOGIN_FAILED', error: 'missing_params' }, window.location.origin);
+          }
+          return;
+        }
         throw new Error('Thiếu thông tin xác thực. Vui lòng thử đăng nhập lại.');
       }
 
       console.log('[AuthCallback] Processing OAuth callback...');
 
-      // Xử lý callback và đổi code lấy token
       const returnUrl = await this.authService.handleCallback(code, state);
 
-      console.log('[AuthCallback] Login successful! Redirecting to:', returnUrl);
+      console.log('[AuthCallback] Login successful! Return URL:', returnUrl);
 
-      //Nếu là silent login, gửi message về parent window
+      // Nếu là silent login
       if (isSilentLogin) {
-        window.parent.postMessage({ type: 'SILENT_LOGIN_SUCCESS' }, window.location.origin);
+        console.log('[AuthCallback] Silent login success, notifying parent...');
+        sessionStorage.removeItem('silent_login');
+
+        if (window.parent !== window) {
+          window.parent.postMessage({ type: 'SILENT_LOGIN_SUCCESS' }, window.location.origin);
+        }
         return;
       }
 
-      // Hiển thị success state
+      // Normal login - hiển thị success và redirect
       this.success = true;
-
-      // Delay ngắn để user thấy success message
       setTimeout(() => {
         this.router.navigateByUrl(returnUrl);
       }, 1000);
 
     } catch (err: any) {
+      console.error('[AuthCallback] Error:', err);
 
-      //Nếu là silent login và có lỗi
       const isSilentLogin = sessionStorage.getItem('silent_login') === 'true';
       if (isSilentLogin) {
-        window.parent.postMessage({ type: 'SILENT_LOGIN_FAILED' }, window.location.origin);
+        console.log('[AuthCallback] Silent login encountered error, notifying parent...');
+        sessionStorage.removeItem('silent_login');
+        sessionStorage.removeItem('code_verifier');
+        sessionStorage.removeItem('auth_state');
+
+        if (window.parent !== window) {
+          window.parent.postMessage({ type: 'SILENT_LOGIN_FAILED', error: err.message }, window.location.origin);
+        }
         return;
       }
-      console.error('[AuthCallback] Error:', err);
+
       this.handleError(err);
     }
   }

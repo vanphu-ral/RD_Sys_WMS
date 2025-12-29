@@ -563,31 +563,32 @@
 <div class="qr-scanner-overlay" *ngIf="isScanning" (click)="stopScanning()">
     <div class="qr-scanner-modal" (click)="$event.stopPropagation()">
         <div class="scanner-header">
-            <h3>Quét mã {{ scannerActive === 'pallet' ? (selectedMode === 'pallet' ? 'Pallet' : 'Thùng') : 'Location' }}
-            </h3>
-            <button mat-icon-button (click)="stopScanning()">
+            <h3>Quét mã {{ scannerActive === 'pallet' ? (selectedMode === 'pallet' ? 'Pallet' : 'Thùng') : 'Location' }}</h3>
+            <button mat-icon-button (click)="stopScanning()" class="close-scanner-btn">
                 <mat-icon>close</mat-icon>
             </button>
         </div>
+        
         <zxing-scanner 
-        *ngIf="hasPermission && currentDevice"
-        [device]="currentDevice" 
-        [formats]="formats" 
-        [autostart]="true"
-        (scanSuccess)="onScanSuccess($event)"
-        (camerasFound)="availableDevices = $event"
-        (camerasNotFound)="onCamerasNotFound()"
-        (permissionResponse)="hasPermission = $event"
-        (scanError)="onCameraError($event)"
-        [style.width.%]="100"
-        [style.height.px]="300">
+            *ngIf="hasPermission && currentDevice"
+            [device]="currentDevice" 
+            [formats]="formats" 
+            [autostart]="true"
+            [tryHarder]="true"
+            (scanSuccess)="onScanSuccess($event)"
+            (camerasFound)="availableDevices = $event"
+            (camerasNotFound)="onCamerasNotFound()"
+            (permissionResponse)="hasPermission = $event"
+            (scanError)="onCameraError($event)"
+            [style.width.%]="100"
+            [style.height.px]="300">
         </zxing-scanner>
 
-            <!-- Thêm loading state khi chưa có permission -->
         <div *ngIf="!hasPermission || !currentDevice" class="camera-loading">
             <mat-spinner diameter="40"></mat-spinner>
             <p>Đang khởi động camera...</p>
         </div>
+        
         <p class="scanner-hint">Đưa mã vào khung hình để quét</p>
     </div>
 </div>

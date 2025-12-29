@@ -27,7 +27,7 @@ export class SidebarService {
           link: '/kho-thanh-pham/nhap-kho-sx',
         },
         {
-          title: 'Yêu cầu chuyển kho từ SX',
+          title: 'Yêu cầu chuyển kho',
           link: '/kho-thanh-pham/chuyen-kho-noi-bo',
         },
         {

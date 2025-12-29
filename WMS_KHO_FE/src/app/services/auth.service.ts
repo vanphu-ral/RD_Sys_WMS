@@ -35,7 +35,7 @@ export class AuthService {
   private readonly REALM = 'rangdong';
   private readonly CLIENT_ID = 'RD_KHO';
 
-  
+
   // private readonly KEYCLOAK_URL = 'http://192.168.68.90:8080/auth';
   // private readonly REALM = 'QLSX';
   // private readonly CLIENT_ID = 'WMS_KHO';
@@ -116,7 +116,6 @@ export class AuthService {
 
       const redirectUri = `${window.location.origin}/auth/callback`;
 
-      // QUAN TRỌNG: Sử dụng prompt=none thay vì prompt=login
       const silentLoginUrl =
         `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/auth?` +
         `client_id=${this.CLIENT_ID}&` +
@@ -126,47 +125,79 @@ export class AuthService {
         `state=${state}&` +
         `code_challenge=${codeChallenge}&` +
         `code_challenge_method=S256&` +
-        `prompt=none`; // prompt=none = silent authentication
+        `prompt=none`; // Silent authentication
 
-      // Sử dụng iframe để thực hiện silent login
       return new Promise((resolve) => {
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
         iframe.src = silentLoginUrl;
 
+        // QUAN TRỌNG: Thêm sandbox để cho phép same-origin
+        iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-forms');
+
         const timeout = setTimeout(() => {
           console.log('[AuthService] Silent login timeout');
           document.body.removeChild(iframe);
           sessionStorage.removeItem('silent_login');
+          sessionStorage.removeItem('code_verifier');
+          sessionStorage.removeItem('auth_state');
           resolve(false);
-        }, 5000); // Timeout sau 5s
+        }, 8000); // Tăng timeout lên 8s
 
-        // Lắng nghe message từ callback page
         const messageHandler = (event: MessageEvent) => {
+          // QUAN TRỌNG: Kiểm tra origin để tránh XSS
+          if (event.origin !== window.location.origin) {
+            console.warn('[AuthService] Message from wrong origin:', event.origin);
+            return;
+          }
+
           if (event.data?.type === 'SILENT_LOGIN_SUCCESS') {
             clearTimeout(timeout);
-            document.body.removeChild(iframe);
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+            }
             window.removeEventListener('message', messageHandler);
             sessionStorage.removeItem('silent_login');
             console.log('[AuthService] Silent login successful');
             resolve(true);
           } else if (event.data?.type === 'SILENT_LOGIN_FAILED') {
             clearTimeout(timeout);
-            document.body.removeChild(iframe);
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+            }
             window.removeEventListener('message', messageHandler);
             sessionStorage.removeItem('silent_login');
+            sessionStorage.removeItem('code_verifier');
+            sessionStorage.removeItem('auth_state');
             console.log('[AuthService] Silent login failed - no SSO session');
             resolve(false);
           }
         };
 
         window.addEventListener('message', messageHandler);
+
+        // Thêm error handler cho iframe
+        iframe.onerror = () => {
+          console.error('[AuthService] Iframe loading error');
+          clearTimeout(timeout);
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+          window.removeEventListener('message', messageHandler);
+          sessionStorage.removeItem('silent_login');
+          sessionStorage.removeItem('code_verifier');
+          sessionStorage.removeItem('auth_state');
+          resolve(false);
+        };
+
         document.body.appendChild(iframe);
       });
 
     } catch (error) {
       console.error('[AuthService] Silent login error:', error);
       sessionStorage.removeItem('silent_login');
+      sessionStorage.removeItem('code_verifier');
+      sessionStorage.removeItem('auth_state');
       return false;
     }
   }
@@ -231,21 +262,35 @@ export class AuthService {
   // ============= HANDLE CALLBACK =============
   async handleCallback(code: string, state: string): Promise<string> {
     try {
+      console.log('[AuthService] handleCallback - start');
+
       const savedState = sessionStorage.getItem('auth_state');
       if (!savedState || savedState !== state) {
+        console.error('[AuthService] State mismatch:', { savedState, receivedState: state });
         throw new Error('Invalid state parameter - possible CSRF attack');
       }
 
       const codeVerifier = sessionStorage.getItem('code_verifier');
       if (!codeVerifier) {
+        console.error('[AuthService] Code verifier not found in sessionStorage');
         throw new Error('Code verifier not found');
       }
 
+      console.log('[AuthService] Exchanging code for tokens...');
       const tokens = await this.exchangeCodeForTokens(code, codeVerifier);
+
+      if (!tokens || !tokens.access_token) {
+        throw new Error('No access token received');
+      }
+
+      console.log('[AuthService] Tokens received, saving...');
       this.setToken(tokens.access_token, tokens.refresh_token, tokens.id_token);
 
       const decoded = jwtDecode<TokenPayload>(tokens.access_token);
-      this.setUsername(decoded.preferred_username || decoded.sub);
+      const username = decoded.preferred_username || decoded.sub;
+      this.setUsername(username);
+
+      console.log('[AuthService] Login successful for user:', username);
 
       sessionStorage.removeItem('code_verifier');
       sessionStorage.removeItem('auth_state');
@@ -253,7 +298,6 @@ export class AuthService {
       const returnUrl = sessionStorage.getItem('returnUrl') || '/home';
       sessionStorage.removeItem('returnUrl');
 
-      console.log('[AuthService] Login successful');
       return returnUrl;
     } catch (error) {
       console.error('[AuthService] Callback error:', error);
