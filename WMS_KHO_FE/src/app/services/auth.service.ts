@@ -31,14 +31,14 @@ export class AuthService {
   isLoggedIn$: Observable<boolean> = this.isLoggedInSubject.asObservable();
   username$: Observable<string> = this.usernameSubject.asObservable();
 
-  // private readonly KEYCLOAK_URL = 'https://ssosys.rangdong.com.vn:9002';
-  // private readonly REALM = 'rangdong';
-  // private readonly CLIENT_ID = 'RD_KHO';
+  private readonly KEYCLOAK_URL = 'https://ssosys.rangdong.com.vn:9002';
+  private readonly REALM = 'rangdong';
+  private readonly CLIENT_ID = 'RD_KHO';
 
-
-  private readonly KEYCLOAK_URL = 'http://192.168.68.90:8080/auth';
-  private readonly REALM = 'QLSX';
-  private readonly CLIENT_ID = 'WMS_KHO';
+  
+  // private readonly KEYCLOAK_URL = 'http://192.168.68.90:8080/auth';
+  // private readonly REALM = 'QLSX';
+  // private readonly CLIENT_ID = 'WMS_KHO';
 
   // Session timeout: 30 phút
   private readonly SESSION_TIMEOUT = 30 * 60 * 1000;
