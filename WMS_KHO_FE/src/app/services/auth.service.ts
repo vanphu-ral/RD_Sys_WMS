@@ -98,7 +98,78 @@ export class AuthService {
   private getStoredUsername(): string {
     return localStorage.getItem('username') || '';
   }
+  /**
+   * Silent login: Thử lấy token từ SSO session mà không cần user interaction
+   * Sử dụng prompt=none để Keycloak tự động trả token nếu đã có session
+   */
+  async trySilentLogin(): Promise<boolean> {
+    try {
+      console.log('[AuthService] Attempting silent login...');
 
+      const codeVerifier = this.generateCodeVerifier();
+      const codeChallenge = await this.generateCodeChallenge(codeVerifier);
+      const state = this.generateState();
+
+      sessionStorage.setItem('code_verifier', codeVerifier);
+      sessionStorage.setItem('auth_state', state);
+      sessionStorage.setItem('silent_login', 'true');
+
+      const redirectUri = `${window.location.origin}/auth/callback`;
+
+      // QUAN TRỌNG: Sử dụng prompt=none thay vì prompt=login
+      const silentLoginUrl =
+        `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/auth?` +
+        `client_id=${this.CLIENT_ID}&` +
+        `response_type=code&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+        `scope=openid profile email&` +
+        `state=${state}&` +
+        `code_challenge=${codeChallenge}&` +
+        `code_challenge_method=S256&` +
+        `prompt=none`; // prompt=none = silent authentication
+
+      // Sử dụng iframe để thực hiện silent login
+      return new Promise((resolve) => {
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = silentLoginUrl;
+
+        const timeout = setTimeout(() => {
+          console.log('[AuthService] Silent login timeout');
+          document.body.removeChild(iframe);
+          sessionStorage.removeItem('silent_login');
+          resolve(false);
+        }, 5000); // Timeout sau 5s
+
+        // Lắng nghe message từ callback page
+        const messageHandler = (event: MessageEvent) => {
+          if (event.data?.type === 'SILENT_LOGIN_SUCCESS') {
+            clearTimeout(timeout);
+            document.body.removeChild(iframe);
+            window.removeEventListener('message', messageHandler);
+            sessionStorage.removeItem('silent_login');
+            console.log('[AuthService] Silent login successful');
+            resolve(true);
+          } else if (event.data?.type === 'SILENT_LOGIN_FAILED') {
+            clearTimeout(timeout);
+            document.body.removeChild(iframe);
+            window.removeEventListener('message', messageHandler);
+            sessionStorage.removeItem('silent_login');
+            console.log('[AuthService] Silent login failed - no SSO session');
+            resolve(false);
+          }
+        };
+
+        window.addEventListener('message', messageHandler);
+        document.body.appendChild(iframe);
+      });
+
+    } catch (error) {
+      console.error('[AuthService] Silent login error:', error);
+      sessionStorage.removeItem('silent_login');
+      return false;
+    }
+  }
   // ============= LOGIN FLOW =============
   async initiateLogin(returnUrl?: string): Promise<void> {
     try {

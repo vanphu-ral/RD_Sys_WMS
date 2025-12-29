@@ -4,8 +4,8 @@ import { Router } from '@angular/router';
 import { NhapKhoService } from './service/nhap-kho.service';
 export interface NhapKhoItem {
   id: number;
-  po_code: string | null;
-  client_id: number;
+  po_number: string | null;
+  client_id: string;
   inventory_name: string;
   number_of_pallet: number;
   number_of_box: number;
@@ -40,6 +40,7 @@ export class NhapKhoComponent {
     // 'order_id',
     'client_id',
     'wo_code',
+    'po_number',
     'lot_number',
     'branch',
     'number_of_pallet',
@@ -61,6 +62,8 @@ export class NhapKhoComponent {
     inventory_name: '',
     lot_number: '',
     wo_code: '',
+    client_id: '',
+    po_number: '',
     status: '',
   };
 
@@ -68,11 +71,14 @@ export class NhapKhoComponent {
     'inventory_name',
     'lot_number',
     'wo_code',
+    'client_id',
+    'po_number',
     'status',
   ];
 
   nhapKhoList: NhapKhoItem[] = [];
   originalList: NhapKhoItem[] = [];
+  filteredList: NhapKhoItem[] = [];
   searchTerm: string = '';
   totalItems: number = 0;
   pageSize: number = 10;
@@ -88,21 +94,29 @@ export class NhapKhoComponent {
   loadDanhSachNhapKho(): void {
     this.nhapKhoService.getDanhSachNhapKho().subscribe({
       next: (res) => {
+        console.log('API response:', res);
+
         // Sắp xếp theo id giảm dần
         const sorted = [...res].sort((a, b) => b.id - a.id);
 
-        // Map sang NhapKhoItem, đảm bảo có scannedCount/totalCount
+        // Map sang NhapKhoItem
         const mapped: NhapKhoItem[] = sorted.map((r: any) => ({
           ...r,
-
-          // Nếu API trả trực tiếp:
-          scannedCount: 1,
-          totalCount: 10,
+          scannedCount: r.box_scan_progress ?? 0,
+          totalCount: r.number_of_box ?? 0,
         }));
 
+        // Gán vào cả 2 mảng
         this.originalList = mapped;
-        this.nhapKhoList = mapped.slice(0, this.pageSize);
-        this.totalItems = mapped.length;
+        this.filteredList = [...mapped]; // Copy để giữ nguyên originalList
+
+        // Tính toán pagination
+        this.totalItems = this.filteredList.length;
+        this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+        this.currentPage = 1;
+
+        // Slice để hiển thị trang đầu tiên
+        this.slicePage();
       },
       error: (err) => {
         console.error('Lỗi khi lấy danh sách nhập kho:', err);
@@ -174,13 +188,14 @@ export class NhapKhoComponent {
   slicePage(): void {
     const start = (this.currentPage - 1) * this.pageSize;
     const end = start + this.pageSize;
-    this.nhapKhoList = this.originalList.slice(start, end);
+    this.nhapKhoList = this.filteredList.slice(start, end);
   }
 
   onPageChange(page: number): void {
     this.currentPage = page;
     this.slicePage();
   }
+
 
   onPageSizeChange(): void {
     this.currentPage = 1;
@@ -190,27 +205,43 @@ export class NhapKhoComponent {
 
   applyFilter(): void {
     const filtered = this.originalList.filter((item) => {
-      const statusText = item.status ? 'Đã nhập' : 'Chưa nhập';
+      const statusText = item.status ? 'Đã nhập' : 'Chờ nhập';
 
-      return (
-        item.inventory_name
-          ?.toLowerCase()
-          .includes(this.filterValues.inventory_name.toLowerCase()) &&
-        item.lot_number
-          ?.toLowerCase()
-          .includes(this.filterValues.lot_number.toLowerCase()) &&
-        item.wo_code
-          ?.toLowerCase()
-          .includes(this.filterValues.wo_code.toLowerCase()) &&
-        statusText
-          .toLowerCase()
-          .includes(this.filterValues.status.toLowerCase())
-      );
+      // Kiểm tra từng trường - chỉ filter khi có giá trị
+      const matchInventoryName = !this.filterValues.inventory_name ||
+        item.inventory_name?.toLowerCase().includes(this.filterValues.inventory_name.toLowerCase());
+
+      const matchLotNumber = !this.filterValues.lot_number ||
+        item.lot_number?.toLowerCase().includes(this.filterValues.lot_number.toLowerCase());
+
+      const matchWoCode = !this.filterValues.wo_code ||
+        item.wo_code?.toLowerCase().includes(this.filterValues.wo_code.toLowerCase());
+
+      const matchPoNumber = !this.filterValues.po_number ||
+        item.po_number?.toLowerCase().includes(this.filterValues.po_number.toLowerCase());
+
+      const matchClientId = !this.filterValues.client_id ||
+        item.client_id?.toLowerCase().includes(this.filterValues.client_id.toLowerCase());
+
+      const matchStatus = !this.filterValues.status ||
+        statusText.toLowerCase().includes(this.filterValues.status.toLowerCase());
+
+      return matchInventoryName && matchLotNumber && matchWoCode &&
+        matchPoNumber && matchClientId && matchStatus;
     });
 
-    this.nhapKhoList = filtered;
-    this.totalItems = filtered.length;
+    // Cập nhật filteredList
+    this.filteredList = filtered;
+
+    // Cập nhật pagination
+    this.totalItems = this.filteredList.length;
+    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    this.currentPage = 1;
+
+    // Slice để hiển thị
+    this.slicePage();
   }
+
 
 
   toggleMobileFilters(): void {
@@ -218,14 +249,27 @@ export class NhapKhoComponent {
   }
 
   clearFilters(): void {
+    // Reset tất cả filter values
     this.filterValues = {
       inventory_name: '',
       lot_number: '',
       wo_code: '',
+      client_id: '',
+      po_number: '',
       status: '',
     };
     this.searchTerm = '';
-    this.applyFilter();
+
+    // Reset filteredList về originalList
+    this.filteredList = [...this.originalList];
+
+    // Cập nhật pagination
+    this.totalItems = this.filteredList.length;
+    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    this.currentPage = 1;
+
+    // Slice để hiển thị
+    this.slicePage();
   }
 
   // getStatusClass(status: string): string {
