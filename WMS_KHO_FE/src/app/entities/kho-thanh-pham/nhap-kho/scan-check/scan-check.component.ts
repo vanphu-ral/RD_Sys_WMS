@@ -8,6 +8,7 @@ import { AlertDialogComponent } from '../dialog/alert-dialog.component';
 import { BarcodeFormat } from '@zxing/library';
 import { forkJoin } from 'rxjs';
 import { ZXingScannerComponent } from '@zxing/ngx-scanner';
+import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 
 export interface ScannedPallet {
   id: number;
@@ -116,6 +117,8 @@ export class ScanCheckComponent implements OnInit {
   totalPagesPallet: number = 0;
   pagedPallets: ScannedPallet[] = [];
 
+  debugLogs: string[] = [];
+
   // Pagination for Boxes
   pageSizeBox: number = 10;
   currentPageBox: number = 1;
@@ -129,14 +132,15 @@ export class ScanCheckComponent implements OnInit {
   isMobile: boolean = false;
   isLoading = false;
   scannerActive: 'pallet' | 'location' | null = null;
+  qrScanner?: Html5Qrcode;
 
   @ViewChild('palletInput') palletInput!: ElementRef;
   @ViewChild('locationInput') locationInput!: ElementRef;
   @ViewChild(ZXingScannerComponent) scanner!: ZXingScannerComponent;
 
   locations: { id: number; code: string }[] = [];
-  currentDevice: MediaDeviceInfo | undefined = undefined;
   availableDevices: MediaDeviceInfo[] = [];
+  currentStream: MediaStream | null = null;
   formats: BarcodeFormat[] = [
     BarcodeFormat.QR_CODE,
     BarcodeFormat.CODE_128,
@@ -144,7 +148,9 @@ export class ScanCheckComponent implements OnInit {
     BarcodeFormat.EAN_13,
     BarcodeFormat.EAN_8
   ];
-  hasPermission: boolean = false;
+  scannerEnabled = false;
+  currentDevice: MediaDeviceInfo | undefined = undefined;
+  hasPermission = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -172,6 +178,7 @@ export class ScanCheckComponent implements OnInit {
       this.loadLocationCode();
       this.loadImportRequirementInfo();
     }
+    // this.initCamera();
   }
 
   checkIfMobile(): void {
@@ -365,146 +372,275 @@ export class ScanCheckComponent implements OnInit {
     setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
   }
 
-  async openCameraScanner(field: 'pallet' | 'location'): Promise<void> {
-    if (!this.selectedMode && field === 'pallet') {
-      this.snackBar.open('Vui lòng chọn mode scan!', 'Đóng', { duration: 3000 });
-      return;
-    }
-
+  async openCameraScanner(field: 'pallet' | 'location') {
     this.scannerActive = field;
     this.isScanning = true;
+    this.logDebug("=== Open Scanner ===");
 
-    // Đợi UI render xong rồi khởi tạo camera
-    setTimeout(() => {
-      this.initCamera();
-    }, 100);
-  }
-
-  initCamera(): void {
-    console.log('[Camera] Initializing camera...');
-
-    // Cho phép ZXingScanner tự xin quyền và chọn camera
-    this.hasPermission = true;
-
-    // Enumerate devices để ưu tiên back camera
-    navigator.mediaDevices.enumerateDevices()
-      .then((devices) => {
-        this.availableDevices = devices.filter(d => d.kind === 'videoinput');
-
-        console.log('[Camera] Available cameras:', this.availableDevices);
-
-        if (this.availableDevices.length === 0) {
-          console.warn('[Camera] No cameras found');
-          return;
+    try {
+      // Stop scanner cũ nếu có
+      if (this.qrScanner) {
+        try {
+          await this.qrScanner.stop();
+          await this.qrScanner.clear();
+          this.logDebug("Old scanner stopped");
+        } catch (e) {
+          this.logDebug("Stop old scanner failed: " + e);
         }
+      }
 
-        // Ưu tiên camera sau (back camera)
-        const backCamera = this.availableDevices.find(d =>
-          d.label.toLowerCase().includes('back') ||
-          d.label.toLowerCase().includes('rear') ||
-          d.label.toLowerCase().includes('environment')
-        );
+      // Đợi DOM render
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Nếu không tìm thấy back camera, dùng camera cuối cùng
-        this.currentDevice = backCamera || this.availableDevices[this.availableDevices.length - 1];
+      // Khởi tạo scanner mới
+      this.qrScanner = new Html5Qrcode("qr-reader");
+      this.logDebug("Scanner created");
 
-        console.log('[Camera] Selected camera:', this.currentDevice?.label || 'default');
-      })
-      .catch((err) => {
-        console.error('[Camera] Error enumerating devices:', err);
-        // Không cần hiện lỗi ở đây, để ZXingScanner tự xử lý
-      });
-  }
+      // Lấy danh sách camera
+      const cameras = await Html5Qrcode.getCameras();
+      this.logDebug(`Found ${cameras.length} cameras`);
+      this.logDebug(JSON.stringify(cameras.map(c => ({ id: c.id, label: c.label }))));
 
-  onCamerasNotFound(): void {
-    console.error('[Camera] No cameras found');
-    this.snackBar.open('Không tìm thấy camera trên thiết bị!', 'Đóng', { duration: 3000 });
-    this.stopScanning();
-  }
+      if (!cameras || cameras.length === 0) {
+        this.snackBar.open("Không tìm thấy camera", "Đóng", { duration: 3000 });
+        this.stopScanning();
+        return;
+      }
 
-  onPermissionDenied(): void {
-    console.error('[Camera] Camera permission denied');
-    this.hasPermission = false;
+      // Tìm back camera
+      const backCameras = cameras.filter(c =>
+        (c.label || "").toLowerCase().includes("back") ||
+        (c.label || "").toLowerCase().includes("environment") ||
+        (c.label || "").toLowerCase().includes("rear")
+      );
 
-    const userAgent = navigator.userAgent.toLowerCase();
-    let instruction = '';
+      // Ưu tiên back camera cuối cùng (thường là main camera)
+      const targetCam = backCameras.length > 0
+        ? backCameras[backCameras.length - 1]
+        : cameras[0];
 
-    if (userAgent.includes('android')) {
-      instruction = ' Android: Cài đặt → Ứng dụng → Trình duyệt → Quyền → Bật Camera.';
-    } else if (userAgent.includes('iphone') || userAgent.includes('ipad')) {
-      instruction = ' iOS: Cài đặt → Safari → Camera → Cho phép.';
+      this.logDebug("Selected camera: " + targetCam.label);
+
+      // Cấu hình scan
+      const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
+      };
+
+      // Start camera với deviceId
+      await this.qrScanner.start(
+        targetCam.id, // Chỉ cần ID, không cần { deviceId: { exact: ... } }
+        config,
+        (decodedText) => {
+          this.logDebug("Scanned: " + decodedText);
+          this.handleHtml5Scan(decodedText);
+        },
+        (errorMessage) => {
+          // Bỏ qua lỗi scan thông thường (không tìm thấy QR)
+          // Chỉ log lỗi nghiêm trọng
+          if (errorMessage && !errorMessage.includes("NotFoundException")) {
+            this.logDebug("Scan error: " + errorMessage);
+          }
+        }
+      );
+
+      this.logDebug("Camera started successfully!");
+
+    } catch (e: any) {
+      this.logDebug("=== ERROR ===");
+      this.logDebug("Error name: " + (e?.name || "unknown"));
+      this.logDebug("Error message: " + (e?.message || "unknown"));
+      this.logDebug("Error toString: " + e?.toString());
+
+      let errorMsg = "Không thể mở camera!";
+
+      if (e?.name === "NotAllowedError" || e?.name === "PermissionDeniedError") {
+        errorMsg = "Bạn đã từ chối quyền camera. Vui lòng cấp quyền trong Cài đặt.";
+      } else if (e?.name === "NotFoundError" || e?.name === "DevicesNotFoundError") {
+        errorMsg = "Không tìm thấy camera trên thiết bị!";
+      } else if (e?.name === "NotReadableError" || e?.name === "TrackStartError") {
+        errorMsg = "Camera đang được sử dụng. Vui lòng đóng ứng dụng Camera/Zalo/Banking và thử lại.";
+      } else if (e?.name === "OverconstrainedError") {
+        errorMsg = "Camera không hỗ trợ cấu hình này!";
+      } else if (e?.message) {
+        errorMsg = "Lỗi: " + e.message;
+      }
+
+      this.snackBar.open(errorMsg, "Đóng", { duration: 5000 });
+      this.stopScanning();
     }
-
-    this.snackBar.open(
-      'Cần cấp quyền camera!' + (instruction ? ' ' + instruction : ''),
-      'Đóng',
-      { duration: 6000 }
-    );
-
-    this.stopScanning();
   }
-
-  onCameraError(error: any): void {
-    console.error('[Camera] Error:', error?.name, error?.message);
-
-    let errorMessage = 'Lỗi khi mở camera!';
-
-    // Chỉ xử lý các lỗi quan trọng
-    if (error?.name === 'NotAllowedError') {
-      errorMessage = 'Bạn đã từ chối quyền camera. Vui lòng cho phép và thử lại.';
-    } else if (error?.name === 'NotFoundError') {
-      errorMessage = 'Không tìm thấy camera!';
-    } else if (error?.name === 'NotReadableError') {
-      errorMessage = 'Camera đang được sử dụng bởi ứng dụng khác. Vui lòng đóng và thử lại.';
-    }
-
-    this.snackBar.open(errorMessage, 'Đóng', { duration: 4000 });
-    this.stopScanning();
-  }
-
-  onScanSuccess(decodedText: string): void {
-    const code = decodedText.trim();
+  handleHtml5Scan(code: string) {
+    code = code.trim();
 
     // Chống scan trùng
     if (code === this.lastScannedCode) return;
     this.lastScannedCode = code;
 
+    this.logDebug("Processing: " + code);
+
     // Phân loại mã
-    if (code.startsWith('P')) {
+    if (code.startsWith("P")) {
       this.scanPallet = code;
-      this.snackBar.open('✓ Đã quét pallet!', '', { duration: 1500 });
-    } else if (code.startsWith('B')) {
+      this.snackBar.open("✓ Đã quét pallet!", "", { duration: 1000 });
+    } else if (code.startsWith("B")) {
       this.scanPallet = code;
-      this.snackBar.open('✓ Đã quét thùng!', '', { duration: 1500 });
+      this.snackBar.open("✓ Đã quét thùng!", "", { duration: 1000 });
     } else {
       this.scanLocation = code;
-      this.snackBar.open('✓ Đã quét location!', '', { duration: 1500 });
+      this.snackBar.open("✓ Đã quét location!", "", { duration: 1000 });
     }
 
-    // Nếu đã có đủ pallet/thùng và location → thực hiện scan
+    // Nếu đủ cả hai → thực hiện scan
     if (this.scanPallet && this.scanLocation) {
+      this.logDebug("Both codes ready, performing scan...");
       this.stopScanning();
-      setTimeout(() => this.performScan(), 100);
+      setTimeout(() => this.performScan(), 50);
     }
   }
 
-  stopScanning(): void {
-    console.log('[Camera] Stopping...');
 
-    this.lastScannedCode = null;
+
+
+  logDebug(msg: any) {
+    const text = typeof msg === 'string' ? msg : JSON.stringify(msg);
+    const timestamp = new Date().toLocaleTimeString();
+    this.debugLogs.unshift(`[${timestamp}] ${text}`);
+    console.log(`[${timestamp}] ${text}`);
+
+    // Giới hạn log
+    if (this.debugLogs.length > 50) {
+      this.debugLogs = this.debugLogs.slice(0, 50);
+    }
+  }
+
+  // async initCamera() {
+  //   console.log('[Camera] Initializing...');
+  //   this.scannerEnabled = false;
+
+  //   try {
+  //     // 👉 CHỈ xin quyền – nhưng PHẢI dừng stream ngay
+  //     const tempStream = await navigator.mediaDevices.getUserMedia({
+  //       video: { facingMode: { ideal: 'environment' } }
+  //     });
+
+  //     // Lưu lại để còn stop được
+  //     this.currentStream = tempStream;
+
+  //     // Dừng stream tạm ngay lập tức (nếu không sẽ chiếm camera)
+  //     this.currentStream.getTracks().forEach(t => t.stop());
+  //     this.currentStream = null;
+
+  //     // Lấy danh sách camera
+  //     const devices = await navigator.mediaDevices.enumerateDevices();
+  //     this.availableDevices = devices.filter(d => d.kind === 'videoinput');
+
+  //     if (!this.availableDevices.length) {
+  //       this.snackBar.open('Không tìm thấy camera!', 'Đóng', { duration: 3000 });
+  //       this.stopScanning();
+  //       return;
+  //     }
+
+  //     const backCamera = this.availableDevices.find(d =>
+  //       (d.label || '').toLowerCase().includes('back') ||
+  //       (d.label || '').toLowerCase().includes('rear') ||
+  //       (d.label || '').toLowerCase().includes('environment')
+  //     );
+
+  //     this.currentDevice = backCamera || this.availableDevices[0];
+  //     this.hasPermission = true;
+
+  //     // 👉 chỉ lúc này mới bật ZXING
+  //     this.scannerEnabled = true;
+
+  //     console.log('[Camera] Ready');
+  //   } catch (err: any) {
+  //     console.error('[Camera] init error', err);
+
+  //     if (err.name === 'NotAllowedError') {
+  //       this.snackBar.open('Bạn đã từ chối quyền camera!', 'Đóng', { duration: 3000 });
+  //     } else if (err.name === 'NotReadableError') {
+  //       this.snackBar.open('Camera đang bận, hãy đóng ứng dụng khác!', 'Đóng', { duration: 3000 });
+  //     } else {
+  //       this.snackBar.open('Không truy cập được camera', 'Đóng', { duration: 3000 });
+  //     }
+
+  //     this.stopScanning();
+  //   }
+  // }
+
+
+
+
+  onCamerasFound(devices: MediaDeviceInfo[]) {
+    this.availableDevices = devices;
+
+    const back = devices.find(d =>
+      (d.label || '').toLowerCase().includes('back')
+    );
+
+    this.currentDevice = back || devices[0];
+
+    if (this.hasPermission) {
+      this.scannerEnabled = true;
+    }
+  }
+
+  onPermission(has: boolean) {
+    this.hasPermission = has;
+    if (has) this.scannerEnabled = true;
+  }
+
+  onCameraError(error: any) {
+    console.error(error);
+
+    if (error?.name === 'NotReadableError') {
+      this.snackBar.open(
+        'Camera đang bận. Đóng ứng dụng khác (Zalo, Camera, QR App...) rồi thử lại',
+        'Đóng',
+        { duration: 4000 }
+      );
+    }
+
+    this.stopScanning();
+  }
+
+
+
+
+  async stopScanning() {
+    this.logDebug("=== Stopping Scanner ===");
+
     this.isScanning = false;
     this.scannerActive = null;
-    this.hasPermission = false;
+    this.lastScannedCode = null;
 
-    // Cleanup scanner
-    if (this.scanner) {
+    if (this.qrScanner) {
       try {
-        this.scanner.reset();
-        console.log('[Camera] Stopped successfully');
-      } catch (e) {
-        console.error('[Camera] Error stopping:', e);
+        const state = await this.qrScanner.getState();
+        this.logDebug("Scanner state: " + state);
+
+        if (state === Html5QrcodeScannerState.SCANNING) {
+          await this.qrScanner.stop();
+          this.logDebug("Scanner stopped");
+        }
+
+        await this.qrScanner.clear();
+        this.logDebug("Scanner cleared");
+      } catch (err: any) {
+        this.logDebug("Stop error: " + (err?.message || err));
+      } finally {
+        this.qrScanner = undefined;
       }
     }
+  }
+
+
+
+  onScanStart(stream: MediaStream) {
+    console.log('[ZXING] stream started');
+    this.currentStream = stream;
   }
 
   ngOnDestroy(): void {
@@ -768,7 +904,7 @@ export class ScanCheckComponent implements OnInit {
           date_code: item.dateCode || '',
           note: item.note || '',
           scan_status: true, // Đã scan
-          confirmed: true,   // Đã confirm
+          confirmed: false,   // Đã confirm
           location_id: item.locationId, // Thêm location_id nếu API cần
           scan_by: username,
           scan_time: new Date().toISOString()

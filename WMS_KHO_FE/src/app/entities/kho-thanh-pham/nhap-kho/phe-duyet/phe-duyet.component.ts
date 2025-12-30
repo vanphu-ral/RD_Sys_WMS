@@ -352,17 +352,30 @@ export class PheDuyetComponent implements OnInit {
       this.snackBar.open('Không tìm thấy ID yêu cầu nhập kho!', 'Đóng', {
         duration: 3000,
         panelClass: ['snackbar-error'],
-      }); return;
+      });
+      return;
     }
-    const palletNotScanned = this.detailList.some((p: any) => {
-      if ((p.scanStatus ?? '').toString().toLowerCase().includes('chưa')) { return true; }
+
+    // Kiểm tra: chỉ cần đảm bảo tất cả pallet/box đã được scan (không cần confirmed)
+    const palletNotScanned = (this.detailList || []).some((p: any) => {
+      // pallet được coi là đã scan nếu scan_status === true hoặc scanStatus chứa 'đã'
+      const palletScanned = (p.scan_status === true) ||
+        ((p.scanStatus ?? '').toString().toLowerCase().includes('đã'));
+      if (palletScanned) return false;
+
+      // nếu pallet chưa có flag scan, kiểm tra từng box trong pallet: nếu có box chưa có time_checked và không có scan_status thì coi pallet chưa scan
       const listBox = Array.isArray(p.listBox) ? p.listBox : [];
-      return listBox.some((b: any) => b.confirmed === false || b.confirmed === undefined);
+      return listBox.some((b: any) => !this.isBoxScanned(b));
     });
 
-    const boxNotConfirmed = this.pagedBoxList.some((b: any) => b.confirm === false || b.confirm === undefined);
-    if (palletNotScanned || boxNotConfirmed) {
-      this.snackBar.open('Vui lòng scan và xác nhận tất cả pallet/thùng trước khi phê duyệt', 'Đóng', { duration: 4000, panelClass: ['snackbar-error'], });
+    // Kiểm tra các box độc lập trên trang (pagedBoxList): chỉ cần box đã scan (time_checked hoặc scan_status)
+    const boxNotScanned = (this.pagedBoxList || []).some((b: any) => !this.isBoxScanned(b));
+
+    if (palletNotScanned || boxNotScanned) {
+      this.snackBar.open('Vui lòng scan tất cả pallet/thùng trước khi phê duyệt', 'Đóng', {
+        duration: 4000,
+        panelClass: ['snackbar-error'],
+      });
       return;
     }
 
@@ -375,43 +388,64 @@ export class PheDuyetComponent implements OnInit {
         cancelText: 'Hủy'
       }
     });
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => { if (confirmed) { this.executeApprove(); } });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.executeApprove();
+      }
+    });
   }
+
 
 
 
   goBack(): void {
     this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']);
   }
+  private isBoxScanned(box: any): boolean {
+    // Box được coi là đã scan nếu có time_checked (không null/empty) hoặc scan_status true hoặc confirmed true
+    if (!box) return false;
+    const hasTimeChecked = !!(box.time_checked || box.timeChecked); // hỗ trợ nhiều tên trường
+    const scanStatus = box.scan_status === true || box.scanStatus === true;
+    const confirmed = box.confirmed === true || box.confirm === true;
+    return hasTimeChecked;
+  }
 
   private computeBoxScanProgress(): number {
     let count = 0;
 
-    // Helper: kiểm tra xem một pallet có được coi là "đã scan"
+    // Kiểm tra pallet đã scan (dựa trên scan_status hoặc scanStatus text)
     const isPalletScanned = (p: any): boolean => {
-      // p.scanStatus trong DetailItem là 'Đã scan' | 'Chưa scan'
-      if ((p.scanStatus ?? '').toString().toLowerCase().includes('đã')) return true;
-      // hoặc backend có thể trả boolean p.scan_status
+      if (!p) return false;
       if (p.scan_status === true) return true;
+      if ((p.scanStatus ?? '').toString().toLowerCase().includes('đã')) return true;
       return false;
     };
 
-    // Đếm từ detailList (pallets)
+    // Kiểm tra box đã scan (hỗ trợ cả snake_case từ API và camelCase bạn map)
+    const isBoxScannedFromApi = (b: any): boolean => {
+      if (!b) return false;
+      // time_checked (API) hoặc timeChecked (map)
+      const hasTimeChecked = !!(b.time_checked ?? b.timeChecked);
+      const scanBy = !!(b.scan_by ?? b.scanBy);
+      const scanStatus = b.scan_status === true || b.scanStatus === true;
+      const confirmed = b.confirmed === true || b.confirm === true;
+      return hasTimeChecked || scanBy || scanStatus || confirmed;
+    };
+
+    // 1) Đếm từ detailList (những pallet có palletCode)
     for (const p of this.detailList || []) {
       const listBox = Array.isArray(p.listBox) ? p.listBox : [];
 
       if (listBox.length > 0) {
-        // Nếu pallet có listBox, đếm từng box trong listBox
         for (const b of listBox) {
-          // box object có thể có tên trường 'confirmed' hoặc 'confirm' hoặc 'scan_status'
-          const boxConfirmed = b.confirmed === true || b.confirm === true || b.scan_status === true;
-          // Nếu backend không lưu confirmed trên box nhưng pallet đã scan, ta coi box là đã scan
-          if (boxConfirmed || isPalletScanned(p)) {
+          // listBox có thể chứa object từ API (snake_case) hoặc đã map; dùng isBoxScannedFromApi
+          if (isBoxScannedFromApi(b) || isPalletScanned(p)) {
             count++;
           }
         }
       } else {
-        // Không có listBox: dùng boxesInPallet nếu pallet được scan
+        // pallet có boxesInPallet nhưng không có listBox: nếu pallet được đánh scan thì cộng boxesInPallet
         const boxesFromNum = Number(p.boxesInPallet ?? 0);
         if (boxesFromNum > 0 && isPalletScanned(p)) {
           count += boxesFromNum;
@@ -419,16 +453,20 @@ export class PheDuyetComponent implements OnInit {
       }
     }
 
-    // Đếm từ pagedBoxList (thùng độc lập)
+    // 2) Đếm các box độc lập trong pagedBoxList (những pallet không có serial được map thành box riêng)
     for (const b of this.pagedBoxList || []) {
-      // BoxItem có field 'confirm' boolean theo interface
-      if (b.confirm === true || (b as any).confirmed === true || (b as any).scan_status === true) {
+      // pagedBoxList dùng interface BoxItem: timeChecked, scanBy, confirm
+      const hasTimeChecked = !!(b.timeChecked ?? '');
+      const hasScanBy = !!(b.scanBy ?? '');
+      const confirmed = b.confirm === true;
+      if (hasTimeChecked || hasScanBy || confirmed) {
         count++;
       }
     }
 
     return count;
   }
+
 
 
   private executeApprove(): void {

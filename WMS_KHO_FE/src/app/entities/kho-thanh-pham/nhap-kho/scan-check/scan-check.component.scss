@@ -665,6 +665,16 @@
     margin: 0;
   }
 }
+.debug-log-box {
+  margin-top: 8px;
+  max-height: 150px;
+  overflow: auto;
+  background: #111;
+  color: #0f0;
+  font-size: 12px;
+  padding: 6px;
+  border-radius: 6px;
+}
 
 // Đảm bảo video camera hiển thị đúng
 ::ng-deep zxing-scanner {

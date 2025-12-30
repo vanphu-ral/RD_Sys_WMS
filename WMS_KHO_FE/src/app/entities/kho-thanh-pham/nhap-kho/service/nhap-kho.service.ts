@@ -288,7 +288,7 @@ export class NhapKhoService {
   }
   // nhap-kho.service.ts
   patchImportRequirement(id: number, body: any): Observable<any> {
-    return this.http.patch(this.baseUrl + `/api/import-requirements/${id}`, body);
+    return this.http.patch(this.baseUrl + `/import-requirements/${id}`, body);
   }
 
 }
