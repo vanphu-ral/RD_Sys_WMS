@@ -286,4 +286,9 @@ export class NhapKhoService {
     const url = `${this.baseUrl}/warehouse-import/requirements/${id}/status?status=${status}`;
     return this.http.patch(url, {});
   }
+  // nhap-kho.service.ts
+  patchImportRequirement(id: number, body: any): Observable<any> {
+    return this.http.patch(this.baseUrl + `/api/import-requirements/${id}`, body);
+  }
+
 }

@@ -7,6 +7,7 @@ import { NhapKhoService } from '../service/nhap-kho.service';
 import { BoxListDialogComponent } from '../dialog/box-list-dialog.component';
 import { StringLengthRule } from 'devextreme/common';
 import { ConfirmDialogComponent } from '../../chuyen-kho/dialog/confirm-dialog.component';
+import { switchMap } from 'rxjs';
 export interface DetailItem {
   id: number;
   // nếu không có trường warehouse_import_requirement_id trong API mới, có thể để optional
@@ -383,26 +384,85 @@ export class PheDuyetComponent implements OnInit {
     this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']);
   }
 
-  private executeApprove(): void {
-    if (this.importId === undefined)
-      return;
-    this.isProcessingApprove = true;
-    this.nhapKhoService.updateStatus(this.importId, true).subscribe({
-      next: () => {
-        this.isProcessingApprove = false;
-        this.snackBar.open('Phê duyệt thành công!', 'Đóng', {
-          duration: 3000,
-          panelClass: ['snackbar-success'],
-        });
-        this.loadData(this.importId!);
-      },
-      error: (err) => {
-        this.isProcessingApprove = false;
-        console.error('Lỗi khi phê duyệt:', err);
-        this.snackBar.open('Phê duyệt thất bại!', 'Đóng', {
-          duration: 3000, panelClass: ['snackbar-error'],
-        });
+  private computeBoxScanProgress(): number {
+    let count = 0;
+
+    // Helper: kiểm tra xem một pallet có được coi là "đã scan"
+    const isPalletScanned = (p: any): boolean => {
+      // p.scanStatus trong DetailItem là 'Đã scan' | 'Chưa scan'
+      if ((p.scanStatus ?? '').toString().toLowerCase().includes('đã')) return true;
+      // hoặc backend có thể trả boolean p.scan_status
+      if (p.scan_status === true) return true;
+      return false;
+    };
+
+    // Đếm từ detailList (pallets)
+    for (const p of this.detailList || []) {
+      const listBox = Array.isArray(p.listBox) ? p.listBox : [];
+
+      if (listBox.length > 0) {
+        // Nếu pallet có listBox, đếm từng box trong listBox
+        for (const b of listBox) {
+          // box object có thể có tên trường 'confirmed' hoặc 'confirm' hoặc 'scan_status'
+          const boxConfirmed = b.confirmed === true || b.confirm === true || b.scan_status === true;
+          // Nếu backend không lưu confirmed trên box nhưng pallet đã scan, ta coi box là đã scan
+          if (boxConfirmed || isPalletScanned(p)) {
+            count++;
+          }
+        }
+      } else {
+        // Không có listBox: dùng boxesInPallet nếu pallet được scan
+        const boxesFromNum = Number(p.boxesInPallet ?? 0);
+        if (boxesFromNum > 0 && isPalletScanned(p)) {
+          count += boxesFromNum;
+        }
       }
-    });
+    }
+
+    // Đếm từ pagedBoxList (thùng độc lập)
+    for (const b of this.pagedBoxList || []) {
+      // BoxItem có field 'confirm' boolean theo interface
+      if (b.confirm === true || (b as any).confirmed === true || (b as any).scan_status === true) {
+        count++;
+      }
+    }
+
+    return count;
   }
+
+
+  private executeApprove(): void {
+    if (this.importId === undefined) return;
+
+    this.isProcessingApprove = true;
+
+    const progress = this.computeBoxScanProgress();
+    console.log('[Approve] box_scan_progress to set:', progress);
+
+    // Gọi PATCH trước, sau đó gọi updateStatus
+    this.nhapKhoService.patchImportRequirement(this.importId, { box_scan_progress: progress })
+      .pipe(
+        switchMap(() => this.nhapKhoService.updateStatus(this.importId!, true))
+      )
+      .subscribe({
+        next: () => {
+          this.isProcessingApprove = false;
+          this.snackBar.open('Phê duyệt thành công!', 'Đóng', {
+            duration: 3000,
+            panelClass: ['snackbar-success'],
+          });
+          this.loadData(this.importId!);
+        },
+        error: (err) => {
+          this.isProcessingApprove = false;
+          console.error('Lỗi khi phê duyệt hoặc cập nhật progress:', err);
+          this.snackBar.open('Phê duyệt thất bại! Vui lòng thử lại.', 'Đóng', {
+            duration: 3000,
+            panelClass: ['snackbar-error'],
+          });
+        }
+      });
+  }
+
+
 }
