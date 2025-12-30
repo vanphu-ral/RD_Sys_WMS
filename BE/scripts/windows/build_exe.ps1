@@ -37,7 +37,8 @@ Write-Host "Building executable..." -ForegroundColor Green
 Set-Location $PROJECT_ROOT
 
 # Run PyInstaller
-& pyinstaller --onefile --windowed --name warehouse-be run.py
+# & pyinstaller --onefile --windowed --name warehouse-be run.py
+py -m PyInstaller --onefile --windowed --name warehouse-be run.py
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "Build completed successfully!" -ForegroundColor Green

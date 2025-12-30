@@ -1,7 +1,7 @@
 
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class ProductBase(BaseModel):
@@ -152,6 +152,43 @@ class LocationListResponse(BaseModel):
     data: list[LocationResponse]
     meta: LocationListMeta
 
+class WarehouseImportRequirementUpdate(BaseModel):
+    """Schema for updating warehouse import requirement - only fields provided will be updated"""
+    po_number: Optional[str] = None
+    client_id: Optional[str] = None
+    inventory_code: Optional[str] = None
+    inventory_name: Optional[str] = None
+    number_of_pallet: Optional[int] = None
+    number_of_box: Optional[int] = None
+    quantity: Optional[int] = None
+    box_scan_progress: Optional[int] = None
+    wo_code: Optional[str] = None
+    lot_number: Optional[str] = None
+    production_date: Optional[str] = None
+    branch: Optional[str] = None
+    production_team: Optional[str] = None
+    production_decision_number: Optional[str] = None
+    item_no_sku: Optional[str] = None
+    status: Optional[bool] = None
+    approver: Optional[str] = None  # Max 10 chars to fit database String(10)
+    is_check_all: Optional[bool] = None
+    note: Optional[str] = None
+    destination_warehouse: Optional[int] = None
+    pallet_note_creation_session_id: Optional[int] = None
+    inventory_code: Optional[str] = None
+    created_by: Optional[str] = None  # Max 10 chars to fit database String(10)
+    deleted_at: Optional[datetime] = None
+    deleted_by: Optional[str] = None  # Max 10 chars to fit database String(10)
+    updated_by: Optional[str] = None  # Max 10 chars to fit database String(10)
+
+    @field_validator('approver', 'created_by', 'deleted_by', 'updated_by')
+    def validate_string_10(cls, v):
+        """Validate that string fields with 10 char limit don't exceed it"""
+        if v is not None and len(v) > 10:
+            raise ValueError(f'Value must be 10 characters or less, got {len(v)} characters')
+        return v
+
+
 class GeneralInfo(BaseModel):
     """Schema for general import information"""
     po_number: Optional[str] = None
@@ -191,11 +228,12 @@ class WarehouseImportResponse(BaseModel):
     id: int
     po_number: Optional[str] = None
     po_code: Optional[int] = None
-    client_id: Optional[int] = None
+    client_id: Optional[str] = None
     inventory_name: Optional[str] = None
     number_of_pallet: Optional[int] = None
     number_of_box: Optional[int] = None
     quantity: Optional[int] = None
+    box_scan_progress: Optional[int] = None
     wo_code: str
     lot_number: str
     status: bool
@@ -207,6 +245,7 @@ class WarehouseImportResponse(BaseModel):
     deleted_at: Optional[datetime] = None
     deleted_by: Optional[str] = None
     branch: Optional[str] = None
+    box_scan_progress: Optional[int] = None
     production_team: Optional[str] = None
     production_decision_number: Optional[str] = None
     item_no_sku: Optional[str] = None
@@ -436,12 +475,39 @@ class InventoriesInOSRResponse(BaseModel):
 
 
 class UpdateContainerInventoryRequest(BaseModel):
-    """Schema for updating container inventory quantity and confirmed status"""
+    """Schema for updating container inventory - only fields provided will be updated"""
     import_container_id: int
     inventory_identifier: str
-    quantity_imported: int
-    confirmed: bool
+    quantity_imported: Optional[int] = None
+    confirmed: Optional[bool] = None
     location_id: Optional[int] = None
+
+class SimpleContainerInventoryUpdate(BaseModel):
+    """Simplified schema for updating container inventory by ID with confirmed field"""
+    id: int
+    confirmed: bool
+
+class UpdateContainerInventoryByIdRequest(BaseModel):
+    """Schema for updating container inventory by ID - only fields provided will be updated"""
+    id: int
+    import_pallet_id: Optional[int] = None
+    manufacturing_date: Optional[datetime] = None
+    expiration_date: Optional[datetime] = None
+    sap_code: Optional[str] = None
+    po: Optional[str] = None
+    lot: Optional[str] = None
+    vendor: Optional[str] = None
+    msd_level: Optional[str] = None
+    comments: Optional[str] = None
+    name: Optional[str] = None
+    import_container_id: Optional[int] = None
+    inventory_identifier: Optional[str] = None
+    location_id: Optional[int] = None
+    serial_pallet: Optional[str] = None
+    quantity_imported: Optional[int] = None
+    scan_by: Optional[str] = None
+    confirmed: Optional[bool] = None
+    list_serial_items: Optional[str] = None
 
 class UpdateInventoriesInIWTRRequest(BaseModel):
     product_in_iwtr_id: int
@@ -453,6 +519,34 @@ class UpdateInventoriesInIWTRRequest(BaseModel):
 class BulkUpdateContainerInventoryRequest(BaseModel):
 
     updates: list[UpdateContainerInventoryRequest]
+
+class BulkSimpleContainerInventoryUpdate(BaseModel):
+    """Bulk update schema for simplified container inventory updates"""
+    updates: list[SimpleContainerInventoryUpdate]
+
+class BulkUpdateContainerInventoryByIdRequest(BaseModel):
+    """Schema for bulk updating container inventory by ID"""
+    updates: list[UpdateContainerInventoryByIdRequest]
+
+class UpdateImportPalletInfoRequest(BaseModel):
+    """Schema for updating import pallet info"""
+    id: int
+    serial_pallet: Optional[str] = None
+    quantity_per_box: Optional[int] = None
+    num_box_per_pallet: Optional[int] = None
+    total_quantity: Optional[int] = None
+    po_number: Optional[str] = None
+    customer_name: Optional[str] = None
+    production_decision_number: Optional[str] = None
+    item_no_sku: Optional[str] = None
+    date_code: Optional[str] = None
+    note: Optional[str] = None
+    scan_status: Optional[bool] = None
+    confirmed: Optional[bool] = None
+
+class BulkUpdateImportPalletInfoRequest(BaseModel):
+    """Schema for bulk updating import pallet info"""
+    updates: list[UpdateImportPalletInfoRequest]
 
 class BulkUpdateInventoriesInIWTRRequest(BaseModel):
 
@@ -511,6 +605,7 @@ class WMSGeneralInfo(BaseModel):
     quantity: Optional[int] = None
     destination_warehouse: Optional[int] = None
     pallet_note_creation_id: Optional[int] = None
+    item_no_sku: Optional[str] = None
     list_pallet: list[PalletInfo]
 
 

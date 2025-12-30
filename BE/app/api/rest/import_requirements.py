@@ -14,7 +14,8 @@ from app.modules.inventory.schemas import (
     WMSImportRequest,
     WMSImportResponse,
     ContainerInventoryCreate,
-    ContainerInventoryResponse
+    ContainerInventoryResponse,
+    WarehouseImportRequirementUpdate
 )
 from app.modules.inventory.models import WarehouseImportRequirement, WarehouseImportContainer
 from datetime import datetime
@@ -46,6 +47,29 @@ async def get_import_requirement_details(
         return wms_data
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Import requirement with ID {req_id} not found: {str(e)}")
+
+
+@router.patch("/{req_id}", response_model=WarehouseImportResponse)
+async def update_import_requirement(
+    req_id: int,
+    update_request: WarehouseImportRequirementUpdate,
+    db: AsyncSession = Depends(get_db),
+    # #current_user: str = Depends(get_current_user)
+):
+    """Update warehouse import requirement by ID - only fields provided will be updated"""
+    try:
+        # Convert the Pydantic model to dict for the service
+        update_data = update_request.model_dump(exclude_unset=True)
+        
+        # Add updated_by if not provided
+        if 'updated_by' not in update_data:
+            update_data['updated_by'] = "system"  # Must be <= 10 chars to fit String(10) column
+        
+        updated_requirement = await WarehouseImportService.update_import_requirement(db, req_id, update_data)
+        
+        return WarehouseImportResponse.model_validate(updated_requirement)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error updating import requirement: {str(e)}")
 
 
 @router.post("/", response_model=dict)
@@ -130,7 +154,7 @@ async def create_container_inventory(
 async def get_container_inventories_by_import_container_id(
     import_container_id: int,
     page: int = 1,
-    size: int = 20,
+    size: int = 200,
     db: AsyncSession = Depends(get_db),
     #current_user: str = Depends(get_current_user)
 ):

@@ -436,7 +436,7 @@ class IWTRSimpleRequest(BaseModel):
     note: str = Field(..., max_length=255, description="Ghi chú")
     series_pgh: str = Field(..., max_length=50, description="Series PGH")
     tu_kho: int = Field(..., description="ID kho xuất")
-    updated_by: str = Field(..., max_length=10, description="Người cập nhật")
+    updated_by: str = Field(..., max_length=15, description="Người cập nhật")
 
     class Config:
         json_schema_extra = {

@@ -12,13 +12,14 @@ from app.modules.inventory.models import (
      InternalWarehouseTransferRequest,
      OutboundShipmentRequestOnOrder,
      WarehouseImportContainer,
+     ImportPalletInfo,
      ContainerInventory,
      ProductsInIWTR,
      InventoriesInIWTR,
      ProductsInOSR,
      InventoriesInOSR,
      WarehouseNoteInfoApproval
- )
+)
 from app.core.exceptions import NotFoundException, HTTPException
 
 
@@ -566,17 +567,14 @@ class AreaService:
         is_active: Optional[bool] = None
     ) -> dict:
         from sqlalchemy import and_
-        
-        # lọc is_active = true
+    
 
         query = select(Area)
         
         # Apply filters
         filters = []
-        if is_active is None:
-            filters.append(Area.is_active == True)
-        else:
-            filters.append(Area.is_active == is_active)
+        if is_active:
+            filters.append(Area.is_activeilike(f"%{is_active}%"))
         if code:
             filters.append(Area.code.ilike(f"%{code}%"))
         if name:
@@ -1061,6 +1059,10 @@ class WarehouseImportService:
                     "box_code": box.inventory_identifier,
                     "quantity": box.quantity_imported,
                     "note": box.comments,
+                    "import_pallet_id": box.import_pallet_id,
+                    "confirmed": box.confirmed,
+                    "scan_by": box.scan_by,
+                    "time_checked": box.time_checked,
                     "list_serial_items": box.list_serial_items
                 }
                 for box in boxes
@@ -1079,6 +1081,8 @@ class WarehouseImportService:
                 "date_code": pallet.date_code,
                 "production_date": pallet.production_date,
                 "note": pallet.note,
+                "scan_status": pallet.scan_status,
+                "confirmed": pallet.confirmed,
                 "list_box": list_box
             }
             list_pallet.append(pallet_info)
@@ -1143,6 +1147,73 @@ class WarehouseImportService:
         return req
 
     @staticmethod
+    async def update_import_requirement(db: AsyncSession, req_id: int, update_data: dict) -> WarehouseImportRequirement:
+        """Update warehouse import requirement by ID - only fields provided will be updated"""
+        async with db.begin():
+            req = await WarehouseImportService.get_import_requirement_by_id(db, req_id)
+            
+            # Only update fields that are provided in the request
+            if 'po_number' in update_data:
+                req.po_number = update_data.get('po_number')
+            if 'client_id' in update_data:
+                req.client_id = update_data.get('client_id')
+            if 'inventory_code' in update_data:
+                req.inventory_code = update_data.get('inventory_code')
+            if 'inventory_name' in update_data:
+                req.inventory_name = update_data.get('inventory_name')
+            if 'number_of_pallet' in update_data:
+                req.number_of_pallet = update_data.get('number_of_pallet')
+            if 'number_of_box' in update_data:
+                req.number_of_box = update_data.get('number_of_box')
+            if 'quantity' in update_data:
+                req.quantity = update_data.get('quantity')
+            if 'box_scan_progress' in update_data:
+                req.box_scan_progress = update_data.get('box_scan_progress')
+            if 'wo_code' in update_data:
+                req.wo_code = update_data.get('wo_code')
+            if 'lot_number' in update_data:
+                req.lot_number = update_data.get('lot_number')
+            if 'production_date' in update_data:
+                req.production_date = update_data.get('production_date')
+            if 'branch' in update_data:
+                req.branch = update_data.get('branch')
+            if 'production_team' in update_data:
+                req.production_team = update_data.get('production_team')
+            if 'production_decision_number' in update_data:
+                req.production_decision_number = update_data.get('production_decision_number')
+            if 'item_no_sku' in update_data:
+                req.item_no_sku = update_data.get('item_no_sku')
+            if 'status' in update_data:
+                req.status = update_data.get('status')
+            if 'approver' in update_data:
+                req.approver = update_data.get('approver')
+            if 'is_check_all' in update_data:
+                req.is_check_all = update_data.get('is_check_all')
+            if 'note' in update_data:
+                req.note = update_data.get('note')
+            if 'destination_warehouse' in update_data:
+                req.destination_warehouse = update_data.get('destination_warehouse')
+            if 'pallet_note_creation_session_id' in update_data:
+                req.pallet_note_creation_session_id = update_data.get('pallet_note_creation_session_id')
+            if 'inventory_code' in update_data:
+                req.inventory_code = update_data.get('inventory_code')
+            if 'created_by' in update_data:
+                req.created_by = update_data.get('created_by')
+            if 'deleted_at' in update_data:
+                req.deleted_at = update_data.get('deleted_at')
+            if 'deleted_by' in update_data:
+                req.deleted_by = update_data.get('deleted_by')
+            if 'updated_by' in update_data:
+                req.updated_by = update_data.get('updated_by')
+            
+            # Update the updated_date to current time
+            req.updated_date = func.now()
+            
+            await db.flush()
+            await db.refresh(req)
+            return req
+
+    @staticmethod
     async def confirm_import_requirement_location(db: AsyncSession, req_id: int, location_id: int) -> WarehouseImportRequirement:
         req = await WarehouseImportService.get_import_requirement_by_id(db, req_id)
         # Logic to confirm location
@@ -1197,9 +1268,6 @@ class WarehouseImportService:
             for update_data in updates:
                 import_container_id = update_data.get('import_container_id')
                 inventory_identifier = update_data.get('inventory_identifier')
-                quantity_imported = update_data.get('quantity_imported')
-                confirmed = update_data.get('confirmed')
-                location_id = update_data.get('location_id')
                 # Find the container inventory
                 result = await db.execute(
                     select(ContainerInventory).where(
@@ -1212,10 +1280,14 @@ class WarehouseImportService:
                 if not container_inventory:
                     raise NotFoundException("ContainerInventory", f"import_container_id={import_container_id}, inventory_identifier={inventory_identifier}")
 
-                container_inventory.quantity_imported = quantity_imported
-                container_inventory.confirmed = confirmed
-                if location_id is not None:
-                    container_inventory.location_id = location_id
+                # Only update fields that are provided in the request
+                if 'quantity_imported' in update_data:
+                    container_inventory.quantity_imported = update_data.get('quantity_imported')
+                if 'confirmed' in update_data:
+                    container_inventory.confirmed = update_data.get('confirmed')
+                if 'location_id' in update_data:
+                    container_inventory.location_id = update_data.get('location_id')
+
                 updated_inventories.append(container_inventory)
 
             await db.flush()
@@ -1223,6 +1295,161 @@ class WarehouseImportService:
                 await db.refresh(inventory)
 
         return updated_inventories
+
+    @staticmethod
+    async def update_container_inventory_by_id(
+        db: AsyncSession,
+        updates: List[dict]
+    ) -> List[ContainerInventory]:
+        """Update container inventory by ID - supports partial updates"""
+        from sqlalchemy import select
+
+        updated_inventories = []
+
+        async with db.begin():
+            for update_data in updates:
+                container_id = update_data.get('id')
+                # Find the container inventory by ID
+                result = await db.execute(
+                    select(ContainerInventory).where(
+                        ContainerInventory.id == container_id
+                    )
+                )
+                container_inventory = result.scalar_one_or_none()
+
+                if not container_inventory:
+                    raise NotFoundException("ContainerInventory", f"id={container_id}")
+
+                # Only update fields that are provided in the request
+                if 'manufacturing_date' in update_data:
+                    container_inventory.manufacturing_date = update_data.get('manufacturing_date')
+                if 'expiration_date' in update_data:
+                    container_inventory.expiration_date = update_data.get('expiration_date')
+                if 'sap_code' in update_data:
+                    container_inventory.sap_code = update_data.get('sap_code')
+                if 'po' in update_data:
+                    container_inventory.po = update_data.get('po')
+                if 'lot' in update_data:
+                    container_inventory.lot = update_data.get('lot')
+                if 'vendor' in update_data:
+                    container_inventory.vendor = update_data.get('vendor')
+                if 'msd_level' in update_data:
+                    container_inventory.msd_level = update_data.get('msd_level')
+                if 'comments' in update_data:
+                    container_inventory.comments = update_data.get('comments')
+                if 'name' in update_data:
+                    container_inventory.name = update_data.get('name')
+                if 'location_id' in update_data:
+                    container_inventory.location_id = update_data.get('location_id')
+                if 'serial_pallet' in update_data:
+                    container_inventory.serial_pallet = update_data.get('serial_pallet')
+                if 'quantity_imported' in update_data:
+                    container_inventory.quantity_imported = update_data.get('quantity_imported')
+                if 'scan_by' in update_data:
+                    container_inventory.scan_by = update_data.get('scan_by')
+                if 'confirmed' in update_data:
+                    container_inventory.confirmed = update_data.get('confirmed')
+
+                updated_inventories.append(container_inventory)
+
+            await db.flush()
+            for inventory in updated_inventories:
+                await db.refresh(inventory)
+
+        return updated_inventories
+
+    @staticmethod
+    async def update_container_inventory_simple(
+        db: AsyncSession,
+        updates: List[dict]
+    ) -> List[ContainerInventory]:
+        """Update container inventory confirmed status by ID - simplified version"""
+        from sqlalchemy import select
+
+        updated_inventories = []
+
+        async with db.begin():
+            for update_data in updates:
+                container_id = update_data.get('id')
+                confirmed = update_data.get('confirmed')
+                # Find the container inventory by ID
+                result = await db.execute(
+                    select(ContainerInventory).where(
+                        ContainerInventory.id == container_id
+                    )
+                )
+                container_inventory = result.scalar_one_or_none()
+
+                if not container_inventory:
+                    raise NotFoundException("ContainerInventory", f"id={container_id}")
+
+                # Only update the confirmed field
+                container_inventory.confirmed = confirmed
+                updated_inventories.append(container_inventory)
+
+            await db.flush()
+            for inventory in updated_inventories:
+                await db.refresh(inventory)
+
+        return updated_inventories
+
+    @staticmethod
+    async def update_import_pallet_info_by_id(
+        db: AsyncSession,
+        updates: List[dict]
+    ) -> List[ImportPalletInfo]:
+        """Update import pallet info by ID"""
+        from sqlalchemy import select
+
+        updated_pallets = []
+
+        async with db.begin():
+            for update_data in updates:
+                pallet_id = update_data.get('id')
+                # Find the import pallet info
+                result = await db.execute(
+                    select(ImportPalletInfo).where(
+                        ImportPalletInfo.id == pallet_id
+                    )
+                )
+                pallet_info = result.scalar_one_or_none()
+
+                if not pallet_info:
+                    raise NotFoundException("ImportPalletInfo", f"id={pallet_id}")
+
+                # Update fields if provided
+                if 'serial_pallet' in update_data:
+                    pallet_info.serial_pallet = update_data.get('serial_pallet')
+                if 'quantity_per_box' in update_data:
+                    pallet_info.quantity_per_box = update_data.get('quantity_per_box')
+                if 'num_box_per_pallet' in update_data:
+                    pallet_info.num_box_per_pallet = update_data.get('num_box_per_pallet')
+                if 'total_quantity' in update_data:
+                    pallet_info.total_quantity = update_data.get('total_quantity')
+                if 'po_number' in update_data:
+                    pallet_info.po_number = update_data.get('po_number')
+                if 'customer_name' in update_data:
+                    pallet_info.customer_name = update_data.get('customer_name')
+                if 'production_decision_number' in update_data:
+                    pallet_info.qdsx_no = update_data.get('production_decision_number')
+                if 'item_no_sku' in update_data:
+                    pallet_info.item_no_sku = update_data.get('item_no_sku')
+                if 'date_code' in update_data:
+                    pallet_info.date_code = update_data.get('date_code')
+                if 'note' in update_data:
+                    pallet_info.note = update_data.get('note')
+                if 'scan_status' in update_data:
+                    pallet_info.scan_status = update_data.get('scan_status')
+                if 'confirmed' in update_data:
+                    pallet_info.confirmed = update_data.get('confirmed')
+
+                updated_pallets.append(pallet_info)
+
+            await db.flush()
+            for pallet in updated_pallets:
+                await db.refresh(pallet)
+
+        return updated_pallets
 
     @staticmethod
     async def create_wms_import_with_nested_data(db: AsyncSession, import_data: dict) -> dict:
@@ -1257,6 +1484,7 @@ class WarehouseImportService:
                 'note': general_info.get('note'),
                 'destination_warehouse': general_info.get('destination_warehouse'),
                 'pallet_note_creation_session_id': general_info.get('pallet_note_creation_id'),
+                'item_no_sku': general_info.get('item_no_sku'),
                 'created_by': general_info.get('created_by'),
                 'updated_by': general_info.get('created_by')
             }
