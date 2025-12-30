@@ -558,37 +558,35 @@
         </button>
     </div>
 </div>
-
 <!-- Camera Scanner Overlay -->
 <div class="qr-scanner-overlay" *ngIf="isScanning" (click)="stopScanning()">
     <div class="qr-scanner-modal" (click)="$event.stopPropagation()">
         <div class="scanner-header">
             <h3>Quét mã {{ scannerActive === 'pallet' ? (selectedMode === 'pallet' ? 'Pallet' : 'Thùng') : 'Location' }}</h3>
-            <button mat-icon-button (click)="stopScanning()" class="close-scanner-btn">
+            <button mat-icon-button (click)="stopScanning()">
                 <mat-icon>close</mat-icon>
             </button>
         </div>
-        
+
+        <!-- ZXing Scanner - ĐƠN GIẢN -->
         <zxing-scanner 
-            *ngIf="hasPermission && currentDevice"
+            *ngIf="hasPermission"
             [device]="currentDevice" 
-            [formats]="formats" 
-            [autostart]="true"
+            [formats]="formats"
             [tryHarder]="true"
             (scanSuccess)="onScanSuccess($event)"
-            (camerasFound)="availableDevices = $event"
             (camerasNotFound)="onCamerasNotFound()"
             (permissionResponse)="hasPermission = $event"
             (scanError)="onCameraError($event)"
-            [style.width.%]="100"
-            [style.height.px]="300">
+            style="width: 100%; height: 300px;">
         </zxing-scanner>
 
-        <div *ngIf="!hasPermission || !currentDevice" class="camera-loading">
+        <!-- Loading khi chưa có permission -->
+        <div *ngIf="!hasPermission" class="camera-loading">
             <mat-spinner diameter="40"></mat-spinner>
             <p>Đang khởi động camera...</p>
         </div>
-        
+
         <p class="scanner-hint">Đưa mã vào khung hình để quét</p>
     </div>
 </div>

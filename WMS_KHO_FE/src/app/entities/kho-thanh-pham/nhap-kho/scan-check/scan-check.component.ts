@@ -371,22 +371,22 @@ export class ScanCheckComponent implements OnInit {
       return;
     }
 
-
     this.scannerActive = field;
     this.isScanning = true;
 
+    // Đợi UI render xong rồi khởi tạo camera
     setTimeout(() => {
       this.initCamera();
-    }, 300);
+    }, 100);
   }
 
-  //khởi tạo camera
   initCamera(): void {
     console.log('[Camera] Initializing camera...');
 
-    this.hasPermission = false;
-    this.currentDevice = undefined;
+    // Cho phép ZXingScanner tự xin quyền và chọn camera
+    this.hasPermission = true;
 
+    // Enumerate devices để ưu tiên back camera
     navigator.mediaDevices.enumerateDevices()
       .then((devices) => {
         this.availableDevices = devices.filter(d => d.kind === 'videoinput');
@@ -394,127 +394,94 @@ export class ScanCheckComponent implements OnInit {
         console.log('[Camera] Available cameras:', this.availableDevices);
 
         if (this.availableDevices.length === 0) {
-          this.snackBar.open('Không tìm thấy camera!', 'Đóng', { duration: 3000 });
-          this.stopScanning();
+          console.warn('[Camera] No cameras found');
           return;
         }
 
-        // Ưu tiên camera sau
+        // Ưu tiên camera sau (back camera)
         const backCamera = this.availableDevices.find(d =>
           d.label.toLowerCase().includes('back') ||
           d.label.toLowerCase().includes('rear') ||
           d.label.toLowerCase().includes('environment')
         );
 
+        // Nếu không tìm thấy back camera, dùng camera cuối cùng
         this.currentDevice = backCamera || this.availableDevices[this.availableDevices.length - 1];
 
-        console.log('[Camera] Selected camera:', this.currentDevice);
-
-        // Delay dài hơn để đảm bảo UI đã render và không conflict
-        setTimeout(() => {
-          this.hasPermission = true;
-        }, 300);
+        console.log('[Camera] Selected camera:', this.currentDevice?.label || 'default');
       })
       .catch((err) => {
         console.error('[Camera] Error enumerating devices:', err);
-        this.snackBar.open('Lỗi khi truy cập camera!', 'Đóng', { duration: 3000 });
-        this.stopScanning();
+        // Không cần hiện lỗi ở đây, để ZXingScanner tự xử lý
       });
   }
+
   onCamerasNotFound(): void {
-    console.error('No cameras found');
-    this.snackBar.open('Không tìm thấy camera!', 'Đóng', { duration: 3000 });
+    console.error('[Camera] No cameras found');
+    this.snackBar.open('Không tìm thấy camera trên thiết bị!', 'Đóng', { duration: 3000 });
     this.stopScanning();
   }
+
   onPermissionDenied(): void {
-    console.error('[Camera] Camera permission denied by user');
+    console.error('[Camera] Camera permission denied');
     this.hasPermission = false;
 
     const userAgent = navigator.userAgent.toLowerCase();
     let instruction = '';
 
     if (userAgent.includes('android')) {
-      instruction = ' Trên Android: Vào Cài đặt > Ứng dụng > Trình duyệt > Quyền > Bật Camera.';
+      instruction = ' Android: Cài đặt → Ứng dụng → Trình duyệt → Quyền → Bật Camera.';
     } else if (userAgent.includes('iphone') || userAgent.includes('ipad')) {
-      instruction = ' Trên iOS: Vào Cài đặt > Safari > Camera > Cho phép.';
+      instruction = ' iOS: Cài đặt → Safari → Camera → Cho phép.';
     }
 
     this.snackBar.open(
-      'Bạn cần cấp quyền camera để quét mã!' + instruction,
+      'Cần cấp quyền camera!' + (instruction ? ' ' + instruction : ''),
       'Đóng',
-      { duration: 8000 }
+      { duration: 6000 }
     );
 
     this.stopScanning();
   }
-  // THÊM hàm này vào component
+
   onCameraError(error: any): void {
-    console.error('[Camera] Camera error:', error);
-    console.error('[Camera] Error details:', {
-      name: error.name,
-      message: error.message,
-      constraint: error.constraint
-    });
+    console.error('[Camera] Error:', error?.name, error?.message);
 
-    let errorMessage = 'Lỗi camera!';
-    let shouldRetry = false;
+    let errorMessage = 'Lỗi khi mở camera!';
 
-    if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-      errorMessage = 'Bạn đã từ chối quyền truy cập camera. Vui lòng bật trong cài đặt trình duyệt.';
-      this.hasPermission = false;
-    } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-      errorMessage = 'Không tìm thấy camera trên thiết bị!';
-      this.hasPermission = false;
-    } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-      errorMessage = 'Camera đang được sử dụng. Đang thử camera khác...';
-
-      const currentIndex = this.availableDevices.findIndex(d => d.deviceId === this.currentDevice?.deviceId);
-      if (currentIndex >= 0 && currentIndex < this.availableDevices.length - 1) {
-        console.log('[Camera] Switching to next camera...');
-        shouldRetry = true;
-
-        setTimeout(() => {
-          this.currentDevice = this.availableDevices[currentIndex + 1];
-          this.hasPermission = false;
-
-          setTimeout(() => {
-            this.hasPermission = true;
-          }, 500);
-        }, 500);
-      } else {
-        errorMessage = 'Tất cả camera đều đang bận. Vui lòng đóng các ứng dụng camera khác.';
-        this.hasPermission = false;
-      }
-    } else if (error.name === 'OverconstrainedError') {
-      errorMessage = 'Camera không hỗ trợ cài đặt này!';
-      this.hasPermission = false;
-    } else {
-      errorMessage = `Lỗi camera: ${error.message || 'Không xác định'}`;
-      this.hasPermission = false;
+    // Chỉ xử lý các lỗi quan trọng
+    if (error?.name === 'NotAllowedError') {
+      errorMessage = 'Bạn đã từ chối quyền camera. Vui lòng cho phép và thử lại.';
+    } else if (error?.name === 'NotFoundError') {
+      errorMessage = 'Không tìm thấy camera!';
+    } else if (error?.name === 'NotReadableError') {
+      errorMessage = 'Camera đang được sử dụng bởi ứng dụng khác. Vui lòng đóng và thử lại.';
     }
 
     this.snackBar.open(errorMessage, 'Đóng', { duration: 4000 });
-
-    if (!shouldRetry) {
-      this.stopScanning();
-    }
+    this.stopScanning();
   }
+
   onScanSuccess(decodedText: string): void {
     const code = decodedText.trim();
+
+    // Chống scan trùng
     if (code === this.lastScannedCode) return;
     this.lastScannedCode = code;
 
+    // Phân loại mã
     if (code.startsWith('P')) {
       this.scanPallet = code;
-      this.snackBar.open('✓ Đã scan pallet!', '', { duration: 1500 });
+      this.snackBar.open('✓ Đã quét pallet!', '', { duration: 1500 });
     } else if (code.startsWith('B')) {
       this.scanPallet = code;
-      this.snackBar.open('✓ Đã scan thùng!', '', { duration: 1500 });
+      this.snackBar.open('✓ Đã quét thùng!', '', { duration: 1500 });
     } else {
       this.scanLocation = code;
-      this.snackBar.open('✓ Đã scan location!', '', { duration: 1500 });
+      this.snackBar.open('✓ Đã quét location!', '', { duration: 1500 });
     }
 
+    // Nếu đã có đủ pallet/thùng và location → thực hiện scan
     if (this.scanPallet && this.scanLocation) {
       this.stopScanning();
       setTimeout(() => this.performScan(), 100);
@@ -522,39 +489,26 @@ export class ScanCheckComponent implements OnInit {
   }
 
   stopScanning(): void {
-    console.log('[Camera] Stopping scanner...');
+    console.log('[Camera] Stopping...');
 
     this.lastScannedCode = null;
     this.isScanning = false;
     this.scannerActive = null;
     this.hasPermission = false;
 
-    // Cleanup scanner nếu tồn tại
+    // Cleanup scanner
     if (this.scanner) {
       try {
         this.scanner.reset();
-        console.log('[Camera] Scanner reset successfully');
+        console.log('[Camera] Stopped successfully');
       } catch (e) {
-        console.error('[Camera] Error resetting scanner:', e);
+        console.error('[Camera] Error stopping:', e);
       }
     }
   }
 
   ngOnDestroy(): void {
-    console.log('[Camera] Component destroying...');
-
     this.stopScanning();
-
-    // Đảm bảo cleanup hoàn toàn
-    setTimeout(() => {
-      if (this.scanner) {
-        try {
-          this.scanner.reset();
-        } catch (e) {
-          console.error('[Camera] Error in final cleanup:', e);
-        }
-      }
-    }, 100);
   }
 
   performScan(): void {

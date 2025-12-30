@@ -116,6 +116,7 @@ export class AuthService {
 
       const redirectUri = `${window.location.origin}/auth/callback`;
 
+      // Silent login URL với prompt=none
       const silentLoginUrl =
         `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/auth?` +
         `client_id=${this.CLIENT_ID}&` +
@@ -125,71 +126,61 @@ export class AuthService {
         `state=${state}&` +
         `code_challenge=${codeChallenge}&` +
         `code_challenge_method=S256&` +
-        `prompt=none`; // Silent authentication
+        `prompt=none`; // prompt=none cho silent authentication
 
       return new Promise((resolve) => {
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
         iframe.src = silentLoginUrl;
 
-        // QUAN TRỌNG: Thêm sandbox để cho phép same-origin
+        // Sandbox để cho phép scripts và same-origin
         iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-forms');
 
         const timeout = setTimeout(() => {
           console.log('[AuthService] Silent login timeout');
-          document.body.removeChild(iframe);
-          sessionStorage.removeItem('silent_login');
-          sessionStorage.removeItem('code_verifier');
-          sessionStorage.removeItem('auth_state');
+          cleanup();
           resolve(false);
-        }, 8000); // Tăng timeout lên 8s
+        }, 10000); // 10 giây timeout
 
-        const messageHandler = (event: MessageEvent) => {
-          // QUAN TRỌNG: Kiểm tra origin để tránh XSS
-          if (event.origin !== window.location.origin) {
-            console.warn('[AuthService] Message from wrong origin:', event.origin);
-            return;
-          }
-
-          if (event.data?.type === 'SILENT_LOGIN_SUCCESS') {
-            clearTimeout(timeout);
-            if (document.body.contains(iframe)) {
-              document.body.removeChild(iframe);
-            }
-            window.removeEventListener('message', messageHandler);
-            sessionStorage.removeItem('silent_login');
-            console.log('[AuthService] Silent login successful');
-            resolve(true);
-          } else if (event.data?.type === 'SILENT_LOGIN_FAILED') {
-            clearTimeout(timeout);
-            if (document.body.contains(iframe)) {
-              document.body.removeChild(iframe);
-            }
-            window.removeEventListener('message', messageHandler);
-            sessionStorage.removeItem('silent_login');
-            sessionStorage.removeItem('code_verifier');
-            sessionStorage.removeItem('auth_state');
-            console.log('[AuthService] Silent login failed - no SSO session');
-            resolve(false);
-          }
-        };
-
-        window.addEventListener('message', messageHandler);
-
-        // Thêm error handler cho iframe
-        iframe.onerror = () => {
-          console.error('[AuthService] Iframe loading error');
+        const cleanup = () => {
           clearTimeout(timeout);
           if (document.body.contains(iframe)) {
             document.body.removeChild(iframe);
           }
           window.removeEventListener('message', messageHandler);
           sessionStorage.removeItem('silent_login');
+        };
+
+        const messageHandler = (event: MessageEvent) => {
+          // Kiểm tra origin
+          if (event.origin !== window.location.origin) {
+            return;
+          }
+
+          if (event.data?.type === 'SILENT_LOGIN_SUCCESS') {
+            console.log('[AuthService] Silent login successful');
+            cleanup();
+            resolve(true);
+          } else if (event.data?.type === 'SILENT_LOGIN_FAILED') {
+            console.log('[AuthService] Silent login failed:', event.data.error);
+            sessionStorage.removeItem('code_verifier');
+            sessionStorage.removeItem('auth_state');
+            cleanup();
+            resolve(false);
+          }
+        };
+
+        iframe.onerror = () => {
+          console.error('[AuthService] Iframe error');
           sessionStorage.removeItem('code_verifier');
           sessionStorage.removeItem('auth_state');
+          cleanup();
           resolve(false);
         };
 
+        window.addEventListener('message', messageHandler);
         document.body.appendChild(iframe);
       });
 
@@ -199,6 +190,42 @@ export class AuthService {
       sessionStorage.removeItem('code_verifier');
       sessionStorage.removeItem('auth_state');
       return false;
+    }
+  }
+  async forceLogin(returnUrl?: string): Promise<void> {
+    try {
+      if (returnUrl) {
+        sessionStorage.setItem('returnUrl', returnUrl);
+      }
+
+      const codeVerifier = this.generateCodeVerifier();
+      const codeChallenge = await this.generateCodeChallenge(codeVerifier);
+      const state = this.generateState();
+
+      sessionStorage.setItem('code_verifier', codeVerifier);
+      sessionStorage.setItem('auth_state', state);
+
+      const redirectUri = `${window.location.origin}/auth/callback`;
+
+      // Với prompt=login và max_age=0 để FORCE re-authentication
+      const loginUrl =
+        `${this.KEYCLOAK_URL}/realms/${this.REALM}/protocol/openid-connect/auth?` +
+        `client_id=${this.CLIENT_ID}&` +
+        `response_type=code&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+        `scope=openid profile email&` +
+        `state=${state}&` +
+        `code_challenge=${codeChallenge}&` +
+        `code_challenge_method=S256&` +
+        `prompt=login&` +
+        `max_age=0`;
+
+      console.log('[AuthService] Force re-authentication');
+      window.location.href = loginUrl;
+
+    } catch (error) {
+      console.error('[AuthService] Error forcing login:', error);
+      throw error;
     }
   }
   async checkSSOSession(): Promise<boolean> {
@@ -244,9 +271,7 @@ export class AuthService {
         `scope=openid profile email&` +
         `state=${state}&` +
         `code_challenge=${codeChallenge}&` +
-        `code_challenge_method=S256&` +
-        `prompt=login&` +
-        `max_age=0`;
+        `code_challenge_method=S256`;
 
       console.log('[AuthService] Redirecting to Keycloak login');
       console.log('[AuthService] Login URL:', loginUrl); // Debug URL

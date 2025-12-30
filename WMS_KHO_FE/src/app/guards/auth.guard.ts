@@ -15,38 +15,29 @@ export class AuthGuard implements CanActivate {
 
     console.log('[AuthGuard] Checking route:', state.url);
     console.log('[AuthGuard] isLoggedIn:', isLoggedIn);
-    console.log('[AuthGuard] requiredRoles:', requiredRoles);
 
     if (!isLoggedIn) {
       console.log('[AuthGuard] Not authenticated, trying silent login...');
 
+      // Thử silent login trước
       const silentSuccess = await this.authService.trySilentLogin();
 
       if (silentSuccess) {
         console.log('[AuthGuard] Silent login successful!');
 
-        // QUAN TRỌNG: Delay nhỏ để đảm bảo token đã được lưu
+        // Delay nhỏ để đảm bảo token đã được lưu
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Kiểm tra lại authentication sau silent login
-        const isNowLoggedIn = this.authService.isAuthenticated();
-        console.log('[AuthGuard] After silent login, isAuthenticated:', isNowLoggedIn);
-
-        if (!isNowLoggedIn) {
-          console.error('[AuthGuard] Silent login reported success but no valid token found');
-          this.authService.initiateLogin(state.url);
-          return false;
-        }
-
+        // Kiểm tra roles
         if (requiredRoles.length > 0) {
           const updatedRoles = this.authService.getUserRoles();
           const hasRole = requiredRoles.some(role => updatedRoles.includes(role));
 
-          console.log('[AuthGuard] User roles after silent login:', updatedRoles);
+          console.log('[AuthGuard] User roles:', updatedRoles);
           console.log('[AuthGuard] Has required role:', hasRole);
 
           if (!hasRole) {
-            console.warn('[AuthGuard] Access denied - missing required roles');
+            console.warn('[AuthGuard] Access denied after silent login');
             this.router.navigate(['/unauthorized']);
             return false;
           }
@@ -56,8 +47,9 @@ export class AuthGuard implements CanActivate {
         return true;
       }
 
-      console.log('[AuthGuard] Silent login failed, redirecting to login page');
-      this.authService.initiateLogin(state.url);
+      // Silent login failed, redirect đến login (KHÔNG force)
+      console.log('[AuthGuard] Silent login failed, redirecting to login');
+      this.authService.initiateLogin(state.url); // ✅ Không force login
       return false;
     }
 
@@ -66,11 +58,8 @@ export class AuthGuard implements CanActivate {
       const userRoles = this.authService.getUserRoles();
       const hasRole = requiredRoles.some(role => userRoles.includes(role));
 
-      console.log('[AuthGuard] User roles:', userRoles);
-      console.log('[AuthGuard] Has required role:', hasRole);
-
       if (!hasRole) {
-        console.warn('[AuthGuard] Access denied - missing required roles');
+        console.warn('[AuthGuard] Access denied');
         this.router.navigate(['/unauthorized']);
         return false;
       }
