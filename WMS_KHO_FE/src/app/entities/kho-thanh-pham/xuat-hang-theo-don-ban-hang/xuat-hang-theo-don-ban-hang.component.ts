@@ -33,31 +33,31 @@ export class XuatHangTheoDonBanHangComponent {
     'stt',
     'ma_yc_xk',
     'kho_xuat',
-    'xuat_toi',
+    // 'xuat_toi',
     'don_vi_linh',
     'don_vi_nhan',
     'ly_do_xuat_nhap',
     'ngay_chung_tu',
     'so_phieu_xuat',
     'so_chung_tu',
-    'series_PGH',
-    'status',
+    // 'series_PGH',
+    // 'status',
     'scan_status',
     'actions',
   ];
   filterValues = {
     ma_yc_xk: '',
     kho_xuat: '',
-    xuat_toi: '',
+    // xuat_toi: '',
     don_vi_linh: '',
     don_vi_nhan: '',
     ly_do_xuat_nhap: '',
     ngay_chung_tu: '',
     so_phieu_xuat: '',
     so_chung_tu: '',
-    series_PGH: '',
+    // series_PGH: '',
     scan_status: '',
-    status: '',
+    // status: '',
   };
 
   filterColumns: string[] = [
@@ -71,7 +71,7 @@ export class XuatHangTheoDonBanHangComponent {
     'so_phieu_xuat',
     'so_chung_tu',
     'series_PGH',
-    'status',
+    // 'status',
     'scan_status',
   ];
   salesRequests: SalesExportRequest[] = [];
@@ -111,15 +111,15 @@ export class XuatHangTheoDonBanHangComponent {
     this.filterValues = {
       ma_yc_xk: '',
       kho_xuat: '',
-      xuat_toi: '',
+      // xuat_toi: '',
       don_vi_linh: '',
       don_vi_nhan: '',
       ly_do_xuat_nhap: '',
       ngay_chung_tu: '',
       so_chung_tu: '',
       so_phieu_xuat: '',
-      series_PGH: '',
-      status: '',
+      // series_PGH: '',
+      // status: '',
       scan_status: '',
     };
     this.searchTerm = '';
@@ -131,23 +131,29 @@ export class XuatHangTheoDonBanHangComponent {
   }
   //load data
   loadSalesRequests(): void {
-    this.xuatDonBanService.getSalesExportRequests().subscribe({
-      next: (res) => {
-        const mapped = res.map((item) => ({
+  this.xuatDonBanService.getSalesExportRequests().subscribe({
+    next: (res) => {
+      const mapped = res.map((item) => {
+        const scanStatusBool =
+          item.scan_status === true ;
+
+        return {
           ...item,
+          scan_status: scanStatusBool, // ép về boolean
           ten_kho_xuat: this.getAreaName(item.kho_xuat),
           ten_kho_nhan: this.getAreaName(item.xuat_toi),
-        }));
+        };
+      });
 
-        // Sắp xếp theo id giảm dần
-        this.salesRequests = mapped.sort((a, b) => b.id - a.id);
-        this.filteredData = [...this.salesRequests];
-        this.totalItems = this.salesRequests.length;
-        this.updatePagedSalesRequests();
-      },
-      error: (err) => console.error('Lỗi khi lấy đơn xuất:', err),
-    });
-  }
+      this.salesRequests = mapped.sort((a, b) => b.id - a.id);
+      this.filteredData = [...this.salesRequests];
+      this.totalItems = this.salesRequests.length;
+      this.updatePagedSalesRequests();
+    },
+    error: (err) => console.error('Lỗi khi lấy đơn xuất:', err),
+  });
+}
+
 
   //phan trang
   applyPagination(): void {
@@ -239,9 +245,9 @@ export class XuatHangTheoDonBanHangComponent {
 
   applyFilter(): void {
     // Chuyển đổi label sang boolean cho status và scan_status
-    const statusFilter: boolean | null = this.convertLabelToBoolean(
-      this.filterValues.status
-    );
+    // const statusFilter: boolean | null = this.convertLabelToBoolean(
+    //   this.filterValues.status
+    // );
     const scanFilter: boolean | null = this.convertLabelToBoolean(
       this.filterValues.scan_status
     );
@@ -268,10 +274,10 @@ export class XuatHangTheoDonBanHangComponent {
         });
 
       // Lọc theo status và scan_status
-      const matchStatus = statusFilter === null || item.status === statusFilter;
+      // const matchStatus = statusFilter === null || item.status === statusFilter;
       const matchScan = scanFilter === null || item.scan_status === scanFilter;
 
-      return matchTextFields && matchStatus && matchScan;
+      // return matchTextFields && matchStatus && matchScan;
     });
 
     // Cập nhật dữ liệu hiển thị theo trang

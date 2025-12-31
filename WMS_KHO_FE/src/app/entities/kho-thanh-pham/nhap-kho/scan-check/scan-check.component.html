@@ -564,20 +564,22 @@
         <div class="scanner-header">
             <h3>Quét {{ scannerActive === 'pallet' ? (selectedMode === 'pallet' ? 'Pallet' : 'Thùng') : 'Location' }}
             </h3>
-            <button mat-icon-button (click)="stopScanning()">
-                <mat-icon>close</mat-icon>
-            </button>
+
+            <div class="scanner-actions">
+                <!-- Switch Camera Button -->
+                <button mat-icon-button *ngIf="availableCameras.length > 1" (click)="switchCamera()"
+                    matTooltip="Chuyển camera" class="switch-camera-btn">
+                    <mat-icon>flip_camera_android</mat-icon>
+                </button>
+
+                <!-- Close Button -->
+                <button mat-icon-button (click)="stopScanning()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
         </div>
 
-        <!-- Scanner container -->
         <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
-
-        <!-- Debug log -->
-        <!-- <div class="debug-log-box"
-            style="max-height: 200px; overflow-y: auto; background: #f5f5f5; padding: 10px; margin-top: 10px; font-size: 11px; font-family: monospace;">
-            <h4 style="margin: 0 0 5px 0;">Debug Log</h4>
-            <div *ngFor="let log of debugLogs | slice:0:30" style="margin: 2px 0;">{{ log }}</div>
-        </div> -->
 
         <p class="scanner-hint">Đưa mã vào khung hình để quét</p>
     </div>

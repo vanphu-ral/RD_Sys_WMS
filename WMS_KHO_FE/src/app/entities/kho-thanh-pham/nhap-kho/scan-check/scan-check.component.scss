@@ -452,6 +452,22 @@
       background: rgba(255, 255, 255, 0.1);
     }
   }
+  .scanner-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .switch-camera-btn {
+    background: rgba(255, 255, 255, 0.9);
+
+    mat-icon {
+      color: #1976d2;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 1);
+    }
+  }
 }
 
 #qr-reader {

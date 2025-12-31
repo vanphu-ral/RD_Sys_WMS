@@ -1,809 +1,1054 @@
 @use "@angular/material" as mat;
 
 .chuyen-kho-detail-container {
-    padding: 10px;
-    background-color: #f8fafc;
-    min-height: 100vh;
+  padding: 10px;
+  background-color: #f8fafc;
+  min-height: 100vh;
 }
 
 .qr-scanner-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.85);
-    z-index: 999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    backdrop-filter: blur(4px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(4px);
 }
 
 .qr-scanner-modal {
-    background: white;
-    border-radius: 16px;
-    max-width: 500px;
-    width: 100%;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    animation: slideUp 0.3s ease-out;
+  background: white;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
 }
 
 @keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .scanner-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    background: linear-gradient(135deg, #14AE5C 0%, #0d8a47 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #14ae5c 0%, #0d8a47 100%);
+  color: white;
+
+  h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  button {
     color: white;
 
-    h3 {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 600;
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
     }
-
-    button {
-        color: white;
-
-        &:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-    }
+  }
 }
 
 #qr-reader {
-    width: 100%;
-    min-height: 300px;
-    border: none;
+  width: 100%;
+  min-height: 300px;
+  border: none;
 }
 
 .scanner-hint {
-    text-align: center;
-    padding: 16px;
-    margin: 0;
-    color: #64748b;
-    font-size: 14px;
-    background: #f8fafc;
+  text-align: center;
+  padding: 16px;
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  background: #f8fafc;
 }
 
 /* Input with Camera Button */
 .input-with-camera {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
 
-    .scan-field {
-        flex: 1;
+  .scan-field {
+    flex: 1;
+  }
+
+  .camera-btn {
+    margin-top: 8px; // Align với input field
+    color: #14ae5c;
+    background: #f0fdf4;
+    border-radius: 8px;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
     }
 
-    .camera-btn {
-        margin-top: 8px; // Align với input field
-        color: #14AE5C;
-        background: #f0fdf4;
-        border-radius: 8px;
-        width: 48px;
-        height: 48px;
-        flex-shrink: 0;
-
-        mat-icon {
-            font-size: 24px;
-            width: 24px;
-            height: 24px;
-        }
-
-        &:hover:not(:disabled) {
-            background: #dcfce7;
-        }
-
-        &:disabled {
-            color: rgba(0, 0, 0, 0.26);
-            background: #f8fafc;
-        }
+    &:hover:not(:disabled) {
+      background: #dcfce7;
     }
+
+    &:disabled {
+      color: rgba(0, 0, 0, 0.26);
+      background: #f8fafc;
+    }
+  }
 }
 
 .chuyen-kho-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+
+  .header-title {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
-    padding: 20px 24px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    gap: 12px;
 
-    .header-title {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .title-icon {
-            font-size: 32px;
-            width: 32px;
-            height: 32px;
-            color: #1e293b;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        .subtitle {
-            margin: 4px 0 0 0;
-            font-size: 14px;
-            color: #64748b;
-        }
+    .title-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: #1e293b;
     }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .subtitle {
+      margin: 4px 0 0 0;
+      font-size: 14px;
+      color: #64748b;
+    }
+  }
 }
 
 .header-quantity-input {
-    width: 100px;
-    margin: 0;
-    @include mat.form-field-density(-5);
+  width: 100px;
+  margin: 0;
+  @include mat.form-field-density(-5);
 }
 
 .quantity-input {
-    width: 60px;
-    padding: 2px 4px;
-    text-align: right;
+  width: 60px;
+  padding: 2px 4px;
+  text-align: right;
 }
-
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-success .mdc-snackbar__surface {
-    background-color: #14AE5C !important;
-    color: white !important;
+  background-color: #14ae5c !important;
+  color: white !important;
 }
-
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-position {
-    margin-bottom: 75vh;
+  margin-bottom: 75vh;
 }
 
-
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-warn .mdc-snackbar__surface {
-    background-color: #f59e0b;
-    color: #1e293b;
+  background-color: #f59e0b;
+  color: #1e293b;
 }
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-error .mdc-snackbar__surface {
-    background-color: #dc2626 !important;
-    color: white !important;
+  background-color: #dc2626 !important;
+  color: white !important;
 }
 
 .chuyen-kho-detail-card {
-    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
 }
 
 .table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e2e8f0;
+
+  .table-title {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 16px 24px;
-    border-bottom: 1px solid #e2e8f0;
+    gap: 8px;
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 16px;
 
-    .table-title {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 600;
-        color: #1e293b;
-        font-size: 16px;
-
-        mat-icon {
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
-        }
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
+  }
 }
 
 .card-content {
-    padding: 24px;
+  padding: 24px;
 }
 
 .mode-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+
+  .mode-btn {
+    height: 48px;
+    padding: 0 24px;
+    font-weight: 500;
+    font-size: 15px;
+    border-radius: 8px;
+    background-color: white;
+    color: #64748b;
+    border: 2px solid #e2e8f0;
     display: flex;
-    gap: 12px;
-    margin-bottom: 24px;
+    align-items: center;
+    gap: 8px;
 
-    .mode-btn {
-        height: 48px;
-        padding: 0 24px;
-        font-weight: 500;
-        font-size: 15px;
-        border-radius: 8px;
-        background-color: white;
-        color: #64748b;
-        border: 2px solid #e2e8f0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        mat-icon {
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
-        }
-
-        &.active {
-            background-color: #14AE5C;
-            color: white;
-            border-color: #14AE5C;
-        }
-
-        &:hover:not(.active) {
-            background-color: #f8fafc;
-            border-color: #cbd5e1;
-        }
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
+
+    &.active {
+      background-color: #14ae5c;
+      color: white;
+      border-color: #14ae5c;
+    }
+
+    &:hover:not(.active) {
+      background-color: #f8fafc;
+      border-color: #cbd5e1;
+    }
+  }
 }
 
 .scan-inputs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 
-    .scan-field {
-        width: 100%;
+  .scan-field {
+    width: 100%;
 
-        ::ng-deep .mat-mdc-text-field-wrapper {
-            background-color: white;
-        }
-
-        ::ng-deep .mat-mdc-form-field-focus-overlay {
-            background-color: transparent;
-        }
+    ::ng-deep .mat-mdc-text-field-wrapper {
+      background-color: white;
     }
+
+    ::ng-deep .mat-mdc-form-field-focus-overlay {
+      background-color: transparent;
+    }
+  }
 }
 
 .table-container {
-    overflow-x: auto;
-    padding: 20px;
+  overflow-x: auto;
+  padding: 20px;
 }
 
 .scan-table {
-    width: 100%;
+  width: 100%;
 
-    th {
-        background-color: #f8fafc;
-        color: #64748b;
-        font-weight: 600;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 16px 12px;
-        white-space: nowrap;
-    }
+  th {
+    background-color: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 16px 12px;
+    white-space: nowrap;
+  }
 
-    td {
-        padding: 16px 12px;
-        color: #334155;
-        font-size: 14px;
-        vertical-align: middle;
-    }
+  td {
+    padding: 16px 12px;
+    color: #334155;
+    font-size: 14px;
+    vertical-align: middle;
+  }
 
-    .table-row {
-        &:hover {
-            background-color: #f8fafc;
-        }
+  .table-row {
+    &:hover {
+      background-color: #f8fafc;
     }
+  }
 }
 
 .pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+
+  .pagination-btn {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 16px 24px;
-    border-top: 1px solid #e2e8f0;
+    gap: 4px;
+    color: #64748b;
+    font-weight: 500;
 
-    .pagination-btn {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        color: #64748b;
-        font-weight: 500;
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
 
-        &:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+  .pagination-numbers {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+
+    button {
+      min-width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      color: #64748b;
+
+      &.active {
+        background-color: #1e293b;
+        color: white;
+      }
     }
 
-    .pagination-numbers {
-        display: flex;
-        gap: 4px;
-        align-items: center;
-
-        button {
-            min-width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            color: #64748b;
-
-            &.active {
-                background-color: #1e293b;
-                color: white;
-            }
-        }
-
-        .dots {
-            padding: 0 8px;
-            color: #64748b;
-        }
+    .dots {
+      padding: 0 8px;
+      color: #64748b;
     }
+  }
 }
 
 .action-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    padding: 20px;
-    background: white;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 8px;
+  // position: sticky;
+  bottom: 10px;
+
+  button {
+    height: 44px;
+    padding: 0 24px;
+    font-weight: 500;
+    font-size: 15px;
     border-radius: 8px;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 8px;
-    // position: sticky;
-    bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 
-    button {
-        height: 44px;
-        padding: 0 24px;
-        font-weight: 500;
-        font-size: 15px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        mat-icon {
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
-            margin: 0;
-        }
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      margin: 0;
     }
+  }
 
-    .cancel-btn {
-        color: #64748b;
-        border: 1px solid #e2e8f0;
+  .cancel-btn {
+    color: #64748b;
+    border: 1px solid #e2e8f0;
 
-        &:hover {
-            background-color: #f8fafc;
-        }
+    &:hover {
+      background-color: #f8fafc;
     }
+  }
 
-    .confirm-btn {
-        background-color: #0D6EFD;
-        color: white;
+  .confirm-btn {
+    background-color: #0d6efd;
+    color: white;
 
-        &:hover {
-            background-color: #0257d5;
-        }
+    &:hover {
+      background-color: #0257d5;
     }
+  }
 }
 
 .mobile-scan-list {
-    display: none; // Ẩn trên desktop
+  display: none; // Ẩn trên desktop
+}
+// Summary Card Styles
+.scan-summary {
+  padding: 16px 24px;
+
+  .summary-card {
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+
+    ::ng-deep .mat-mdc-card-header {
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    ::ng-deep .mat-mdc-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1e293b;
+      margin: 0;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: #14ae5c;
+      }
+    }
+
+    ::ng-deep .mat-mdc-card-content {
+      padding: 16px;
+    }
+  }
+
+  // Single Product Info Grid
+  .product-info-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+
+      .label {
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .value {
+        font-size: 14px;
+        color: #1e293b;
+        font-weight: 600;
+
+        &.success {
+          color: #14ae5c;
+        }
+
+        &.warning {
+          color: #f59e0b;
+        }
+      }
+
+      &.highlight {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border-color: #86efac;
+
+        .value {
+          font-size: 16px;
+        }
+      }
+    }
+  }
+
+  // All Mode Summary Stats
+  .summary-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+
+    .stat-item {
+      text-align: center;
+      padding: 12px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+
+      .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #14ae5c;
+        margin-bottom: 4px;
+      }
+
+      .stat-label {
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 500;
+      }
+    }
+  }
 }
 
-
 @media (max-width: 768px) {
+  // Container
+  .chuyen-kho-detail-container {
+    padding: 8px;
+    padding-top: 64px; // Space cho mobile header của sidebar
+  }
 
-    // Container
-    .chuyen-kho-detail-container {
-        padding: 8px;
-        padding-top: 64px; // Space cho mobile header của sidebar
+  // Header
+  .chuyen-kho-detail-header {
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    .header-title {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      width: 100%;
+
+      .title-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+
+      h1 {
+        font-size: 18px;
+        line-height: 1.3;
+      }
+
+      .subtitle {
+        font-size: 12px;
+        margin-top: 2px;
+      }
+    }
+  }
+
+  .qr-scanner-modal {
+    max-width: 100%;
+    margin: 0;
+    border-radius: 12px;
+  }
+
+  #qr-reader {
+    min-height: 250px;
+  }
+
+  .scanner-header {
+    padding: 14px 16px;
+
+    h3 {
+      font-size: 16px;
+    }
+  }
+
+  .scanner-hint {
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .input-with-camera {
+    .camera-btn {
+      width: 44px;
+      height: 44px;
+      margin-top: 6px;
+
+      mat-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+      }
+    }
+  }
+
+  // Card
+  .chuyen-kho-detail-card {
+    margin-bottom: 12px;
+    border-radius: 8px;
+
+    .card-content {
+      padding: 16px;
+    }
+  }
+
+  // Table Header
+  .table-header {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .table-title {
+      font-size: 14px;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  // Mode Buttons - Stack vertically
+  .mode-buttons {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+
+    .mode-btn {
+      width: 100%;
+      height: 44px;
+      justify-content: center;
+      font-size: 14px;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+
+  // Scan Inputs - Stack vertically
+  .scan-inputs {
+    grid-template-columns: 1fr;
+    gap: 12px;
+
+    .scan-field {
+      width: 100%;
+
+      ::ng-deep .mat-mdc-form-field {
+        font-size: 14px;
+      }
+
+      ::ng-deep .mdc-text-field {
+        min-height: 48px; // Better touch target
+      }
+    }
+  }
+
+  // Table - Hide on mobile, show card view instead
+  .table-container {
+    padding: 12px;
+
+    // Hide table on mobile
+    .scan-table {
+      display: none;
+    }
+  }
+
+  // Mobile Card List View
+  .mobile-scan-list {
+    display: block;
+  }
+
+  .mobile-scan-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    .scan-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 12px;
+
+      .card-stt {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 14px;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          color: #14ae5c;
+        }
+      }
+
+      .card-time {
+        font-size: 11px;
+        color: #64748b;
+      }
     }
 
-    // Header
-    .chuyen-kho-detail-header {
-        padding: 12px 16px;
-        margin-bottom: 12px;
-        flex-direction: column;
+    .scan-card-content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
         align-items: flex-start;
-        gap: 12px;
+        gap: 8px;
 
-        .header-title {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-            width: 100%;
-
-            .title-icon {
-                font-size: 28px;
-                width: 28px;
-                height: 28px;
-            }
-
-            h1 {
-                font-size: 18px;
-                line-height: 1.3;
-            }
-
-            .subtitle {
-                font-size: 12px;
-                margin-top: 2px;
-            }
+        .info-label {
+          font-size: 12px;
+          color: #64748b;
+          font-weight: 500;
+          min-width: 110px;
+          flex-shrink: 0;
         }
-    }
 
-    .qr-scanner-modal {
-        max-width: 100%;
-        margin: 0;
-        border-radius: 12px;
-    }
-
-    #qr-reader {
-        min-height: 250px;
-    }
-
-    .scanner-header {
-        padding: 14px 16px;
-
-        h3 {
-            font-size: 16px;
+        .info-value {
+          font-size: 13px;
+          color: #1e293b;
+          font-weight: 500;
+          text-align: right;
+          word-break: break-word;
         }
+      }
+
+      // Highlight important fields
+      .info-row.highlight {
+        .info-value {
+          color: #14ae5c;
+          font-weight: 600;
+        }
+      }
     }
 
-    .scanner-hint {
-        padding: 12px;
+    // Badge styles
+    .serial-badge {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 4px 4px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .location-badge {
+      display: inline-block;
+      background: #fef3c7;
+      color: #92400e;
+      padding: 4px 4px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .quantity-badge {
+      display: inline-block;
+      background: #f3e8ff;
+      color: #6b21a8;
+      padding: 4px 4px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  }
+
+  // Pagination - Mobile friendly
+  .pagination {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 16px;
+
+    .pagination-btn {
+      width: 100%;
+      justify-content: center;
+      height: 44px;
+      font-size: 14px;
+
+      mat-icon {
+        font-size: 20px;
+      }
+    }
+
+    .pagination-numbers {
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px;
+
+      button {
+        min-width: 36px;
+        height: 36px;
         font-size: 13px;
+      }
+
+      .dots {
+        padding: 0 4px;
+      }
     }
+  }
 
-    .input-with-camera {
-        .camera-btn {
-            width: 44px;
-            height: 44px;
-            margin-top: 6px;
+  // Nested card
+  .nhapkho-card {
+    margin-top: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  .scan-summary {
+    padding: 12px 16px;
 
-            mat-icon {
-                font-size: 22px;
-                width: 22px;
-                height: 22px;
-            }
+    .summary-card {
+      ::ng-deep .mat-mdc-card-header {
+        padding: 10px 12px;
+      }
+
+      ::ng-deep .mat-mdc-card-title {
+        font-size: 14px;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
         }
-    }
+      }
 
-    // Card
-    .chuyen-kho-detail-card {
-        margin-bottom: 12px;
-        border-radius: 8px;
-
-        .card-content {
-            padding: 16px;
-        }
-    }
-
-    // Table Header
-    .table-header {
-        padding: 12px 16px;
-        flex-wrap: wrap;
-        gap: 8px;
-
-        .table-title {
-            font-size: 14px;
-
-            mat-icon {
-                font-size: 18px;
-                width: 18px;
-                height: 18px;
-            }
-        }
-    }
-
-    // Mode Buttons - Stack vertically
-    .mode-buttons {
-        flex-direction: column;
-        gap: 8px;
-        margin-bottom: 16px;
-
-        .mode-btn {
-            width: 100%;
-            height: 44px;
-            justify-content: center;
-            font-size: 14px;
-
-            mat-icon {
-                font-size: 20px;
-                width: 20px;
-                height: 20px;
-            }
-        }
-    }
-
-    // Scan Inputs - Stack vertically
-    .scan-inputs {
-        grid-template-columns: 1fr;
-        gap: 12px;
-
-        .scan-field {
-            width: 100%;
-
-            ::ng-deep .mat-mdc-form-field {
-                font-size: 14px;
-            }
-
-            ::ng-deep .mdc-text-field {
-                min-height: 48px; // Better touch target
-            }
-        }
-    }
-
-    // Table - Hide on mobile, show card view instead
-    .table-container {
+      ::ng-deep .mat-mdc-card-content {
         padding: 12px;
-
-        // Hide table on mobile
-        .scan-table {
-            display: none;
-        }
+      }
     }
 
-    // Mobile Card List View
-    .mobile-scan-list {
-        display: block;
+    // Single Product Grid - Stack on mobile
+    .product-info-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+
+      .info-item {
+        padding: 8px 10px;
+
+        .label {
+          font-size: 10px;
+        }
+
+        .value {
+          font-size: 13px;
+
+          &.success,
+          &.warning {
+            font-size: 13px;
+          }
+        }
+
+        &.highlight .value {
+          font-size: 15px;
+        }
+      }
     }
 
-    .mobile-scan-card {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 12px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    // Stats - Keep 3 columns but smaller
+    .summary-stats {
+      gap: 8px;
 
-        .scan-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #e2e8f0;
-            margin-bottom: 12px;
+      .stat-item {
+        padding: 10px 8px;
 
-            .card-stt {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                font-weight: 600;
-                color: #1e293b;
-                font-size: 14px;
-
-                mat-icon {
-                    font-size: 18px;
-                    width: 18px;
-                    height: 18px;
-                    color: #14AE5C;
-                }
-            }
-
-            .card-time {
-                font-size: 11px;
-                color: #64748b;
-            }
+        .stat-value {
+          font-size: 20px;
         }
 
-        .scan-card-content {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-
-            .info-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                gap: 8px;
-
-                .info-label {
-                    font-size: 12px;
-                    color: #64748b;
-                    font-weight: 500;
-                    min-width: 110px;
-                    flex-shrink: 0;
-                }
-
-                .info-value {
-                    font-size: 13px;
-                    color: #1e293b;
-                    font-weight: 500;
-                    text-align: right;
-                    word-break: break-word;
-                }
-            }
-
-            // Highlight important fields
-            .info-row.highlight {
-                .info-value {
-                    color: #14AE5C;
-                    font-weight: 600;
-                }
-            }
+        .stat-label {
+          font-size: 10px;
+          line-height: 1.3;
         }
-
-        // Badge styles
-        .serial-badge {
-            display: inline-block;
-            background: #e0f2fe;
-            color: #0369a1;
-            padding: 4px 4px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .location-badge {
-            display: inline-block;
-            background: #fef3c7;
-            color: #92400e;
-            padding: 4px 4px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .quantity-badge {
-            display: inline-block;
-            background: #f3e8ff;
-            color: #6b21a8;
-            padding: 4px 4px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
+      }
     }
-
-    // Pagination - Mobile friendly
-    .pagination {
-        flex-direction: column;
-        gap: 12px;
-        padding: 12px 16px;
-
-        .pagination-btn {
-            width: 100%;
-            justify-content: center;
-            height: 44px;
-            font-size: 14px;
-
-            mat-icon {
-                font-size: 20px;
-            }
-        }
-
-        .pagination-numbers {
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 6px;
-
-            button {
-                min-width: 36px;
-                height: 36px;
-                font-size: 13px;
-            }
-
-            .dots {
-                padding: 0 4px;
-            }
-        }
-    }
-
-    // Nested card
-    .nhapkho-card {
-        margin-top: 16px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
+  }
 }
 
 // Very small screens
 @media (max-width: 480px) {
-    .chuyen-kho-detail-container {
-        padding: 6px;
+  .chuyen-kho-detail-container {
+    padding: 6px;
+  }
+
+  .chuyen-kho-detail-header {
+    padding: 10px 12px;
+
+    .header-title {
+      h1 {
+        font-size: 16px;
+      }
+
+      .subtitle {
+        font-size: 11px;
+      }
     }
+  }
 
-    .chuyen-kho-detail-header {
-        padding: 10px 12px;
+  .card-content {
+    padding: 12px !important;
+  }
 
-        .header-title {
-            h1 {
-                font-size: 16px;
-            }
+  .mode-buttons {
+    .mode-btn {
+      height: 40px;
+      font-size: 13px;
+      padding: 0 16px;
+    }
+  }
 
-            .subtitle {
-                font-size: 11px;
-            }
+  .mobile-scan-card {
+    padding: 12px;
+
+    .scan-card-content {
+      .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+
+        .info-label {
+          min-width: auto;
         }
-    }
 
-    .card-content {
-        padding: 12px !important;
-    }
-
-    .mode-buttons {
-        .mode-btn {
-            height: 40px;
-            font-size: 13px;
-            padding: 0 16px;
+        .info-value {
+          text-align: left;
+          width: 100%;
         }
+      }
     }
+  }
 
-    .mobile-scan-card {
-        padding: 12px;
+  .pagination-numbers button {
+    min-width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+  .scan-summary {
+    padding: 10px 12px;
 
-        .scan-card-content {
-            .info-row {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 4px;
+    .product-info-grid {
+      .info-item {
+        padding: 6px 8px;
 
-                .info-label {
-                    min-width: auto;
-                }
-
-                .info-value {
-                    text-align: left;
-                    width: 100%;
-                }
-            }
+        .label {
+          font-size: 9px;
         }
+
+        .value {
+          font-size: 12px;
+        }
+
+        &.highlight .value {
+          font-size: 14px;
+        }
+      }
     }
 
-    .pagination-numbers button {
-        min-width: 32px;
-        height: 32px;
-        font-size: 12px;
+    .summary-stats {
+      gap: 6px;
+
+      .stat-item {
+        padding: 8px 6px;
+
+        .stat-value {
+          font-size: 18px;
+        }
+
+        .stat-label {
+          font-size: 9px;
+        }
+      }
     }
+  }
 }
 
 // Landscape mobile
 @media (max-height: 500px) and (max-width: 768px) {
-    .chuyen-kho-detail-container {
-        padding-top: 56px;
-    }
+  .chuyen-kho-detail-container {
+    padding-top: 56px;
+  }
 
-    .chuyen-kho-detail-header {
+  .chuyen-kho-detail-header {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+  }
+
+  .card-content {
+    padding: 12px !important;
+  }
+
+  .mode-buttons {
+    flex-direction: row;
+    margin-bottom: 12px;
+
+    .mode-btn {
+      flex: 1;
+      height: 40px;
+    }
+  }
+
+  .scan-inputs {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .mobile-scan-card {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  .scan-summary {
+    padding: 8px 12px;
+
+    .summary-card {
+      ::ng-deep .mat-mdc-card-header {
         padding: 8px 12px;
-        margin-bottom: 8px;
-    }
+      }
 
-    .card-content {
-        padding: 12px !important;
-    }
-
-    .mode-buttons {
-        flex-direction: row;
-        margin-bottom: 12px;
-
-        .mode-btn {
-            flex: 1;
-            height: 40px;
-        }
-    }
-
-    .scan-inputs {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-
-    .mobile-scan-card {
+      ::ng-deep .mat-mdc-card-content {
         padding: 10px;
-        margin-bottom: 8px;
+      }
     }
+
+    .product-info-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+
+      .info-item {
+        padding: 6px 8px;
+      }
+    }
+
+    .summary-stats {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+
+      .stat-item {
+        padding: 8px 4px;
+      }
+    }
+  }
 }

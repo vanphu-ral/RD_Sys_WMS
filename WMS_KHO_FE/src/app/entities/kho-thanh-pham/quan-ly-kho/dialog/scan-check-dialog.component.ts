@@ -272,6 +272,7 @@ export class ScanCheckDialogComponent implements OnInit {
       this.locationScan = '';
       setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
       this.selectedScanMode = 'pallet';
+      this.isLoading = false;
     }
 
     this.isInfoVisible = true;

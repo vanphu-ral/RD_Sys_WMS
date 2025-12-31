@@ -39,6 +39,11 @@ export class XuatHangTheoDonBanService {
     );
   }
 
+     //phe duyet xuat kho
+  patchSalesScanStatus(requestId: number, body: { scan_status: boolean }): Observable<any> {
+    return this.http.patch<any[]>(`${this.apiUrl}/osr/requests/${requestId}`, body);
+  }
+
   // Lấy thông tin detail items
   getSalesItemsById(id: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/osr/requests/${id}/items`);

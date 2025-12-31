@@ -2,6 +2,8 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ChuyenKhoService } from '../service/chuyen-kho.service.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ConfirmDialogXuatHangComponent } from '../../xuat-hang-theo-don-ban-hang/dialog/confirm-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 export interface TransferItemDetail {
   id: number;
   productCode: string;
@@ -9,6 +11,7 @@ export interface TransferItemDetail {
   quantity: number;
   originalQuantity: number;
   unit: string;
+  quantityScanned: number;
   updatedBy: string;
   updatedDate: string;
 }
@@ -26,6 +29,7 @@ export class ChuyenKhoDetailComponent implements OnInit {
     'productName',
     'quantity',
     'unit',
+    'quantityScanned',
     'updatedBy',
     'updatedDate',
     'actions',
@@ -40,7 +44,9 @@ export class ChuyenKhoDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private chuyenKhoService: ChuyenKhoService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog,
+
   ) { }
   ngOnInit(): void {
     const id = +this.route.snapshot.paramMap.get('id')!;
@@ -55,6 +61,7 @@ export class ChuyenKhoDetailComponent implements OnInit {
           quantity: item.total_quantity,
           originalQuantity: item.total_quantity,
           unit: item.dvt,
+          quantityScanned: item.quantity_scanned,
           updatedBy: item.updated_by,
           updatedDate: item.updated_date,
         }));
@@ -68,6 +75,7 @@ export class ChuyenKhoDetailComponent implements OnInit {
       },
     });
   }
+  
 
   onPageChange(page: number): void {
     this.currentPage = page;
@@ -115,7 +123,7 @@ export class ChuyenKhoDetailComponent implements OnInit {
     return this.detailList.slice(start, end);
   }
   onScanCheck(): void {
-    this.router.navigate(['/kho-thanh-pham/nhap-kho-sx/scan'], {
+    this.router.navigate(['/kho-thanh-pham/chuyen-kho-noi-bo/scan'], {
       state: { detailList: this.detailList },
     });
   }
@@ -135,5 +143,64 @@ export class ChuyenKhoDetailComponent implements OnInit {
 
     return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
   }
+  onScanAll(): void {
+    const requestId = this.route.snapshot.paramMap.get('id');
+    this.router.navigate(
+      ['/kho-thanh-pham/chuyen-kho-noi-bo/detail', requestId, 'scan', 'all'], // Thêm 'all' để đánh dấu scan tất cả
+      {
+        queryParams: {
+          mode: 'all'
+        }
+      }
+    );
+  }
+  onApprove(): void {
+    // kiểm tra có item nào đã scan chưa
+    const hasScanned = this.detailList.some(item => item.quantityScanned > 0);
+
+    if (!hasScanned) {
+      this.snackBar.open('Chưa có sản phẩm nào được scan, không thể phê duyệt!', 'Đóng', {
+        duration: 3000,
+        panelClass: ['snackbar-error'],
+      });
+      return;
+    }
+
+    // mở dialog confirm
+    const dialogRef = this.dialog.open(ConfirmDialogXuatHangComponent, {
+      width: '400px',
+      data: { message: 'Bạn có chắc muốn phê duyệt yêu cầu này?' },
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.patchApprove();
+      }
+    });
+  }
+
+  private patchApprove(): void {
+    if (!this.id) return;
+
+    this.chuyenKhoService.patchRequestScanStatus(this.id, { scan_status: true }).subscribe({
+      next: () => {
+        this.snackBar.open('Phê duyệt thành công!', 'Đóng', {
+          duration: 3000,
+          panelClass: ['snackbar-success'],
+        });
+        // quay lại hoặc reload
+        this.router.navigate(['/kho-thanh-pham/chuyen-kho']);
+      },
+      error: (err) => {
+        console.error('Lỗi khi phê duyệt:', err);
+        this.snackBar.open('Phê duyệt thất bại!', 'Đóng', {
+          duration: 3000,
+          panelClass: ['snackbar-error'],
+        });
+      }
+    });
+  }
+
+
 
 }

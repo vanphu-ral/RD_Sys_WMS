@@ -53,19 +53,17 @@
                 </div>
 
                 <!-- Location Input với Camera Button -->
-                <div class="input-with-camera">
+                <!-- <div class="input-with-camera">
                     <mat-form-field class="scan-field" appearance="outline">
                         <mat-label>Location scan...</mat-label>
                         <input matInput [(ngModel)]="scanLocation" placeholder="Location scan..." #locationInput
                             (keydown.enter)="onLocationScanEnter()" inputmode="none" />
                     </mat-form-field>
-
-                    <!-- Camera Button - chỉ hiện trên mobile -->
                     <button mat-icon-button *ngIf="isMobile" class="camera-btn" (click)="openCameraScanner('location')"
                         matTooltip="Quét bằng camera">
                         <mat-icon>photo_camera</mat-icon>
                     </button>
-                </div>
+                </div> -->
             </div>
         </div>
         <mat-card class="nhapkho-card">
@@ -248,14 +246,25 @@
 <div class="qr-scanner-overlay" *ngIf="isScanning" (click)="stopScanning()">
     <div class="qr-scanner-modal" (click)="$event.stopPropagation()">
         <div class="scanner-header">
-            <h3>Quét mã {{ scannerActive === 'pallet' ? 'Pallet/Thùng' : 'Location' }}</h3>
-            <button mat-icon-button (click)="stopScanning()">
-                <mat-icon>close</mat-icon>
-            </button>
+            <h3>Quét {{ scannerActive === 'pallet' ? (selectedMode === 'pallet' ? 'Pallet' : 'Thùng') : 'Location' }}
+            </h3>
+
+            <div class="scanner-actions">
+                <!-- Switch Camera Button -->
+                <button mat-icon-button *ngIf="availableCameras.length > 1" (click)="switchCamera()"
+                    matTooltip="Chuyển camera" class="switch-camera-btn">
+                    <mat-icon>flip_camera_android</mat-icon>
+                </button>
+
+                <!-- Close Button -->
+                <button mat-icon-button (click)="stopScanning()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
         </div>
-        <zxing-scanner [device]="currentDevice" [formats]="formats" [autostart]="true"
-            (scanSuccess)="onScanSuccess($event)">
-        </zxing-scanner>
+
+        <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
+
         <p class="scanner-hint">Đưa mã vào khung hình để quét</p>
     </div>
 </div>

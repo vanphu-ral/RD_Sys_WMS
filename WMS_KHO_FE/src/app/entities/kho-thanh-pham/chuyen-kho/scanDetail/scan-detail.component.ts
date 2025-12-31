@@ -5,6 +5,7 @@ import { ChuyenKhoService } from '../service/chuyen-kho.service.component';
 import { AuthService } from '../../../../services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { BarcodeFormat } from '@zxing/library';
+import { CameraDevice, Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 
 export interface ScannedItem {
   id?: number;
@@ -40,7 +41,8 @@ export interface DetailItem {
 export class ScanDetailComponent implements OnInit {
   // ===== ROUTE PARAMS =====
   requestId: number | undefined;
-
+  scanMode: 'single' | 'all' = 'all';
+  selectedItemId: number | null = null;
   // ===== SCAN INPUTS =====
   scanPallet: string = '';
   scanLocation: string = '';
@@ -80,6 +82,12 @@ export class ScanDetailComponent implements OnInit {
   currentDevice: MediaDeviceInfo | undefined = undefined;
   formats = [BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128];
 
+  //switch camera
+  selectedCameraId: string | null = null;
+  qrScanner?: Html5Qrcode;
+  availableCameras: CameraDevice[] = [];
+  debugLogs: string[] = [];
+
   // ===== VIEWCHILD =====
   @ViewChild('palletInput') palletInput!: ElementRef;
   @ViewChild('locationInput') locationInput!: ElementRef;
@@ -94,13 +102,30 @@ export class ScanDetailComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.checkIfMobile();
     const state = history.state;
-    this.requestId = state.requestId || this.route.snapshot.params['id'];
+    this.requestId = +this.route.snapshot.paramMap.get('id')!;
+    const scanModeParam = this.route.snapshot.paramMap.get('reqId');
+    const queryMode = this.route.snapshot.queryParamMap.get('mode');
 
     if (this.requestId) {
       this.loadDetailList();
       this.loadScannedData();
+
+      // Xác định chế độ scan
+      if (queryMode === 'all' || scanModeParam === 'all') {
+        this.scanMode = 'all';
+      } else if (scanModeParam && scanModeParam !== 'all') {
+        this.scanMode = 'single';
+        this.selectedItemId = +scanModeParam;
+      }
     }
+  }
+
+  checkIfMobile(): void {
+    this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    ) || window.innerWidth <= 768;
   }
 
   // ===== LOAD DETAIL LIST =====
@@ -194,15 +219,218 @@ export class ScanDetailComponent implements OnInit {
   }
 
 
-  openCameraScanner(field: 'pallet' | 'location'): void {
+  async openCameraScanner(field: 'pallet' | 'location') {
     if (!this.selectedMode && field === 'pallet') {
       this.snackBar.open('Vui lòng chọn mode scan!', 'Đóng', { duration: 3000 });
       return;
     }
+
     this.scannerActive = field;
     this.isScanning = true;
+    this.logDebug("=== Open Scanner ===");
+
+    try {
+      if (this.qrScanner) {
+        try {
+          await this.qrScanner.stop();
+          await this.qrScanner.clear();
+          this.logDebug("Old scanner stopped");
+        } catch (e) {
+          this.logDebug("Stop old scanner failed: " + e);
+        }
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      this.qrScanner = new Html5Qrcode("qr-reader");
+      this.logDebug("Scanner created");
+
+      const cameras = await Html5Qrcode.getCameras();
+      this.logDebug(`Found ${cameras.length} cameras`);
+      this.logDebug(JSON.stringify(cameras.map(c => ({ id: c.id, label: c.label }))));
+
+      if (!cameras || cameras.length === 0) {
+        this.snackBar.open("Không tìm thấy camera", "Đóng", { duration: 3000 });
+        this.stopScanning();
+        return;
+      }
+
+      this.availableCameras = cameras;
+
+      const backCameras = cameras.filter(c =>
+        (c.label || "").toLowerCase().includes("back") ||
+        (c.label || "").toLowerCase().includes("environment") ||
+        (c.label || "").toLowerCase().includes("rear")
+      );
+
+      let targetCam: CameraDevice;
+      if (this.selectedCameraId) {
+        targetCam = cameras.find(c => c.id === this.selectedCameraId) ||
+          (backCameras.length > 0 ? backCameras[backCameras.length - 1] : cameras[0]);
+      } else {
+        targetCam = backCameras.length > 0 ? backCameras[backCameras.length - 1] : cameras[0];
+      }
+
+      this.selectedCameraId = targetCam.id;
+      this.logDebug("Selected camera: " + targetCam.label);
+
+      await this.startScanner(targetCam.id);
+
+    } catch (e: any) {
+      this.logDebug("=== ERROR ===");
+      this.logDebug("Error name: " + (e?.name || "unknown"));
+      this.logDebug("Error message: " + (e?.message || "unknown"));
+      this.logDebug("Error toString: " + e?.toString());
+
+      let errorMsg = "Không thể mở camera!";
+
+      if (e?.name === "NotAllowedError" || e?.name === "PermissionDeniedError") {
+        errorMsg = "Bạn đã từ chối quyền camera. Vui lòng cấp quyền trong Cài đặt.";
+      } else if (e?.name === "NotFoundError" || e?.name === "DevicesNotFoundError") {
+        errorMsg = "Không tìm thấy camera trên thiết bị!";
+      } else if (e?.name === "NotReadableError" || e?.name === "TrackStartError") {
+        errorMsg = "Camera đang được sử dụng. Vui lòng đóng ứng dụng Camera/Zalo/Banking và thử lại.";
+      } else if (e?.name === "OverconstrainedError") {
+        errorMsg = "Camera không hỗ trợ cấu hình này!";
+      } else if (e?.message) {
+        errorMsg = "Lỗi: " + e.message;
+      }
+
+      this.snackBar.open(errorMsg, "Đóng", { duration: 5000 });
+      this.stopScanning();
+    }
   }
 
+  async startScanner(cameraId: string) {
+    const config = {
+      fps: 10,
+      qrbox: { width: 250, height: 250 },
+      aspectRatio: 1.0
+    };
+
+    await this.qrScanner!.start(
+      cameraId,
+      config,
+      (decodedText) => {
+        this.logDebug("Scanned: " + decodedText);
+        this.handleHtml5Scan(decodedText);
+      },
+      (errorMessage) => {
+        if (errorMessage && !errorMessage.includes("NotFoundException")) {
+          this.logDebug("Scan error: " + errorMessage);
+        }
+      }
+    );
+
+    this.logDebug("Camera started successfully!");
+  }
+
+  async switchCamera() {
+    if (!this.qrScanner || this.availableCameras.length <= 1) {
+      this.snackBar.open("Không có camera khác để chuyển!", "", { duration: 2000 });
+      return;
+    }
+
+    try {
+      this.logDebug("=== Switching Camera ===");
+
+      const currentIndex = this.availableCameras.findIndex(c => c.id === this.selectedCameraId);
+      const nextIndex = (currentIndex + 1) % this.availableCameras.length;
+      const nextCamera = this.availableCameras[nextIndex];
+
+      this.logDebug(`Switching from ${this.availableCameras[currentIndex]?.label} to ${nextCamera.label}`);
+
+      await this.qrScanner.stop();
+      this.logDebug("Current camera stopped");
+
+      this.selectedCameraId = nextCamera.id;
+
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      await this.startScanner(nextCamera.id);
+
+      this.snackBar.open(`Đã chuyển sang ${nextCamera.label}`, "", { duration: 2000 });
+      this.logDebug("Camera switched successfully");
+
+    } catch (e: any) {
+      this.logDebug("Switch camera error: " + e?.message);
+      this.snackBar.open("Lỗi khi chuyển camera!", "Đóng", { duration: 3000 });
+
+      try {
+        await this.startScanner(this.selectedCameraId!);
+      } catch {
+        this.stopScanning();
+      }
+    }
+  }
+
+  handleHtml5Scan(code: string) {
+    code = code.trim();
+
+    if (code === this.lastScannedCode) return;
+    this.lastScannedCode = code;
+
+    this.logDebug("Processing: " + code);
+
+    if (code.startsWith("P")) {
+      this.scanPallet = code;
+      this.snackBar.open("✓ Đã quét pallet!", "", { duration: 1000 });
+    } else if (code.startsWith("B")) {
+      this.scanPallet = code;
+      this.snackBar.open("✓ Đã quét thùng!", "", { duration: 1000 });
+    } else {
+      this.scanLocation = code;
+      this.snackBar.open("✓ Đã quét location!", "", { duration: 1000 });
+    }
+
+    if (this.scanPallet && this.scanLocation) {
+      this.logDebug("Both codes ready, performing scan...");
+      this.stopScanning();
+      setTimeout(() => this.onLocationScanEnter(), 50);
+    }
+  }
+
+  async stopScanning() {
+    this.logDebug("=== Stopping Scanner ===");
+
+    this.isScanning = false;
+    this.scannerActive = null;
+    this.lastScannedCode = null;
+
+    if (this.qrScanner) {
+      try {
+        const state = await this.qrScanner.getState();
+        this.logDebug("Scanner state: " + state);
+
+        if (state === Html5QrcodeScannerState.SCANNING) {
+          await this.qrScanner.stop();
+          this.logDebug("Scanner stopped");
+        }
+
+        await this.qrScanner.clear();
+        this.logDebug("Scanner cleared");
+      } catch (err: any) {
+        this.logDebug("Stop error: " + (err?.message || err));
+      } finally {
+        this.qrScanner = undefined;
+      }
+    }
+  }
+
+  logDebug(msg: any) {
+    const text = typeof msg === 'string' ? msg : JSON.stringify(msg);
+    const timestamp = new Date().toLocaleTimeString();
+    this.debugLogs.unshift(`[${timestamp}] ${text}`);
+    console.log(`[${timestamp}] ${text}`);
+
+    if (this.debugLogs.length > 50) {
+      this.debugLogs = this.debugLogs.slice(0, 50);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.stopScanning();
+  }
   onScanSuccess(decodedText: string): void {
     const code = decodedText.trim();
     if (code === this.lastScannedCode) return;
@@ -223,11 +451,11 @@ export class ScanDetailComponent implements OnInit {
     }
   }
 
-  stopScanning(): void {
-    this.lastScannedCode = null;
-    this.isScanning = false;
-    this.scannerActive = null;
-  }
+  // stopScanning(): void {
+  //   this.lastScannedCode = null;
+  //   this.isScanning = false;
+  //   this.scannerActive = null;
+  // }
 
   // ===== SCAN MODE PALLET =====
   scanPalletMode(): void {
@@ -307,6 +535,7 @@ export class ScanDetailComponent implements OnInit {
   }
 
   // ===== ADD SCANNED ITEM (CHƯA LƯU DB) =====
+  // ===== ADD SCANNED ITEM (CHƯA LƯU DB) =====
   addScannedItem(inventory: any): boolean {
     // CHECK TRÙNG MÃ THÙNG
     const existingItem = this.scannedList.find(
@@ -314,7 +543,6 @@ export class ScanDetailComponent implements OnInit {
     );
 
     if (existingItem) {
-      // Đã confirmed → Không cho scan lại
       if (existingItem.confirmed) {
         this.snackBar.open(
           `Thùng ${inventory.identifier} đã được scan và xác nhận trước đó!`,
@@ -327,7 +555,6 @@ export class ScanDetailComponent implements OnInit {
         return false;
       }
 
-      // Chưa confirmed → Cập nhật location
       existingItem.warehouse = this.scanLocation;
       existingItem.scanTime = this.formatDateTime(new Date().toISOString());
 
@@ -359,20 +586,40 @@ export class ScanDetailComponent implements OnInit {
       return false;
     }
 
-    //KIỂM TRA TỔNG SỐ LƯỢNG SCAN
+    // **KIỂM TRA CHẾ ĐỘ SINGLE - CHỈ CHO SCAN SẢN PHẨM ĐÃ CHỌN**
+    if (this.scanMode === 'single' && this.selectedItemId !== null) {
+      if (detailItem.id !== this.selectedItemId) {
+        this.snackBar.open(
+          `Sản phẩm này không phải là sản phẩm được chọn để scan!`,
+          'Đóng',
+          {
+            duration: 3000,
+            panelClass: ['snackbar-warning'],
+          }
+        );
+        return false;
+      }
+    }
+
+    // **KIỂM TRA TỔNG SỐ LƯỢNG SCAN CỦA SẢN PHẨM NÀY**
     const currentScannedQty = this.scannedList
       .filter((item) => item.productId === detailItem.id)
       .reduce((sum, item) => sum + item.quantity, 0);
 
     const newTotalQty = currentScannedQty + (inventory.available_quantity || 0);
 
+    // **KIỂM TRA VƯỢT QUÁ SỐ LƯỢNG YÊU CẦU**
     if (newTotalQty > detailItem.total_quantity) {
+      const remaining = detailItem.total_quantity - currentScannedQty;
       this.snackBar.open(
-        `Vượt quá số lượng yêu cầu! Còn lại: ${detailItem.total_quantity - currentScannedQty
-        } ${detailItem.dvt}`,
+        `Vượt quá số lượng yêu cầu!\n` +
+        `Yêu cầu: ${detailItem.total_quantity} ${detailItem.dvt}\n` +
+        `Đã scan: ${currentScannedQty} ${detailItem.dvt}\n` +
+        `Còn lại: ${remaining} ${detailItem.dvt}\n` +
+        `Thùng này: ${inventory.available_quantity} ${detailItem.dvt}`,
         'Đóng',
         {
-          duration: 4000,
+          duration: 5000,
           panelClass: ['snackbar-error'],
         }
       );
@@ -386,19 +633,69 @@ export class ScanDetailComponent implements OnInit {
       productId: detailItem.id,
       inventoryCode: inventory.identifier,
       serialPallet: inventory.serial_pallet || 'N/A',
-      quantity: inventory.available_quantity || 0,
+      quantity: inventory.available_quantity || 0, // ✅ Số lượng từng thùng
       originalQuantity: inventory.initial_quantity || 0,
       productName: inventory.name || detailItem.product_name,
       scanTime: this.formatDateTime(now.toISOString()),
       warehouse: this.scanLocation,
       confirmed: false,
-      isNew: true, // Đánh dấu item mới
+      isNew: true,
     };
 
     this.scannedList = [...this.scannedList, newItem];
+    this.totalItems = this.scannedList.length;
+    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+
+    this.setPagedData(); // Cập nhật lại pagination
     this.updateDetailStatus();
 
+    // **HIỂN THỊ THÔNG BÁO CHI TIẾT**
+    const updatedScannedQty = currentScannedQty + (inventory.available_quantity || 0);
+    const remaining = detailItem.total_quantity - updatedScannedQty;
+
+    this.snackBar.open(
+      `✓ Đã thêm thùng ${inventory.identifier}\n` +
+      `SL thùng: ${inventory.available_quantity} ${detailItem.dvt}\n` +
+      `Tổng đã scan: ${updatedScannedQty}/${detailItem.total_quantity} ${detailItem.dvt}\n` +
+      `Còn lại: ${remaining} ${detailItem.dvt}`,
+      '',
+      {
+        duration: 3000,
+        panelClass: ['snackbar-success'],
+      }
+    );
+
     return true;
+  }
+
+  // **THÊM METHOD TÍNH TỔNG SỐ LƯỢNG ĐÃ SCAN**
+  getTotalScannedQuantity(productId?: number): number {
+    if (productId) {
+      // Tổng số lượng đã scan của 1 sản phẩm cụ thể
+      return this.scannedList
+        .filter((item) => item.productId === productId)
+        .reduce((sum, item) => sum + item.quantity, 0);
+    } else {
+      // Tổng số lượng đã scan của TẤT CẢ sản phẩm
+      return this.scannedList.reduce((sum, item) => sum + item.quantity, 0);
+    }
+  }
+
+  // **THÊM METHOD LẤY SỐ LƯỢNG CÒN LẠI**
+  getRemainingQuantity(productId: number): number {
+    const detailItem = this.detailList.find((item) => item.id === productId);
+    if (!detailItem) return 0;
+
+    const scannedQty = this.getTotalScannedQuantity(productId);
+    return detailItem.total_quantity - scannedQty;
+  }
+
+  // **THÊM METHOD LẤY THÔNG TIN SẢN PHẨM ĐANG SCAN (CHO MODE SINGLE)**
+  getSelectedProductInfo(): DetailItem | null {
+    if (this.scanMode === 'single' && this.selectedItemId !== null) {
+      return this.detailList.find((item) => item.id === this.selectedItemId) || null;
+    }
+    return null;
   }
 
   // ===== UPDATE DETAIL STATUS =====

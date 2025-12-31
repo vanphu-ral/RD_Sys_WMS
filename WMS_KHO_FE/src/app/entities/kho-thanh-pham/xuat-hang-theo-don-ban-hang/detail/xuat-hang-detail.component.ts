@@ -2,6 +2,8 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { XuatHangTheoDonBanService } from '../service/xuat-hang-theo-don-ban.service.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ConfirmDialogXuatHangComponent } from '../dialog/confirm-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 export interface SalesItemDetail {
   id: number;
   productCode: string;
@@ -9,6 +11,7 @@ export interface SalesItemDetail {
   quantity: number;
   originalQuantity: number;
   unit: string;
+  quantityScanned: number;
   updatedBy: string;
   updatedDate: string;
 }
@@ -40,8 +43,9 @@ export class XuatHangDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private xuatKhoService: XuatHangTheoDonBanService,
-    private snackBar: MatSnackBar
-  ) {}
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog,
+  ) { }
   ngOnInit(): void {
     const id = +this.route.snapshot.paramMap.get('id')!;
     if (!id) return;
@@ -54,6 +58,7 @@ export class XuatHangDetailComponent implements OnInit {
           quantity: item.total_quantity,
           originalQuantity: item.total_quantity,
           unit: item.dvt,
+          quantityScanned: item.quantity_scanned,
           updatedBy: item.updated_by,
           updatedDate: item.updated_date,
         }));
@@ -95,7 +100,7 @@ export class XuatHangDetailComponent implements OnInit {
     this.detailList.forEach((item) => {
       item.quantity = this.globalQuantity!;
     });
-  } 
+  }
   onScan(item: SalesItemDetail): void {
     const requestId = this.route.snapshot.paramMap.get('id');
     this.router.navigate(
@@ -114,6 +119,53 @@ export class XuatHangDetailComponent implements OnInit {
   back(): void {
     this.router.navigate(['/kho-thanh-pham/xuat-don-ban-hang'], {
       state: { detailList: this.detailList },
+    });
+  }
+
+  onApprove(): void {
+    // kiểm tra có item nào đã scan chưa
+    const hasScanned = this.detailList.some(item => item.quantityScanned > 0);
+
+    if (!hasScanned) {
+      this.snackBar.open('Chưa có sản phẩm nào được scan, không thể phê duyệt!', 'Đóng', {
+        duration: 3000,
+        panelClass: ['snackbar-error'],
+      });
+      return;
+    }
+
+    // mở dialog confirm
+    const dialogRef = this.dialog.open(ConfirmDialogXuatHangComponent, {
+      width: '400px',
+      data: { message: 'Bạn có chắc muốn phê duyệt yêu cầu này?' },
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.patchApprove();
+      }
+    });
+  }
+
+  private patchApprove(): void {
+    if (!this.id) return;
+
+    this.xuatKhoService.patchSalesScanStatus(this.id, { scan_status: true }).subscribe({
+      next: () => {
+        this.snackBar.open('Phê duyệt thành công!', 'Đóng', {
+          duration: 3000,
+          panelClass: ['snackbar-success'],
+        });
+        // quay lại hoặc reload
+        this.router.navigate(['/kho-thanh-pham/chuyen-kho']);
+      },
+      error: (err) => {
+        console.error('Lỗi khi phê duyệt:', err);
+        this.snackBar.open('Phê duyệt thất bại!', 'Đóng', {
+          duration: 3000,
+          panelClass: ['snackbar-error'],
+        });
+      }
     });
   }
 }

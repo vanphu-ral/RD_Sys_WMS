@@ -38,8 +38,8 @@ export class ChuyenKhoComponent {
     'ngay_chung_tu',
     'so_phieu_xuat',
     'so_chung_tu',
-    'series_PGH',
-    'status',
+    // 'series_PGH',
+    // 'status',
     'scan_status',
     'actions',
   ];
@@ -52,8 +52,8 @@ export class ChuyenKhoComponent {
     ngay_chung_tu: '',
     so_phieu_xuat: '',
     so_chung_tu: '',
-    series_PGH: '',
-    status: '',
+    // series_PGH: '',
+    // status: '',
     scan_status: '',
   };
 
@@ -67,7 +67,7 @@ export class ChuyenKhoComponent {
     'so_phieu_xuat',
     'so_chung_tu',
     'series_PGH',
-    'status',
+    // 'status',
     'scan_status',
   ];
   internalTransfers: InternalTransferRequest[] = [];
@@ -118,8 +118,8 @@ export class ChuyenKhoComponent {
       ngay_chung_tu: '',
       so_chung_tu: '',
       so_phieu_xuat: '',
-      series_PGH: '',
-      status: '',
+      // series_PGH: '',
+      // status: '',
       scan_status: '',
     };
     this.searchTerm = '';
@@ -235,9 +235,9 @@ export class ChuyenKhoComponent {
 
   applyFilter(): void {
     // Chuyển đổi label sang boolean cho status và scan_status
-    const statusFilter: boolean | null = this.convertLabelToBoolean(
-      this.filterValues.status
-    );
+    // const statusFilter: boolean | null = this.convertLabelToBoolean(
+    //   this.filterValues.status
+    // );
     const scanFilter: boolean | null = this.convertLabelToBoolean(
       this.filterValues.scan_status
     );
@@ -264,10 +264,10 @@ export class ChuyenKhoComponent {
         });
 
       // Lọc theo status và scan_status
-      const matchStatus = statusFilter === null || item.status === statusFilter;
+      // const matchStatus = statusFilter === null || item.status === statusFilter;
       const matchScan = scanFilter === null || item.scan_status === scanFilter;
 
-      return matchTextFields && matchStatus && matchScan;
+      // return matchTextFields && matchStatus && matchScan;
     });
 
     // Cập nhật dữ liệu hiển thị theo trang

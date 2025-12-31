@@ -142,7 +142,7 @@
                     </th>
                     <td mat-cell *matCellDef="let chuyenkho">{{chuyenkho.so_phieu_xuat}}</td>
                 </ng-container>
-                <ng-container matColumnDef="series_PGH">
+                <!-- <ng-container matColumnDef="series_PGH">
                     <th mat-header-cell *matHeaderCellDef>
                         <div>Serial PGH</div>
                         <mat-form-field class="search-field" appearance="outline" style="width: 4rem;">
@@ -151,9 +151,9 @@
                         </mat-form-field>
                     </th>
                     <td mat-cell *matCellDef="let chuyenkho">{{chuyenkho.series_PGH}}</td>
-                </ng-container>
+                </ng-container> -->
 
-                <ng-container matColumnDef="status">
+                <!-- <ng-container matColumnDef="status">
                     <th mat-header-cell *matHeaderCellDef>
                         <div>Status</div>
                         <mat-form-field class="search-field" appearance="outline">
@@ -170,7 +170,7 @@
                             {{ chuyenkho.status ? 'Đã duyệt' : 'Chưa duyệt' }}
                         </span>
                     </td>
-                </ng-container>
+                </ng-container> -->
 
                 <ng-container matColumnDef="scan_status">
                     <th mat-header-cell *matHeaderCellDef>
@@ -244,14 +244,14 @@
                 <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
 
-            <mat-form-field class="filter-field" appearance="outline">
+            <!-- <mat-form-field class="filter-field" appearance="outline">
                 <mat-label>Status</mat-label>
                 <mat-select [(ngModel)]="filterValues.status" (selectionChange)="applyFilter()">
                     <mat-option value="">Tất cả</mat-option>
                     <mat-option value="Đã duyệt">Đã duyệt</mat-option>
                     <mat-option value="Chưa duyệt">Chưa duyệt</mat-option>
                 </mat-select>
-            </mat-form-field>
+            </mat-form-field> -->
 
             <mat-form-field class="filter-field" appearance="outline">
                 <mat-label>Scan Status</mat-label>
@@ -339,10 +339,10 @@
                         <span class="value">{{item.so_phieu_xuat}}</span>
                     </div>
 
-                    <div class="info-row">
+                    <!-- <div class="info-row">
                         <span class="label">Serial PGH</span>
                         <span class="value">{{item.series_PGH}}</span>
-                    </div>
+                    </div> -->
                 </div>
 
                 <!-- Card Actions -->

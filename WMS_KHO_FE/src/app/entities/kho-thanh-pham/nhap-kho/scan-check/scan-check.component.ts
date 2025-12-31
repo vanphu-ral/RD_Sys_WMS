@@ -8,7 +8,7 @@ import { AlertDialogComponent } from '../dialog/alert-dialog.component';
 import { BarcodeFormat } from '@zxing/library';
 import { forkJoin } from 'rxjs';
 import { ZXingScannerComponent } from '@zxing/ngx-scanner';
-import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
+import { CameraDevice, Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 
 export interface ScannedPallet {
   id: number;
@@ -83,6 +83,10 @@ export class ScanCheckComponent implements OnInit {
 
   // Active tab
   activeTab: 'pallet' | 'box' = 'pallet';
+
+  //switch camera
+  selectedCameraId: string | null = null;
+  availableCameras: CameraDevice[] = [];
 
   // Table columns
   palletColumns: string[] = [
@@ -378,7 +382,6 @@ export class ScanCheckComponent implements OnInit {
     this.logDebug("=== Open Scanner ===");
 
     try {
-      // Stop scanner cũ nếu có
       if (this.qrScanner) {
         try {
           await this.qrScanner.stop();
@@ -389,14 +392,11 @@ export class ScanCheckComponent implements OnInit {
         }
       }
 
-      // Đợi DOM render
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Khởi tạo scanner mới
       this.qrScanner = new Html5Qrcode("qr-reader");
       this.logDebug("Scanner created");
 
-      // Lấy danh sách camera
       const cameras = await Html5Qrcode.getCameras();
       this.logDebug(`Found ${cameras.length} cameras`);
       this.logDebug(JSON.stringify(cameras.map(c => ({ id: c.id, label: c.label }))));
@@ -407,45 +407,30 @@ export class ScanCheckComponent implements OnInit {
         return;
       }
 
-      // Tìm back camera
+      // Lưu danh sách camera (CameraDevice[])
+      this.availableCameras = cameras;
+
       const backCameras = cameras.filter(c =>
         (c.label || "").toLowerCase().includes("back") ||
         (c.label || "").toLowerCase().includes("environment") ||
         (c.label || "").toLowerCase().includes("rear")
       );
 
-      // Ưu tiên back camera cuối cùng (thường là main camera)
-      const targetCam = backCameras.length > 0
-        ? backCameras[backCameras.length - 1]
-        : cameras[0];
+      // Sử dụng camera đã chọn hoặc back camera mặc định
+      let targetCam: CameraDevice;
+      if (this.selectedCameraId) {
+        targetCam = cameras.find(c => c.id === this.selectedCameraId) ||
+          (backCameras.length > 0 ? backCameras[backCameras.length - 1] : cameras[0]);
+      } else {
+        targetCam = backCameras.length > 0 ? backCameras[backCameras.length - 1] : cameras[0];
+      }
+
+      // Lưu camera hiện tại
+      this.selectedCameraId = targetCam.id;
 
       this.logDebug("Selected camera: " + targetCam.label);
 
-      // Cấu hình scan
-      const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0
-      };
-
-      // Start camera với deviceId
-      await this.qrScanner.start(
-        targetCam.id, // Chỉ cần ID, không cần { deviceId: { exact: ... } }
-        config,
-        (decodedText) => {
-          this.logDebug("Scanned: " + decodedText);
-          this.handleHtml5Scan(decodedText);
-        },
-        (errorMessage) => {
-          // Bỏ qua lỗi scan thông thường (không tìm thấy QR)
-          // Chỉ log lỗi nghiêm trọng
-          if (errorMessage && !errorMessage.includes("NotFoundException")) {
-            this.logDebug("Scan error: " + errorMessage);
-          }
-        }
-      );
-
-      this.logDebug("Camera started successfully!");
+      await this.startScanner(targetCam.id);
 
     } catch (e: any) {
       this.logDebug("=== ERROR ===");
@@ -469,6 +454,75 @@ export class ScanCheckComponent implements OnInit {
 
       this.snackBar.open(errorMsg, "Đóng", { duration: 5000 });
       this.stopScanning();
+    }
+  }
+  async startScanner(cameraId: string) {
+    const config = {
+      fps: 10,
+      qrbox: { width: 250, height: 250 },
+      aspectRatio: 1.0
+    };
+
+    await this.qrScanner!.start(
+      cameraId,
+      config,
+      (decodedText) => {
+        this.logDebug("Scanned: " + decodedText);
+        this.handleHtml5Scan(decodedText);
+      },
+      (errorMessage) => {
+        if (errorMessage && !errorMessage.includes("NotFoundException")) {
+          this.logDebug("Scan error: " + errorMessage);
+        }
+      }
+    );
+
+    this.logDebug("Camera started successfully!");
+  }
+  async switchCamera() {
+    if (!this.qrScanner || this.availableCameras.length <= 1) {
+      this.snackBar.open("Không có camera khác để chuyển!", "", { duration: 2000 });
+      return;
+    }
+
+    try {
+      this.logDebug("=== Switching Camera ===");
+
+      // Tìm index camera hiện tại
+      const currentIndex = this.availableCameras.findIndex(c => c.id === this.selectedCameraId);
+
+      // Chuyển sang camera tiếp theo (vòng tròn)
+      const nextIndex = (currentIndex + 1) % this.availableCameras.length;
+      const nextCamera = this.availableCameras[nextIndex];
+
+      this.logDebug(`Switching from ${this.availableCameras[currentIndex]?.label} to ${nextCamera.label}`);
+
+      // Stop camera hiện tại
+      await this.qrScanner.stop();
+      this.logDebug("Current camera stopped");
+
+      // Cập nhật camera đã chọn
+      this.selectedCameraId = nextCamera.id;
+
+      // Delay nhỏ để đảm bảo cleanup
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // Start camera mới
+      await this.startScanner(nextCamera.id);
+
+      this.snackBar.open(`Đã chuyển sang ${nextCamera.label}`, "", { duration: 2000 });
+      this.logDebug("Camera switched successfully");
+
+    } catch (e: any) {
+      this.logDebug("Switch camera error: " + e?.message);
+      this.snackBar.open("Lỗi khi chuyển camera!", "Đóng", { duration: 3000 });
+
+      // Nếu lỗi, thử mở lại camera cũ
+      try {
+        await this.startScanner(this.selectedCameraId!);
+      } catch {
+        this.stopScanning();
+      }
     }
   }
   handleHtml5Scan(code: string) {

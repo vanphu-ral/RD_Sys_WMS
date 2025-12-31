@@ -16,6 +16,10 @@
                 <mat-icon>description</mat-icon>
                 <span>Thông tin chi tiết</span>
             </div>
+            <button mat-raised-button class="warehouse-btn" (click)="onScanAll()">
+            <mat-icon>qr_code_2</mat-icon>
+            Scan List
+        </button>
         </div>
 
         <div class="table-container">
@@ -68,6 +72,11 @@
                 <ng-container matColumnDef="updatedDate">
                     <th mat-header-cell *matHeaderCellDef>Ngày cập nhật</th>
                     <td mat-cell *matCellDef="let item">{{formatDateTime(item.updatedDate)}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="quantityScanned">
+                    <th mat-header-cell *matHeaderCellDef>Số lượng đã scan</th>
+                    <td mat-cell *matCellDef="let item">{{item.quantityScanned}}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="actions">
@@ -194,7 +203,7 @@
             <mat-icon>qr_code_2</mat-icon>
             Scan vật tư
         </button> -->
-        <button mat-raised-button color="primary" class="confirm-btn">
+        <button mat-raised-button color="primary" class="confirm-btn" (click)="onApprove()">
             <mat-icon>check</mat-icon>
             Phê duyệt
         </button>

@@ -164,6 +164,8 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
           maPO: item.U_PO || '',
           donViTinh: item.UomCode || '',
         }));
+        console.log('detailList sau khi map:', this.detailList);
+
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu:', err);
@@ -246,8 +248,8 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
     const toWarehouse = this.toWarehouseId;
     const username = this.authService.getUsername();
 
-    if (!fromWarehouse || !toWarehouse) {
-      this.snackBar.open('Vui lòng chọn đầy đủ Từ kho và Đến kho!', 'Đóng', {
+    if (!fromWarehouse) {
+      this.snackBar.open('Vui lòng chọn kho sẽ xuất hàng', 'Đóng', {
         duration: 3000,
         panelClass: ['snackbar-error'],
       });
@@ -255,18 +257,21 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
     }
 
     const headerPayload = {
-      don_vi_linh: this.mainInfo.donViLinh,
+      don_vi_linh: this.detailList.length > 0 ? this.detailList[0].donViTinh : '',
       don_vi_nhan: this.mainInfo.tenKhachHang,
       kho_xuat: fromWarehouse,
-      xuat_toi: toWarehouse,
+      xuat_toi: null,
       ly_do_xuat_nhap: this.mainInfo.lyDoNhapXuat,
       ma_yc_xk: this.mainInfo.soChungTu,
+      so_phieu_xuat: this.mainInfo.soPhieuGiaoHang,
+      so_chung_tu:this.mainInfo.soChungTu,
       ngay_chung_tu:
         this.mainInfo.ngayGiaoHang || new Date().toISOString().slice(0, 10),
       note: this.mainInfo.ghiChu || '',
       series_pgh: '',
       status: "false",
       updated_by: username,
+      
     };
 
     this.xuatHangServie.saveSalesExportRequest(headerPayload).subscribe({
@@ -279,6 +284,7 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
             total_quantity: item.soLuong,
             updated_by: username,
           }));
+          console.log('itemsPayload:', itemsPayload);
 
           this.xuatHangServie
             .saveSalesExportItems(res.osr_id, itemsPayload)
@@ -288,6 +294,7 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
                   duration: 3000,
                   panelClass: ['snackbar-success'],
                 });
+                setTimeout(() => { this.router.navigate(['/kho-thanh-pham/xuat-don-ban-hang']); }, 2000);
               },
               error: (err) => {
                 console.error('Lỗi khi lưu bảng phụ:', err);

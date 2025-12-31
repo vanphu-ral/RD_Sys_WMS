@@ -50,6 +50,13 @@ export class ChuyenKhoService {
     return this.http.get<any[]>(`${this.apiUrl}/iwtr/requests/${id}/items`);
   }
 
+  //phe duyet chuyen kho
+  patchRequestScanStatus(requestId: number, body: { scan_status: boolean }): Observable<any> {
+    return this.http.patch<any[]>(`${this.apiUrl}/iwrt/requests/${requestId}`, body);
+  }
+
+
+
   // Lấy thông tin đã scan
   getScannedData(requestId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/iwtr/requests/${requestId}/scan`);
