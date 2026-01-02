@@ -65,6 +65,7 @@ export class NhapKhoComponent {
     client_id: '',
     po_number: '',
     status: '',
+    updated_by: '',
   };
 
   filterColumns: string[] = [
@@ -223,11 +224,14 @@ export class NhapKhoComponent {
       const matchClientId = !this.filterValues.client_id ||
         item.client_id?.toLowerCase().includes(this.filterValues.client_id.toLowerCase());
 
+      const updatedBy = !this.filterValues.updated_by ||
+        item.updated_by?.toLowerCase().includes(this.filterValues.updated_by.toLowerCase());
+
       const matchStatus = !this.filterValues.status ||
         statusText.toLowerCase().includes(this.filterValues.status.toLowerCase());
 
       return matchInventoryName && matchLotNumber && matchWoCode &&
-        matchPoNumber && matchClientId && matchStatus;
+        matchPoNumber && matchClientId && matchStatus && updatedBy;
     });
 
     // Cập nhật filteredList
@@ -257,6 +261,7 @@ export class NhapKhoComponent {
       client_id: '',
       po_number: '',
       status: '',
+      updated_by: '',
     };
     this.searchTerm = '';
 

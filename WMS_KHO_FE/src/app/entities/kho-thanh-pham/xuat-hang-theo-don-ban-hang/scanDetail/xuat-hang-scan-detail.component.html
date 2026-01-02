@@ -45,25 +45,12 @@
                             inputmode="none" />
                     </mat-form-field>
 
-                    <!-- Camera Button - chỉ hiện trên mobile -->
+                    <!-- Camera Button -->
                     <button mat-icon-button *ngIf="isMobile" class="camera-btn" (click)="openCameraScanner('pallet')"
                         [disabled]="!selectedMode" matTooltip="Quét bằng camera">
                         <mat-icon>photo_camera</mat-icon>
                     </button>
                 </div>
-
-                <!-- Location Input với Camera Button -->
-                <!-- <div class="input-with-camera">
-                    <mat-form-field class="scan-field" appearance="outline">
-                        <mat-label>Location scan...</mat-label>
-                        <input matInput [(ngModel)]="scanLocation" placeholder="Location scan..." #locationInput
-                            (keydown.enter)="onLocationScanEnter()" inputmode="none" />
-                    </mat-form-field>
-                    <button mat-icon-button *ngIf="isMobile" class="camera-btn" (click)="openCameraScanner('location')"
-                        matTooltip="Quét bằng camera">
-                        <mat-icon>photo_camera</mat-icon>
-                    </button>
-                </div> -->
             </div>
         </div>
         <mat-card class="nhapkho-card">

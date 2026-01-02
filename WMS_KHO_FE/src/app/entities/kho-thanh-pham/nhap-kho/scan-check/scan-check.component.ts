@@ -552,15 +552,17 @@ export class ScanCheckComponent implements OnInit {
     // Phân loại mã
     if (code.startsWith("P")) {
       this.scanPallet = code;
+      this.playAudio('assets/audio/successed-295058.mp3');
       this.snackBar.open("✓ Đã quét pallet!", "", { duration: 1000 });
     } else if (code.startsWith("B")) {
       this.scanPallet = code;
+      this.playAudio('assets/audio/successed-295058.mp3');
       this.snackBar.open("✓ Đã quét thùng!", "", { duration: 1000 });
     } else {
       this.scanLocation = code;
+      this.playAudio('assets/audio/successed-295058.mp3');
       this.snackBar.open("✓ Đã quét location!", "", { duration: 1000 });
     }
-
     // Nếu đủ cả hai → thực hiện scan
     if (this.scanPallet && this.scanLocation) {
       this.logDebug("Both codes ready, performing scan...");

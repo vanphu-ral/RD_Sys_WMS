@@ -141,49 +141,103 @@ export class ScanDetailXuatHangComponent implements OnInit {
       return;
     }
 
-    // Gọi API để lấy thông tin pallet
-    this.xuatKhoService.getPalletInfo(this.scanPallet.trim()).subscribe({
+    if (!this.selectedMode) {
+      this.snackBar.open('Vui lòng chọn mode scan!', 'Đóng', {
+        duration: 3000,
+        panelClass: ['snackbar-warning'],
+      });
+      return;
+    }
+
+    this.performScan();
+  }
+  performScan(): void {
+    const palletCode = this.scanPallet.trim().toUpperCase();
+
+    // Kiểm tra trùng
+    const alreadyScanned = this.scannedList.some(
+      (item) => item.serialPallet === palletCode
+    );
+
+    if (alreadyScanned) {
+      this.snackBar.open('Mã pallet/thùng này đã được scan!', 'Đóng', {
+        duration: 3000,
+        panelClass: ['snackbar-warning'],
+      });
+      this.resetInputs();
+      return;
+    }
+
+    this.isLoading = true;
+
+    // Gọi API lấy thông tin pallet
+    this.xuatKhoService.getPalletInfo(palletCode).subscribe({
       next: (palletInfo) => {
         if (!palletInfo || !palletInfo.data) {
           this.snackBar.open('Không tìm thấy thông tin pallet/thùng!', 'Đóng', {
             duration: 3000,
             panelClass: ['snackbar-error'],
           });
-          this.scanPallet = '';
-          setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
+          this.resetInputs();
+          this.isLoading = false;
           return;
         }
 
-        // Kiểm tra xem pallet có trong danh sách detail không
+        const data = palletInfo.data;
+
+        // Kiểm tra có trong detail list không
         const matched = this.detailList.find(
-          (item: any) => item.productCode === palletInfo.data.product_code
+          (item: any) => item.productCode === data.product_code
         );
 
         if (!matched) {
-          this.snackBar.open('Mã hàng không có trong đơn xuất kho!', 'Đóng', {
+          this.snackBar.open('Sản phẩm không có trong đơn xuất kho!', 'Đóng', {
             duration: 3000,
             panelClass: ['snackbar-error'],
           });
-          this.scanPallet = '';
-          setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
+          this.resetInputs();
+          this.isLoading = false;
           return;
         }
 
-        // Chuyển focus sang input location
-        this.locationInput?.nativeElement?.focus();
+        // Tạo item mới
+        const now = new Date();
+        const newItem: ScannedItem = {
+          productId: matched.id || 0,
+          inventoryCode: palletCode, // ✅ Dùng palletCode làm inventoryCode
+          serialPallet: palletCode,
+          quantity: data.quantity || matched.quantity || 0,
+          originalQuantity: matched.quantity || 0,
+          productName: data.product_name || matched.productName || 'N/A',
+          scanTime: this.formatScanTime(now.toISOString()),
+          warehouse: data.location_code || 'N/A', // ✅ Lấy từ API
+        };
+
+        // Thêm vào danh sách
+        this.scannedList = [...this.scannedList, newItem];
+        this.totalItems = this.scannedList.length;
+        this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+        this.setPagedData();
+
+        this.snackBar.open('✓ Scan thành công!', '', {
+          duration: 1500,
+          panelClass: ['snackbar-success'],
+        });
+
+        this.resetInputs();
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Lỗi khi lấy thông tin pallet:', err);
-        this.snackBar.open('Lỗi khi kiểm tra mã pallet/thùng!', 'Đóng', {
+        this.snackBar.open('Lỗi khi xử lý scan!', 'Đóng', {
           duration: 3000,
           panelClass: ['snackbar-error'],
         });
-        this.scanPallet = '';
-        setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
+        this.resetInputs();
+        this.isLoading = false;
       }
     });
   }
-
   /**
    * Xử lý khi nhấn Enter ở input Location
    */
@@ -273,7 +327,10 @@ export class ScanDetailXuatHangComponent implements OnInit {
       }
     });
   }
-
+  playAudio(file: string): void {
+    const audio = new Audio(file);
+    audio.play();
+  }
 
   getPalletPlaceholder(): string {
     return this.selectedMode === 'pallet' ? 'Scan mã Pallet...' : 'Scan mã Thùng...';
@@ -432,21 +489,18 @@ export class ScanDetailXuatHangComponent implements OnInit {
 
     this.logDebug("Processing: " + code);
 
-    if (code.startsWith("P")) {
+    // CHỈ CẦN PALLET - không cần location
+    if (code.startsWith("P") || code.startsWith("B")) {
       this.scanPallet = code;
-      this.snackBar.open("✓ Đã quét pallet!", "", { duration: 1000 });
-    } else if (code.startsWith("B")) {
-      this.scanPallet = code;
-      this.snackBar.open("✓ Đã quét thùng!", "", { duration: 1000 });
-    } else {
-      this.scanLocation = code;
-      this.snackBar.open("✓ Đã quét location!", "", { duration: 1000 });
-    }
+      this.snackBar.open("✓ Đã quét mã!", "", { duration: 1000 });
 
-    if (this.scanPallet && this.scanLocation) {
-      this.logDebug("Both codes ready, performing scan...");
+      // TRIGGER SCAN NGAY
       this.stopScanning();
-      setTimeout(() => this.onLocationScanEnter(), 50);
+      setTimeout(() => this.onPalletScanEnter(), 50);
+    } else {
+      this.snackBar.open("Mã không hợp lệ! (Phải bắt đầu bằng P hoặc B)", "Đóng", {
+        duration: 2000
+      });
     }
   }
 
@@ -499,6 +553,7 @@ export class ScanDetailXuatHangComponent implements OnInit {
 
     if (this.scannerActive === 'pallet') {
       this.scanPallet = code;
+      this.playAudio('assets/audio/successed-295058.mp3');
       this.snackBar.open('✓ Đã scan pallet/thùng!', '', { duration: 1500 });
     } else {
       this.scanLocation = code;

@@ -374,12 +374,15 @@ export class ScanDetailComponent implements OnInit {
 
     if (code.startsWith("P")) {
       this.scanPallet = code;
+      this.playAudio('assets/audio/successed-295058.mp3');
       this.snackBar.open("✓ Đã quét pallet!", "", { duration: 1000 });
     } else if (code.startsWith("B")) {
       this.scanPallet = code;
+      this.playAudio('assets/audio/successed-295058.mp3');
       this.snackBar.open("✓ Đã quét thùng!", "", { duration: 1000 });
     } else {
       this.scanLocation = code;
+      this.playAudio('assets/audio/successed-295058.mp3');
       this.snackBar.open("✓ Đã quét location!", "", { duration: 1000 });
     }
 
@@ -389,7 +392,10 @@ export class ScanDetailComponent implements OnInit {
       setTimeout(() => this.onLocationScanEnter(), 50);
     }
   }
-
+  playAudio(file: string): void {
+    const audio = new Audio(file);
+    audio.play();
+  }
   async stopScanning() {
     this.logDebug("=== Stopping Scanner ===");
 
