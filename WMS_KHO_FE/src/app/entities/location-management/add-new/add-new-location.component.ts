@@ -208,7 +208,7 @@ export class AddNewLocationComponentComponent implements OnInit {
       STT: this.subLocations.indexOf(item) + 1,
       Location: item.locationCode,
       SubLocation: item.subCode,
-      FullCode: `${item.locationCode}-${item.subCode}`,
+      FullCode: `${item.areaCode}-${item.locationCode}-${item.subCode}`,
     }));
 
     const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);

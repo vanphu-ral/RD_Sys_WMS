@@ -267,17 +267,34 @@ export class ScanCheckComponent implements OnInit {
 
   loadScannedItemsFromAPI(pallets: any[]): void {
     console.log('Loading scanned items from API...', pallets);
+    console.log('Scan mode:', this.scanMode);
+    console.log('Target pallet ID:', this.targetPalletId);
 
     // ============================================
-    // LOAD PALLETS ĐÃ SCAN
+    // LỌC PALLETS THEO MODE
     // ============================================
-    pallets.forEach((p: any) => {
-      // Kiểm tra pallet đã scan: scan_status = true hoặc "Đã scan"
+    let filteredPallets = pallets;
+
+    if (this.scanMode === 'single' && this.targetPalletId) {
+      // Chỉ lấy pallet được chọn
+      filteredPallets = pallets.filter(p => p.id === this.targetPalletId);
+
+      if (filteredPallets.length === 0) {
+        console.warn('Không tìm thấy pallet với ID:', this.targetPalletId);
+        return;
+      }
+
+      console.log('Filtered to single pallet:', filteredPallets[0]?.serial_pallet);
+    }
+
+    // ============================================
+    // LOAD PALLETS ĐÃ SCAN (CHỈ PALLET ĐƯỢC LỌC)
+    // ============================================
+    filteredPallets.forEach((p: any) => {
       const isScanned = p.scan_status === true ||
         p.scan_status === 'Đã scan' ||
         p.confirmed === true;
 
-      // Chỉ load pallet có serial_pallet (không rỗng)
       if (isScanned && p.serial_pallet && p.serial_pallet.trim()) {
         const scannedPallet = this.mapPalletToScannedPallet(p);
         this.scannedPallets.push(scannedPallet);
@@ -286,14 +303,13 @@ export class ScanCheckComponent implements OnInit {
     });
 
     // ============================================
-    // LOAD BOXES ĐÃ SCAN
+    // LOAD BOXES ĐÃ SCAN (CHỈ BOX THUỘC PALLET ĐƯỢC LỌC)
     // ============================================
-    pallets.forEach((p: any) => {
+    filteredPallets.forEach((p: any) => {
       const palletSerial = p.serial_pallet || '';
       const isLoosePallet = !palletSerial || palletSerial.trim() === '';
 
       (p.list_box || []).forEach((box: any) => {
-        // Kiểm tra box đã scan
         const isBoxScanned = box.scan_status === true ||
           box.scan_status === 'Đã scan' ||
           box.confirmed === true;
@@ -303,12 +319,12 @@ export class ScanCheckComponent implements OnInit {
             id: box.id,
             boxCode: box.box_code,
             quantity: box.quantity || 0,
-            quantityImported: box.quantity_imported || box.quantity || 0, // Ưu tiên quantity_imported từ API
+            quantityImported: box.quantity_imported || box.quantity || 0,
             locationId: box.location_id || 0,
             locationCode: box.location_code || '',
             note: box.note || '',
             serialPallet: palletSerial,
-            isLooseBox: isLoosePallet, // Đánh dấu thùng lẻ nếu không có pallet
+            isLooseBox: isLoosePallet,
             scanBy: box.scan_by || '',
             timeChecked: box.scan_time || box.updated_date || '',
             sapCode: this.importRequirementInfo?.inventory_code || '',
@@ -327,13 +343,13 @@ export class ScanCheckComponent implements OnInit {
     this.scannedPallets.sort((a, b) => {
       const timeA = new Date(a.timeChecked || 0).getTime();
       const timeB = new Date(b.timeChecked || 0).getTime();
-      return timeB - timeA; // Mới nhất lên đầu
+      return timeB - timeA;
     });
 
     this.scannedBoxes.sort((a, b) => {
       const timeA = new Date(a.timeChecked || 0).getTime();
       const timeB = new Date(b.timeChecked || 0).getTime();
-      return timeB - timeA; // Mới nhất lên đầu
+      return timeB - timeA;
     });
 
     console.log('Total loaded pallets:', this.scannedPallets.length);
@@ -348,7 +364,6 @@ export class ScanCheckComponent implements OnInit {
       this.activeTab = 'box';
     }
   }
-
   onSelectMode(mode: 'pallet' | 'thung'): void {
     this.selectedMode = mode;
     setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
@@ -777,13 +792,30 @@ export class ScanCheckComponent implements OnInit {
       return;
     }
 
-    if (this.scanMode === 'single' && this.scannedPallets.length >= 1) {
-      this.playAudio('assets/audio/beep_warning.mp3');
-      this.dialog.open(AlertDialogComponent, { data: 'Đã đủ số lượng pallet cần scan!' });
-      this.resetScanInputs();
-      return;
+    // **SỬA LOGIC KIỂM TRA ĐỦ SỐ LƯỢNG CHO MODE SINGLE**
+    if (this.scanMode === 'single') {
+      // Trong mode single, CHỈ ĐƯỢC SCAN 1 PALLET (pallet được chọn)
+      if (this.scannedPallets.length >= 1) {
+        this.playAudio('assets/audio/beep_warning.mp3');
+        this.dialog.open(AlertDialogComponent, {
+          data: 'Bạn đang ở chế độ scan đơn. Chỉ được scan 1 pallet!'
+        });
+        this.resetScanInputs();
+        return;
+      }
+
+      // Kiểm tra có đúng pallet được chọn không
+      if (palletInfo.id !== this.targetPalletId) {
+        this.playAudio('assets/audio/beep_warning.mp3');
+        this.dialog.open(AlertDialogComponent, {
+          data: `Pallet này không phải là pallet ${this.targetPalletCode}!`
+        });
+        this.resetScanInputs();
+        return;
+      }
     }
 
+    // Tạo scanned pallet mới
     const newScannedPallet: ScannedPallet = {
       id: palletInfo.id,
       serialPallet: palletInfo.serial_pallet,
@@ -813,7 +845,12 @@ export class ScanCheckComponent implements OnInit {
     this.updatePalletPagination();
     this.activeTab = 'pallet';
     this.playAudio('assets/audio/successed-295058.mp3');
-    this.snackBar.open('✓ Scan pallet thành công!', '', { duration: 2000 });
+
+    const message = this.scanMode === 'single'
+      ? '✓ Scan pallet thành công!'
+      : '✓ Scan pallet thành công!';
+
+    this.snackBar.open(message, '', { duration: 2000 });
     this.resetScanInputs();
   }
 
@@ -821,7 +858,12 @@ export class ScanCheckComponent implements OnInit {
     let boxInfo: any = null;
     let palletInfo: any = null;
 
-    for (const pallet of pallets) {
+    // **THÊM LỌC THEO MODE SINGLE**
+    const palletsToSearch = this.scanMode === 'single' && this.targetPalletId
+      ? pallets.filter(p => p.id === this.targetPalletId)
+      : pallets;
+
+    for (const pallet of palletsToSearch) {
       const box = (pallet.list_box || []).find((b: any) => b.box_code === code);
       if (box) {
         palletInfo = pallet;
@@ -832,7 +874,10 @@ export class ScanCheckComponent implements OnInit {
 
     if (!boxInfo) {
       this.playAudio('assets/audio/beep_warning.mp3');
-      this.dialog.open(AlertDialogComponent, { data: 'Thùng không tồn tại!' });
+      const message = this.scanMode === 'single'
+        ? `Thùng này không thuộc pallet ${this.targetPalletCode}!`
+        : 'Thùng không tồn tại!';
+      this.dialog.open(AlertDialogComponent, { data: message });
       this.resetScanInputs();
       return;
     }
@@ -845,7 +890,6 @@ export class ScanCheckComponent implements OnInit {
     if (existing) {
       this.playAudio('assets/audio/beep_warning.mp3');
 
-      // Cho phép cập nhật location nếu khác
       if (existing.locationId !== locationId) {
         const dialogRef = this.dialog.open(AlertDialogComponent, {
           data: `Thùng này đã được scan vào kho ${existing.locationCode}. Bạn có muốn cập nhật sang kho ${locationCode}?`
@@ -891,7 +935,9 @@ export class ScanCheckComponent implements OnInit {
     this.updateBoxPagination();
     this.activeTab = 'box';
     this.playAudio('assets/audio/successed-295058.mp3');
-    this.snackBar.open(`✓ Scan thùng thành công!${isLoose ? ' (Thùng lẻ)' : ''}`, '', { duration: 2000 });
+
+    const looseText = isLoose ? ' (Thùng lẻ)' : '';
+    this.snackBar.open(`✓ Scan thùng thành công!${looseText}`, '', { duration: 2000 });
     this.resetScanInputs();
   }
 

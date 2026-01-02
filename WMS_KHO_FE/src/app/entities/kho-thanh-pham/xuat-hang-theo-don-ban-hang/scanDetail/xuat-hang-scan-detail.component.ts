@@ -627,9 +627,9 @@ export class ScanDetailXuatHangComponent implements OnInit {
    * Quay lại trang detail
    */
   back(): void {
-    this.router.navigate([
-      '/kho-thanh-pham/xuat-don-ban-hang/detail/',
-      this.requestId,
-    ]);
+    const requestId = this.route.snapshot.paramMap.get('id');
+    this.router.navigate(
+      ['/kho-thanh-pham/xuat-don-ban-hang/detail', requestId]
+    );
   }
 }

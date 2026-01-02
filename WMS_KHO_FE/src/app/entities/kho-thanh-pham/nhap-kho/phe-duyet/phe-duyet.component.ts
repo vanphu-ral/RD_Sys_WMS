@@ -7,7 +7,7 @@ import { NhapKhoService } from '../service/nhap-kho.service';
 import { BoxListDialogComponent } from '../dialog/box-list-dialog.component';
 import { StringLengthRule } from 'devextreme/common';
 import { ConfirmDialogComponent } from '../../chuyen-kho/dialog/confirm-dialog.component';
-import { switchMap } from 'rxjs';
+import { forkJoin, of, switchMap } from 'rxjs';
 export interface DetailItem {
   id: number;
   // nếu không có trường warehouse_import_requirement_id trong API mới, có thể để optional
@@ -477,9 +477,35 @@ export class PheDuyetComponent implements OnInit {
     const progress = this.computeBoxScanProgress();
     console.log('[Approve] box_scan_progress to set:', progress);
 
-    // Gọi PATCH trước, sau đó gọi updateStatus
+    const apiCalls: any[] = [];
+
+    if ((this.detailList || []).length > 0) {
+      const palletPayload = {
+        updates: this.detailList.map(p => ({
+          id: p.id,
+          confirmed: true,
+        }))
+      };
+      apiCalls.push(this.nhapKhoService.updatePalletInfo(palletPayload));
+    }
+
+    if ((this.pagedBoxList || []).length > 0) {
+      const boxPayload = {
+        updates: this.pagedBoxList.map(b => ({
+          confirmed: true,
+        }))
+      };
+      apiCalls.push(this.nhapKhoService.updateContainerInventories(boxPayload));
+    }
+
     this.nhapKhoService.patchImportRequirement(this.importId, { box_scan_progress: progress })
       .pipe(
+        switchMap(() => {
+          if (apiCalls.length > 0) {
+            return forkJoin(apiCalls);
+          }
+          return of(null);
+        }),
         switchMap(() => this.nhapKhoService.updateStatus(this.importId!, true))
       )
       .subscribe({
@@ -493,9 +519,20 @@ export class PheDuyetComponent implements OnInit {
         },
         error: (err) => {
           this.isProcessingApprove = false;
-          console.error('Lỗi khi phê duyệt hoặc cập nhật progress:', err);
-          this.snackBar.open('Phê duyệt thất bại! Vui lòng thử lại.', 'Đóng', {
-            duration: 3000,
+          console.error('Lỗi khi phê duyệt hoặc cập nhật:', err);
+
+          // Xử lý thông báo lỗi chi tiết
+          let errorMessage = 'Phê duyệt thất bại! Vui lòng thử lại.';
+          if (err?.error?.message) {
+            errorMessage = err.error.message;
+          } else if (err?.message) {
+            errorMessage = err.message;
+          } else if (typeof err === 'string') {
+            errorMessage = err;
+          }
+
+          this.snackBar.open(errorMessage, 'Đóng', {
+            duration: 5000,
             panelClass: ['snackbar-error'],
           });
         }

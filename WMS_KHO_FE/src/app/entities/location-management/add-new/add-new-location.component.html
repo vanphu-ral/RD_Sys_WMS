@@ -10,7 +10,7 @@
         </div>
         <button mat-raised-button color="primary" class="add-btn" [routerLink]="'/location'">
             <mat-icon>arrow_back</mat-icon>
-            Quay lại danh sách
+            Trở lại
         </button>
 
     </div>
@@ -64,8 +64,8 @@
 
             <div class="form-row">
                 <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Description</mat-label>
-                    <textarea matInput [(ngModel)]="location.description" placeholder="Mô tả location"></textarea>
+                    <mat-label>Mô tả</mat-label>
+                    <textarea matInput [(ngModel)]="location.description" placeholder="Mô tả"></textarea>
                 </mat-form-field>
             </div>
             <div class="form-row">
@@ -91,7 +91,7 @@
 
                 <div class="toggle-slide">
                     <mat-slide-toggle [(ngModel)]="location.is_multi_location">
-                        Restric Multi part (Enable để sinh chi tiết SubLocations con)
+                        Có vị trí phụ (Cho phép để sinh chi tiết vị trí phụ)
                     </mat-slide-toggle>
                 </div>
             </div>
@@ -104,13 +104,13 @@
             <div class="card-header">
                 <div class="table-title">
                     <mat-icon>sell</mat-icon>
-                    <span>Prefix Configuration</span>
+                    <span>Cấu hình tiền tố</span>
                 </div>
             </div>
             <div class="form-row">
                 <div style="display: flex; flex-direction: column;">
                     <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>Prefix Name</mat-label>
+                        <mat-label>Tên tiền tố</mat-label>
                         <input matInput [(ngModel)]="prefix.name" />
                     </mat-form-field>
                     <span class="info-configuration">*Tên vị trí phụ (giá)</span>
@@ -118,7 +118,7 @@
 
                 <div style="display: flex; flex-direction: column;">
                     <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>Prefix Separator</mat-label>
+                        <mat-label>Dấu phân cách tiền tố</mat-label>
                         <input matInput [(ngModel)]="prefix.separator" />
                     </mat-form-field>
                     <span class="info-configuration">*Ký tự ngăn cách (prefix)</span>
@@ -133,13 +133,13 @@
             <div class="card-header">
                 <div class="table-title">
                     <mat-icon>grid_on</mat-icon>
-                    <span>Grid Layout Configuration</span>
+                    <span>Cấu hình bố cục</span>
                 </div>
             </div>
             <div class="form-row">
                 <div style="display: flex; flex-direction: column;">
                     <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>Rows</mat-label>
+                        <mat-label>Tầng</mat-label>
                         <input matInput type="number" [(ngModel)]="grid.rows" />
                     </mat-form-field>
                     <span class="info-configuration">*Số tầng</span>
@@ -147,7 +147,7 @@
 
                 <div style="display: flex; flex-direction: column;">
                     <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>Columns</mat-label>
+                        <mat-label>Vị trí</mat-label>
                         <input matInput type="number" [(ngModel)]="grid.columns" />
                     </mat-form-field>
                     <span class="info-configuration">*Số vị trí</span>
@@ -155,14 +155,14 @@
 
                 <div style="display: flex; flex-direction: column;">
                     <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>Starting Number</mat-label>
+                        <mat-label>Bắt đầu từ số</mat-label>
                         <input matInput type="number" [(ngModel)]="grid.start" />
                     </mat-form-field>
                     <span class="info-configuration">*Bắt đầu từ số</span>
                 </div>
                 <div style="display: flex; flex-direction: column;">
                     <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>Suffix Digit Length</mat-label>
+                        <mat-label>Số đơn vị</mat-label>
                         <input matInput type="number" [(ngModel)]="grid.suffixLength" />
                     </mat-form-field>
                     <span class="info-configuration">*Số đơn vị ô</span>
@@ -170,7 +170,7 @@
 
                 <div style="display: flex; flex-direction: column;">
                     <mat-form-field appearance="outline" class="form-field">
-                        <mat-label>Suffix Separator</mat-label>
+                        <mat-label>Dấu phân cách hậu tố</mat-label>
                         <input matInput [(ngModel)]="grid.suffixSeparator" />
                     </mat-form-field>
                     <span class="info-configuration">*Ký tự ngăn cách giá/tầng</span>
@@ -179,23 +179,23 @@
                     <mat-form-field appearance="outline" class="form-field">
                         <input matInput [value]="getPreview()" disabled />
                     </mat-form-field>
-                    <span class="info-configuration">*Preview</span>
+                    <span class="info-configuration">*Xem trước</span>
                 </div>
             </div>
         </mat-card>
 
         <mat-card class="config-card info-card shadow-card">
             <mat-icon color="primary">info</mat-icon>
-            Tổng Locations: {{getTotalLocations()}} vị trí — phân bố: {{grid.rows}} tầng, mỗi tầng {{grid.columns}} ô
+            Tổng: {{getTotalLocations()}} vị trí — phân bố: {{grid.rows}} tầng, mỗi tầng {{grid.columns}} ô
         </mat-card>
 
         <mat-card class="location-card">
             <div class="action-buttons">
                 <button mat-stroked-button color="warn" (click)="onClear()"
-                    matTooltip="Xoá tất cả sub-location">Clear</button>
+                    matTooltip="Xoá tất cả sub-location">Làm mới</button>
                 <button mat-raised-button color="primary" (click)="onGenerate()">
                     <mat-icon>play_arrow</mat-icon>
-                    Generate</button>
+                    Tạo vị trí phụ</button>
             </div>
         </mat-card>
 
@@ -203,7 +203,7 @@
             <div class="card-header">
                 <div class="table-title">
                     <mat-icon>grid_on</mat-icon>
-                    <span>Generated Sub Location</span>
+                    <span>Vị trí phụ đã tạo</span>
                     <span class="location-count">{{ subLocations.length }}</span>
                 </div>
                 <div class="table-actions">
@@ -215,7 +215,7 @@
             </div>
             <div *ngIf="subLocations.length == 0" class="generate-placeholder">
                 <mat-icon>info</mat-icon>
-                <p>Click "Generate" để tạo kho</p>
+                <p>Click "Tạo vị trí phụ" để tạo kho</p>
             </div>
             <div class="sub-location-list" *ngIf="subLocations.length > 0">
 
@@ -280,12 +280,12 @@
     </div>
     <mat-card class="location-card">
         <div class="action-buttons" *ngIf="location.is_multi_location">
-            <button mat-button [routerLink]="'/location'">Cancel</button>
+            <button mat-button [routerLink]="'/location'">Huỷ</button>
 
             <button mat-flat-button color="primary" (click)="onSave()">Lưu</button>
         </div>
         <div class="action-buttons" *ngIf="!location.is_multi_location">
-            <button mat-button [routerLink]="'/location'">Cancel</button>
+            <button mat-button [routerLink]="'/location'">Huỷ</button>
             <button mat-flat-button color="primary" (click)="onSave()">Lưu</button>
         </div>
     </mat-card>

@@ -10,7 +10,7 @@
         </div>
         <button mat-raised-button color="primary" class="add-btn" [routerLink]="'/areas'">
             <mat-icon>arrow_back</mat-icon>
-            Back
+            Trở về
         </button>
     </div>
 
@@ -64,9 +64,9 @@
                 <!-- Row 3 -->
                 <div class="form-row">
                     <mat-form-field appearance="outline" class="form-field full-width">
-                        <mat-label>Description</mat-label>
+                        <mat-label>Mô tả</mat-label>
                         <textarea matInput name="description" [(ngModel)]="area.description"
-                            placeholder="Mô tả area" #description="ngModel"></textarea>
+                            placeholder="Mô tả" #description="ngModel"></textarea>
                         <!-- <mat-error *ngIf="description.invalid && description.touched">Mô tả là bắt buộc</mat-error> -->
                     </mat-form-field>
                 </div>

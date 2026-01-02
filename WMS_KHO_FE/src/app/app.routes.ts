@@ -51,7 +51,7 @@ export const routes: Routes = [
     component: AreaManagementComponent,
     canActivate: [AuthGuard],
     data: {
-      tabLabel: 'Quản lý Area',
+      tabLabel: 'Quản lý Kho',
       isClosable: false,
       roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
     }

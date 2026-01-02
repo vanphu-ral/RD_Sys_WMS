@@ -86,19 +86,19 @@ export interface UpdateLocationPayload {
 }
 export interface PalletUpdatePayload {
   updates: Array<{
-    id: number;
-    serial_pallet: string;
-    quantity_per_box: number;
-    num_box_per_pallet: number;
-    total_quantity: number;
-    po_number: string;
-    customer_name: string;
-    production_decision_number: string;
-    item_no_sku: string;
-    date_code: string;
-    note: string;
-    scan_status: boolean;
-    confirmed: boolean;
+    id?: number;
+    serial_pallet?: string;
+    quantity_per_box?: number;
+    num_box_per_pallet?: number;
+    total_quantity?: number;
+    po_number?: string;
+    customer_name?: string;
+    production_decision_number?: string;
+    item_no_sku?: string;
+    date_code?: string;
+    note?: string;
+    scan_status?: boolean;
+    confirmed?: boolean;
     location_id?: number;
     scan_by?: string;
     scan_time?: string;
@@ -108,10 +108,10 @@ export interface PalletUpdatePayload {
 // Container Inventories (Box) Update Payload
 export interface ContainerInventoriesPayload {
   updates: Array<{
-    id: number;
-    inventory_identifier: string;
-    quantity_imported: number;
-    confirmed: boolean;
+    id?: number;
+    inventory_identifier?: string;
+    quantity_imported?: number;
+    confirmed?: boolean;
     location_id?: number;
     scan_status?: boolean;
     scan_by?: string;

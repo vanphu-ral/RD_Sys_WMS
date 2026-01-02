@@ -30,7 +30,7 @@ export class HomepageComponent implements OnInit {
 
   menuItems: MenuItem[] = [
     {
-      title: 'Quản lý Area',
+      title: 'Quản lý Kho',
       icon: 'map',
       route: '/areas',
       description: 'Quản lý các khu vực trong kho',

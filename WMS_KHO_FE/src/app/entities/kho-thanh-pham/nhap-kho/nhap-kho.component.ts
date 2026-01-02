@@ -175,7 +175,7 @@ export class NhapKhoComponent {
   }
 
   onRefresh(): void {
-    console.log('Refreshing data...');
+    this.loadDanhSachNhapKho();
   }
 
   onAddNew(): void {
