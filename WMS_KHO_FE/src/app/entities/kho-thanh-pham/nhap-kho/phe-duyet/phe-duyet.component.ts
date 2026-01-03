@@ -7,7 +7,8 @@ import { NhapKhoService } from '../service/nhap-kho.service';
 import { BoxListDialogComponent } from '../dialog/box-list-dialog.component';
 import { StringLengthRule } from 'devextreme/common';
 import { ConfirmDialogComponent } from '../../chuyen-kho/dialog/confirm-dialog.component';
-import { forkJoin, of, switchMap } from 'rxjs';
+import { forkJoin, Observable, of, switchMap } from 'rxjs';
+import { AuthService } from '../../../../services/auth.service';
 export interface DetailItem {
   id: number;
   // nếu không có trường warehouse_import_requirement_id trong API mới, có thể để optional
@@ -29,6 +30,7 @@ export interface DetailItem {
 }
 
 export interface BoxItem {
+  id?: number;
   boxCode: string;
   quantity: number;
   note: string;
@@ -133,7 +135,8 @@ export class PheDuyetComponent implements OnInit {
     private router: Router,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private nhapKhoService: NhapKhoService
+    private nhapKhoService: NhapKhoService,
+    private authService: AuthService,
   ) { }
 
   ngOnInit(): void {
@@ -226,6 +229,7 @@ export class PheDuyetComponent implements OnInit {
             // không có mã pallet nhưng có box -> đưa từng box vào pagedBoxList (tab thùng)
             p.list_box.forEach((b: any) => {
               const boxItem: BoxItem = {
+                id: b.id,
                 boxCode: b.box_code ?? '',
                 quantity: Number(b.quantity ?? b.quantity_per_box ?? 0),
                 note: b.note ?? '',
@@ -473,39 +477,50 @@ export class PheDuyetComponent implements OnInit {
     if (this.importId === undefined) return;
 
     this.isProcessingApprove = true;
-
     const progress = this.computeBoxScanProgress();
     console.log('[Approve] box_scan_progress to set:', progress);
 
-    const apiCalls: any[] = [];
+    const apiCalls: Observable<any>[] = [];
+    const username = this.authService.getUsername();
 
+    // Pallet payload: đảm bảo có id cho mỗi update
     if ((this.detailList || []).length > 0) {
       const palletPayload = {
         updates: this.detailList.map(p => ({
-          id: p.id,
+          id: p.id,            // <-- đảm bảo có id
           confirmed: true,
+          updated_by: username,
         }))
       };
       apiCalls.push(this.nhapKhoService.updatePalletInfo(palletPayload));
     }
-
+    // Box payload: phải include id (hoặc trường id đúng theo API)
     if ((this.pagedBoxList || []).length > 0) {
       const boxPayload = {
         updates: this.pagedBoxList.map(b => ({
+          id: b.id,
           confirmed: true,
+          updated_by: username,
         }))
       };
+      // Kiểm tra nhanh: nếu có phần tử nào thiếu id thì log và không gọi API box
+      const missingBoxIds = boxPayload.updates.filter((u: any) => !u.id);
+      if (missingBoxIds.length > 0) {
+        console.warn('Missing box id(s) in payload:', missingBoxIds);
+        // Thông báo rõ cho user và dừng quá trình
+        this.isProcessingApprove = false;
+        this.snackBar.open('Có thùng/pallet thiếu ID, không thể phê duyệt. Vui lòng kiểm tra dữ liệu.', 'Đóng', {
+          duration: 6000,
+          panelClass: ['snackbar-error'],
+        });
+        return;
+      }
       apiCalls.push(this.nhapKhoService.updateContainerInventories(boxPayload));
     }
 
     this.nhapKhoService.patchImportRequirement(this.importId, { box_scan_progress: progress })
       .pipe(
-        switchMap(() => {
-          if (apiCalls.length > 0) {
-            return forkJoin(apiCalls);
-          }
-          return of(null);
-        }),
+        switchMap(() => apiCalls.length ? forkJoin(apiCalls) : of(null)),
         switchMap(() => this.nhapKhoService.updateStatus(this.importId!, true))
       )
       .subscribe({
@@ -521,23 +536,49 @@ export class PheDuyetComponent implements OnInit {
           this.isProcessingApprove = false;
           console.error('Lỗi khi phê duyệt hoặc cập nhật:', err);
 
-          // Xử lý thông báo lỗi chi tiết
-          let errorMessage = 'Phê duyệt thất bại! Vui lòng thử lại.';
-          if (err?.error?.message) {
-            errorMessage = err.error.message;
-          } else if (err?.message) {
-            errorMessage = err.message;
-          } else if (typeof err === 'string') {
-            errorMessage = err;
+          // --- Xử lý lỗi chi tiết và thân thiện với người dùng ---
+          const status = err?.status;
+          const errBody = err?.error;
+
+          // 1) Nếu backend trả detail là mảng (ví dụ pydantic validation), gom các msg
+          if (Array.isArray(errBody?.detail)) {
+            const messages = errBody.detail.map((d: any) => {
+              // nếu có loc và msg thì format rõ ràng
+              const loc = Array.isArray(d.loc) ? d.loc.join('.') : d.loc;
+              return loc ? `${loc}: ${d.msg}` : d.msg || JSON.stringify(d);
+            });
+            const userMsg = `Lỗi server (${status || '??'}): ${messages.join('; ')}`;
+            this.snackBar.open(userMsg, 'Đóng', { duration: 8000, panelClass: ['snackbar-error'] });
+            return;
           }
 
-          this.snackBar.open(errorMessage, 'Đóng', {
-            duration: 5000,
-            panelClass: ['snackbar-error'],
-          });
+          // 2) Nếu backend trả { detail: '...' } hoặc { message: '...' }
+          if (typeof errBody?.detail === 'string' && errBody.detail.trim()) {
+            this.snackBar.open(`Lỗi server: ${errBody.detail}`, 'Đóng', { duration: 6000, panelClass: ['snackbar-error'] });
+            return;
+          }
+          if (typeof errBody?.message === 'string' && errBody.message.trim()) {
+            this.snackBar.open(`Lỗi server: ${errBody.message}`, 'Đóng', { duration: 6000, panelClass: ['snackbar-error'] });
+            return;
+          }
+
+          // 3) Nếu err.error là object khác, cố gắng lấy các trường phổ biến
+          if (errBody && typeof errBody === 'object') {
+            const keys = Object.keys(errBody);
+            // lấy giá trị text đầu tiên
+            const firstVal = errBody[keys[0]];
+            const text = typeof firstVal === 'string' ? firstVal : JSON.stringify(firstVal);
+            this.snackBar.open(`Lỗi server (${status || '??'}): ${text}`, 'Đóng', { duration: 6000, panelClass: ['snackbar-error'] });
+            return;
+          }
+
+          // 4) Fallback: hiển thị message mặc định kèm status
+          const fallback = err?.message || `Phê duyệt thất bại (status ${status || '??'})`;
+          this.snackBar.open(fallback, 'Đóng', { duration: 6000, panelClass: ['snackbar-error'] });
         }
       });
   }
+
 
 
 }

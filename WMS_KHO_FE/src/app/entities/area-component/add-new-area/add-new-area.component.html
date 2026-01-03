@@ -75,7 +75,7 @@
                 <div class="form-row">
                     <button *ngIf="isSaveArea" mat-raised-button color="primary" class="add-btn"
                         [routerLink]="'/location/add-new'">
-                        <mat-icon>add_circle</mat-icon>
+                        <mat-icon>add</mat-icon>
                         Thêm mới vị trí
                     </button>
                 </div>
@@ -85,7 +85,7 @@
         </mat-card>
         <mat-card class="area-card">
             <div class="action-buttons">
-                <button mat-button [routerLink]="'/areas'">Cancel</button>
+                <button mat-button [routerLink]="'/areas'">Trở lại</button>
                 <button mat-flat-button color="primary" type="submit">{{ submitLabel }}</button>
             </div>
         </mat-card>

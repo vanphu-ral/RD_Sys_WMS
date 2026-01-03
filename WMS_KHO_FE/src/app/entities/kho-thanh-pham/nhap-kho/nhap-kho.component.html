@@ -7,6 +7,16 @@
                 <p class="subtitle">Warehouse management from production</p>
             </div>
         </div>
+        <div>
+            <mat-form-field class="apply-field" appearance="outline">
+                <input matInput placeholder="Tìm mã pallet/box..." [(ngModel)]="maTimKiem"
+                    (keydown.enter)="onApplySearch()">
+            </mat-form-field>
+            <button mat-raised-button color="primary" class="add-btn" (click)="onApplySearch()">
+                <mat-icon>add_task</mat-icon>
+                Áp dụng
+            </button>
+        </div>
     </div>
     <!-- Content Card -->
     <mat-card class="nhapkho-card">

@@ -251,24 +251,28 @@
                 <mat-icon style="margin: 7px;">expand_more</mat-icon>
             </button>
         </div>
-        
+
+        <button mat-button class="cancel-btn" (click)="onCancel()">
+            <mat-icon>close</mat-icon>
+            Trở lại
+        </button>
         <!-- Từ kho -->
-         <div class="warehouse-row">
-             <mat-form-field class="warehouse-autocomplete" appearance="outline">
-                 <mat-label>Từ kho</mat-label>
-                 <mat-icon matPrefix>warehouse</mat-icon>
-                 <input type="text" matInput [matAutocomplete]="fromAuto" [(ngModel)]="fromWarehouseInputText"
-                     (input)="onWarehouseInput($event, 'from')" placeholder="Nhập tên kho hoặc chọn..." />
-                 <mat-autocomplete #fromAuto="matAutocomplete"
-                     (optionSelected)="onFromWarehouseSelected($event.option.value)">
-                     <mat-option *ngFor="let warehouse of filteredFromWarehouses" [value]="warehouse.id">
-                         {{ warehouse.name }}
-                     </mat-option>
-                 </mat-autocomplete>
-             </mat-form-field>
-     
-             <!-- Đến kho -->
-             <!-- <mat-form-field class="warehouse-autocomplete" appearance="outline">
+        <div class="warehouse-row">
+            <mat-form-field class="warehouse-autocomplete" appearance="outline">
+                <mat-label>Từ kho</mat-label>
+                <mat-icon matPrefix>warehouse</mat-icon>
+                <input type="text" matInput [matAutocomplete]="fromAuto" [(ngModel)]="fromWarehouseInputText"
+                    (input)="onWarehouseInput($event, 'from')" placeholder="Nhập tên kho hoặc chọn..." />
+                <mat-autocomplete #fromAuto="matAutocomplete"
+                    (optionSelected)="onFromWarehouseSelected($event.option.value)">
+                    <mat-option *ngFor="let warehouse of filteredFromWarehouses" [value]="warehouse.id">
+                        {{ warehouse.name }}
+                    </mat-option>
+                </mat-autocomplete>
+            </mat-form-field>
+
+            <!-- Đến kho -->
+            <!-- <mat-form-field class="warehouse-autocomplete" appearance="outline">
                  <mat-label>Đến kho</mat-label>
                  <mat-icon matPrefix>warehouse</mat-icon>
                  <input type="text" matInput [matAutocomplete]="toAuto" [(ngModel)]="toWarehouseInputText"
@@ -279,15 +283,12 @@
                      </mat-option>
                  </mat-autocomplete>
              </mat-form-field> -->
-         </div>
+        </div>
+
 
         <button mat-raised-button color="primary" class="confirm-btn" (click)="onConfirm()">
             <mat-icon>check</mat-icon>
             Xác nhận
-        </button>
-        <button mat-button class="cancel-btn" (click)="onCancel()">
-            <mat-icon>close</mat-icon>
-            Cancel
         </button>
     </div>
 </div>

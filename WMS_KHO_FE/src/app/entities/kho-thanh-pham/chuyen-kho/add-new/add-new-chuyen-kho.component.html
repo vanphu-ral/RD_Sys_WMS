@@ -266,7 +266,12 @@
             </button>
         </div>
 
-        <div class="warehouse-row">
+        <button mat-button class="cancel-btn" (click)="onCancel()">
+            <mat-icon>close</mat-icon>
+            Trở lại
+        </button>
+
+        <div class="warehouse-row" >
             <mat-form-field class="warehouse-autocomplete" appearance="outline">
                 <mat-label>Từ kho</mat-label>
                 <mat-icon matPrefix>warehouse</mat-icon>
@@ -294,14 +299,11 @@
             </mat-form-field>
         </div>
 
+
+
         <button mat-raised-button color="primary" class="confirm-btn" (click)="onConfirm()">
             <mat-icon>check</mat-icon>
             Xác nhận
-        </button>
-
-        <button mat-button class="cancel-btn" (click)="onCancel()">
-            <mat-icon>close</mat-icon>
-            Cancel
         </button>
     </div>
 

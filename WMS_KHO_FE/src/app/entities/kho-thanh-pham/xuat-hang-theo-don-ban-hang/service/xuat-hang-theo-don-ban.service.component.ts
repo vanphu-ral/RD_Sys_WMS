@@ -26,13 +26,14 @@ export class XuatHangTheoDonBanService {
   }
 
   // Lấy danh sách kho (map id, name)
-  getWarehouses(): Observable<{ id: number; name: string }[]> {
+  getWarehouses(): Observable<{ id: number; name: string; is_active?: boolean }[]> {
     return this.http.get<any>(`${this.apiUrl}/areas`).pipe(
       map((res) =>
         Array.isArray(res.data)
           ? res.data.map((item: any) => ({
             id: item.id,
             name: item.name,
+            is_active: item.is_active
           }))
           : []
       )

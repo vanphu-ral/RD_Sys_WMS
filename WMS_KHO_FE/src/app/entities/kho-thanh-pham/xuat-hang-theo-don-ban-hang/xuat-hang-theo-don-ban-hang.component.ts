@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { KhoThanhPhamModule } from '../kho-thanh-pham.module';
 import { Router } from '@angular/router';
 import { XuatHangTheoDonBanService } from './service/xuat-hang-theo-don-ban.service.component';
@@ -91,7 +91,8 @@ export class XuatHangTheoDonBanHangComponent {
   showMobileFilters: boolean = false;
   constructor(
     private router: Router,
-    private xuatDonBanService: XuatHangTheoDonBanService
+    private xuatDonBanService: XuatHangTheoDonBanService,
+    private cdr: ChangeDetectorRef,
   ) { }
   ngOnInit(): void {
     this.xuatDonBanService.getAreas().subscribe({
@@ -228,6 +229,7 @@ export class XuatHangTheoDonBanHangComponent {
 
   onRefresh(): void {
     this.loadSalesRequests();
+    this.cdr.detectChanges();
   }
 
   onDetail(warehouse: SalesExportRequest): void {

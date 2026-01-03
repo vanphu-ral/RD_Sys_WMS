@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { KhoThanhPhamModule } from '../kho-thanh-pham.module';
 import { Router } from '@angular/router';
 import { NhapKhoService } from './service/nhap-kho.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 export interface NhapKhoItem {
   id: number;
   po_number: string | null;
@@ -85,7 +86,13 @@ export class NhapKhoComponent {
   pageSize: number = 10;
   currentPage: number = 1;
   totalPages: number = 1;
-  constructor(private router: Router, private nhapKhoService: NhapKhoService) { }
+
+  //search
+  maTimKiem: string = '';
+  constructor(private router: Router, private nhapKhoService: NhapKhoService,
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
+  ) { }
   ngOnInit(): void {
     this.loadDanhSachNhapKho();
   }
@@ -177,6 +184,7 @@ export class NhapKhoComponent {
 
   onRefresh(): void {
     this.loadDanhSachNhapKho();
+    this.cdr.detectChanges();
   }
 
   onAddNew(): void {
@@ -203,6 +211,69 @@ export class NhapKhoComponent {
     this.totalPages = Math.ceil(this.totalItems / this.pageSize);
     this.slicePage();
   }
+  private isApproved(value: any): boolean {
+    return (
+      value === true ||
+      value === 'true' ||
+      value === 1 ||
+      value === '1' ||
+      value === 'approved'
+    );
+  }
+
+  onApplySearch(): void {
+    const q = (this.maTimKiem || '').trim();
+    if (!q) {
+      this.snackBar.open('Vui lòng nhập mã pallet hoặc mã thùng để tìm.', 'Đóng', { duration: 3000 });
+      return;
+    }
+
+    this.nhapKhoService.searchImportRequirements(q).subscribe({
+      next: (items) => {
+        // items là mảng (có thể rỗng)
+        if (!items || items.length === 0) {
+          this.snackBar.open('Mã này chưa được tạo đơn nhập kho.', 'Đóng', { duration: 4000 });
+          return;
+        }
+
+        if (items.length === 1) {
+          const item = items[0];
+          const statusCandidates = item.status ?? item.is_approved ?? item.approved ?? item.scan_status ?? item.is_active;
+
+          if (this.isApproved(statusCandidates)) {
+            this.snackBar.open('Đã duyệt. Chuyển tới đơn...', 'Đóng', { duration: 1200 });
+            this.router.navigate(['kho-thanh-pham/nhap-kho-sx/phe-duyet', item.id]);
+          } else {
+            this.snackBar.open('Đơn tìm thấy nhưng chưa được duyệt.', 'Đóng', { duration: 4000 });
+            // nếu muốn vẫn chuyển tới chi tiết khi chưa duyệt, bỏ comment dòng dưới
+            this.router.navigate(['kho-thanh-pham/nhap-kho-sx/phe-duyet', item.id]);
+          }
+          return;
+        }
+
+        // items.length > 1: tìm đơn đã duyệt trong danh sách
+        const approvedItem = items.find((it: any) => {
+          const s = it.status ?? it.is_approved ?? it.approved ?? it.scan_status ?? it.is_active;
+          return this.isApproved(s);
+        });
+
+        if (approvedItem) {
+          this.snackBar.open('Tìm thấy nhiều đơn. Chuyển tới đơn đã duyệt...', 'Đóng', { duration: 1200 });
+          this.router.navigate(['kho-thanh-pham/nhap-kho-sx/phe-duyet', approvedItem.id]);
+        } else {
+          this.snackBar.open('Tìm thấy nhiều đơn nhưng không có đơn nào đã duyệt.', 'Đóng', { duration: 4000 });
+          // có thể mở trang danh sách kết quả hoặc dialog nếu cần
+        }
+      },
+      error: (err) => {
+        console.error('Lỗi khi tìm nhanh:', err);
+        const serverMsg = err?.error?.detail || err?.error?.message;
+        const userMsg = serverMsg ? `Lỗi server: ${serverMsg}` : 'Lỗi khi tìm. Vui lòng thử lại sau.';
+        this.snackBar.open(userMsg, 'Đóng', { duration: 4000 });
+      }
+    });
+  }
+
 
   applyFilter(): void {
     const filtered = this.originalList.filter((item) => {

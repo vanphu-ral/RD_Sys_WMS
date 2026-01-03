@@ -68,6 +68,14 @@
 ::ng-deep .mat-mdc-raised-button > .mat-icon {
   margin: 0 !important;
 }
+::ng-deep .apply-field {
+  width: 180px;
+  margin-bottom: -1.75rem;
+  margin-right: 20px;
+  @include mat.form-field-density(-5);
+  @include mat.icon-button-density(-5);
+  @include mat.datepicker-density(-5);
+}
 
 ::ng-deep .icon-only {
   width: 40px;
@@ -1060,7 +1068,7 @@ td.actions-column {
     .card-content {
       .info-row {
         padding: 8px 12px;
-        gap: 8px; 
+        gap: 8px;
 
         .info-label {
           font-size: 10px;

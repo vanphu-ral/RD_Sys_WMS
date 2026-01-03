@@ -96,15 +96,14 @@ export class AddXuatHangTheoDonBanHangComponent implements OnInit {
       console.log('Status:', queryParams['status']);
     });
 
-    this.xuatHangServie.getWarehouses().subscribe({
-      next: (data: { id: number; name: string }[]) => {
-        this.warehouses = data;
-        this.filteredFromWarehouses = [...data];
-        this.filteredToWarehouses = [...data];
-      },
-      error: (err) => {
-        console.error('Lỗi khi lấy danh sách kho:', err);
-      },
+     this.xuatHangServie.getWarehouses().subscribe({
+      next: (resp: any) => {
+        const list = Array.isArray(resp) ? resp : (resp && Array.isArray(resp.data) ? resp.data : []);
+        const active = list.filter((w: any) => w && w.is_active === true);
+        this.warehouses = active.map((w: any) => ({ id: Number(w.id), name: String(w.name || '') })); 
+        this.filteredFromWarehouses = [...this.warehouses]; this.filteredToWarehouses = [...this.warehouses];
+        // console.log('resp', resp); console.log('list', list); console.log('active', active);
+      }, error: (err) => { console.error('Lỗi khi lấy danh sách kho:', err); },
     });
   }
 

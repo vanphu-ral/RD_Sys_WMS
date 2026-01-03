@@ -159,15 +159,15 @@ export class ChuyenKhoDetailComponent implements OnInit {
   }
   onApprove(): void {
     // kiểm tra có item nào đã scan chưa
-    // const hasScanned = this.detailList.some(item => item.quantityScanned > 0);
+    const hasScanned = this.detailList.some(item => item.quantityScanned > 0);
 
-    // if (!hasScanned) {
-    //   this.snackBar.open('Chưa có sản phẩm nào được scan, không thể phê duyệt!', 'Đóng', {
-    //     duration: 3000,
-    //     panelClass: ['snackbar-error'],
-    //   });
-    //   return;
-    // }
+    if (!hasScanned) {
+      this.snackBar.open('Chưa có sản phẩm nào được scan, không thể phê duyệt!', 'Đóng', {
+        duration: 3000,
+        panelClass: ['snackbar-error'],
+      });
+      return;
+    }
 
     // mở dialog confirm
     const dialogRef = this.dialog.open(ConfirmDialogXuatHangComponent, {

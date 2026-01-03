@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { ChuyenKhoService } from './service/chuyen-kho.service.component';
 export interface InternalTransferRequest {
@@ -86,7 +86,8 @@ export class ChuyenKhoComponent {
   showMobileFilters: boolean = false;
   constructor(
     private router: Router,
-    private chuyenKhoService: ChuyenKhoService
+    private chuyenKhoService: ChuyenKhoService,
+    private cdr: ChangeDetectorRef,
   ) { }
   ngOnInit(): void {
     this.loadDataChuyenKho();
@@ -217,7 +218,8 @@ export class ChuyenKhoComponent {
   }
 
   onRefresh(): void {
-    console.log('Refreshing data...');
+    this.loadDataChuyenKho();
+    this.cdr.detectChanges();
   }
 
   onDetail(warehouse: InternalTransferRequest): void {

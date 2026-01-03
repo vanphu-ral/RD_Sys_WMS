@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { NhapKhoItem } from '../nhap-kho.component';
 import { environment } from '../../../../../environments/environment';
 
@@ -282,13 +282,38 @@ export class NhapKhoService {
   // }
 
   // Hàm đổi trạng thái yêu cầu nhập kho
-  updateStatus(id: number, status: boolean): Observable<any> {
-    const url = `${this.baseUrl}/warehouse-import/requirements/${id}/status?status=${status}`;
-    return this.http.patch(url, {});
+  // service
+  updateStatus(requirementId: number, status: boolean): Observable<any> {
+    const url = `${this.baseUrl}/warehouse-import/import_wh_status?requirement_id=${encodeURIComponent(requirementId)}`;
+    const body = {
+      status: String(status),      // server yêu cầu string
+      // updated_by: updated_by
+    };
+    console.log('PATCH', url, body);
+    return this.http.patch(url, body);
   }
+
+
+
   // nhap-kho.service.ts
   patchImportRequirement(id: number, body: any): Observable<any> {
     return this.http.patch(this.baseUrl + `/import-requirements/${id}`, body);
   }
+
+  //tim ma pallet/box
+  // import-requirement.service.ts (hoặc service bạn đang dùng)
+  searchImportRequirements(query: string): Observable<any[]> {
+    const url = `${this.baseUrl}/import-requirements/search/${encodeURIComponent(query)}`;
+    return this.http.get<any>(url).pipe(
+      map((res) => {
+        // backend trả { warehouse_import_requirements: [...], count: n }
+        if (Array.isArray(res)) return res;
+        if (res && Array.isArray(res.warehouse_import_requirements)) return res.warehouse_import_requirements;
+        if (res && Array.isArray(res.data)) return res.data;
+        return [];
+      })
+    );
+  }
+
 
 }
