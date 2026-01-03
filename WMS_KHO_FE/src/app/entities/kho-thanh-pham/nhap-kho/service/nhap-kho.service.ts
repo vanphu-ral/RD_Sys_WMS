@@ -283,11 +283,11 @@ export class NhapKhoService {
 
   // Hàm đổi trạng thái yêu cầu nhập kho
   // service
-  updateStatus(requirementId: number, status: boolean): Observable<any> {
+  updateStatus(requirementId: number, status: boolean, updated_by: string): Observable<any> {
     const url = `${this.baseUrl}/warehouse-import/import_wh_status?requirement_id=${encodeURIComponent(requirementId)}`;
     const body = {
       status: String(status),      // server yêu cầu string
-      // updated_by: updated_by
+      updated_by: updated_by
     };
     console.log('PATCH', url, body);
     return this.http.patch(url, body);

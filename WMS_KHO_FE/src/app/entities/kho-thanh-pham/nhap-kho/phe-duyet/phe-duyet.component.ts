@@ -521,7 +521,7 @@ export class PheDuyetComponent implements OnInit {
     this.nhapKhoService.patchImportRequirement(this.importId, { box_scan_progress: progress })
       .pipe(
         switchMap(() => apiCalls.length ? forkJoin(apiCalls) : of(null)),
-        switchMap(() => this.nhapKhoService.updateStatus(this.importId!, true))
+        switchMap(() => this.nhapKhoService.updateStatus(this.importId!, true, username))
       )
       .subscribe({
         next: () => {
