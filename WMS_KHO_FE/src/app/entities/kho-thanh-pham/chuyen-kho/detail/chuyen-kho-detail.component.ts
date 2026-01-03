@@ -52,6 +52,8 @@ export class ChuyenKhoDetailComponent implements OnInit {
     const id = +this.route.snapshot.paramMap.get('id')!;
     if (!id) return;
 
+    this.id = id; // <-- gán vào property của class
+
     this.chuyenKhoService.getTransferItemsById(id).subscribe({
       next: (items) => {
         this.detailList = items.map((item: any) => ({
@@ -75,7 +77,8 @@ export class ChuyenKhoDetailComponent implements OnInit {
       },
     });
   }
-  
+
+
 
   onPageChange(page: number): void {
     this.currentPage = page;
@@ -156,15 +159,15 @@ export class ChuyenKhoDetailComponent implements OnInit {
   }
   onApprove(): void {
     // kiểm tra có item nào đã scan chưa
-    const hasScanned = this.detailList.some(item => item.quantityScanned > 0);
+    // const hasScanned = this.detailList.some(item => item.quantityScanned > 0);
 
-    if (!hasScanned) {
-      this.snackBar.open('Chưa có sản phẩm nào được scan, không thể phê duyệt!', 'Đóng', {
-        duration: 3000,
-        panelClass: ['snackbar-error'],
-      });
-      return;
-    }
+    // if (!hasScanned) {
+    //   this.snackBar.open('Chưa có sản phẩm nào được scan, không thể phê duyệt!', 'Đóng', {
+    //     duration: 3000,
+    //     panelClass: ['snackbar-error'],
+    //   });
+    //   return;
+    // }
 
     // mở dialog confirm
     const dialogRef = this.dialog.open(ConfirmDialogXuatHangComponent, {
@@ -182,7 +185,7 @@ export class ChuyenKhoDetailComponent implements OnInit {
   private patchApprove(): void {
     if (!this.id) return;
 
-    this.chuyenKhoService.patchRequestScanStatus(this.id, { scan_status: true }).subscribe({
+    this.chuyenKhoService.patchRequestScanStatus(this.id, { status: true }).subscribe({
       next: () => {
         this.snackBar.open('Phê duyệt thành công!', 'Đóng', {
           duration: 3000,

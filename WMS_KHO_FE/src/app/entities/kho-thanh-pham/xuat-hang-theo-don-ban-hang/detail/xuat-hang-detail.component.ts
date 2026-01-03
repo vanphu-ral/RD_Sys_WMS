@@ -29,6 +29,7 @@ export class XuatHangDetailComponent implements OnInit {
     'productName',
     'quantity',
     'unit',
+    'quantityScanned',
     'updatedBy',
     'updatedDate',
     'actions',
@@ -150,14 +151,14 @@ export class XuatHangDetailComponent implements OnInit {
   private patchApprove(): void {
     if (!this.id) return;
 
-    this.xuatKhoService.patchSalesScanStatus(this.id, { scan_status: true }).subscribe({
+    this.xuatKhoService.patchSalesScanStatus(this.id, { status: true }).subscribe({
       next: () => {
         this.snackBar.open('Phê duyệt thành công!', 'Đóng', {
           duration: 3000,
           panelClass: ['snackbar-success'],
         });
         // quay lại hoặc reload
-        this.router.navigate(['/kho-thanh-pham/chuyen-kho']);
+        this.router.navigate(['/kho-thanh-pham/xuat-don-ban-hang']);
       },
       error: (err) => {
         console.error('Lỗi khi phê duyệt:', err);

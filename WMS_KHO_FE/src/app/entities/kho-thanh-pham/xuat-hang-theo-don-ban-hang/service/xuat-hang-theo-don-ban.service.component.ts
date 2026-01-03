@@ -2,13 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { SalesExportRequest } from '../xuat-hang-theo-don-ban-hang.component';
-import { environment } from '../../../../../environments/environment';  
+import { environment } from '../../../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class XuatHangTheoDonBanService {
   private apiUrl = environment.apiUrl;   // dùng biến môi trường
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // Lấy danh sách đơn xuất hàng
   getSalesExportRequests(): Observable<SalesExportRequest[]> {
@@ -31,16 +31,19 @@ export class XuatHangTheoDonBanService {
       map((res) =>
         Array.isArray(res.data)
           ? res.data.map((item: any) => ({
-              id: item.id,
-              name: item.name,
-            }))
+            id: item.id,
+            name: item.name,
+          }))
           : []
       )
     );
   }
-
-     //phe duyet xuat kho
-  patchSalesScanStatus(requestId: number, body: { scan_status: boolean }): Observable<any> {
+  // Danh sách kho minimal
+  getMinimalLocations(): Observable<{ id: number; code: string }[]> {
+    return this.http.get<{ id: number; code: string }[]>(`${this.apiUrl}/locations/minimal`);
+  }
+  //phe duyet xuat kho
+  patchSalesScanStatus(requestId: number, body: { status: boolean }): Observable<any> {
     return this.http.patch<any[]>(`${this.apiUrl}/osr/requests/${requestId}`, body);
   }
 
@@ -55,6 +58,11 @@ export class XuatHangTheoDonBanService {
       `${this.apiUrl}/osr/requests/with-items`,
       payload
     );
+  }
+
+  // Lấy thông tin inventory bằng identifier (mode thùng)
+  getInventoryByIdentifier(identifier: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/inventories/${identifier}`);
   }
 
   // Thêm mới items cho đơn xuất kho

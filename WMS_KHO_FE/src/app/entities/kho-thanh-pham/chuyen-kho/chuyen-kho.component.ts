@@ -39,8 +39,8 @@ export class ChuyenKhoComponent {
     'so_phieu_xuat',
     'so_chung_tu',
     // 'series_PGH',
-    // 'status',
-    'scan_status',
+    'status',
+    // 'scan_status',
     'actions',
   ];
   filterValues = {
@@ -53,8 +53,8 @@ export class ChuyenKhoComponent {
     so_phieu_xuat: '',
     so_chung_tu: '',
     // series_PGH: '',
-    // status: '',
-    scan_status: '',
+    status: '',
+    // scan_status: '',
   };
 
   filterColumns: string[] = [
@@ -68,7 +68,7 @@ export class ChuyenKhoComponent {
     'so_chung_tu',
     'series_PGH',
     // 'status',
-    'scan_status',
+    'status',
   ];
   internalTransfers: InternalTransferRequest[] = [];
   warehouses: { id: number; name: string }[] = [];
@@ -87,7 +87,7 @@ export class ChuyenKhoComponent {
   constructor(
     private router: Router,
     private chuyenKhoService: ChuyenKhoService
-  ) {}
+  ) { }
   ngOnInit(): void {
     this.loadDataChuyenKho();
     this.loadAreaData();
@@ -119,8 +119,8 @@ export class ChuyenKhoComponent {
       so_chung_tu: '',
       so_phieu_xuat: '',
       // series_PGH: '',
-      // status: '',
-      scan_status: '',
+      status: '',
+      // scan_status: '',
     };
     this.searchTerm = '';
     this.applyFilter();
@@ -199,10 +199,8 @@ export class ChuyenKhoComponent {
     }
   }
 
-  getStatusClass(value: boolean): string {
-    return value ? 'approved' : 'pending';
-  }
-
+  isApproved(value: any): boolean { if (value === true || value === 'true' || value === 1 || value === '1') return true; return false; } 
+  getStatusClass(value: any): { [klass: string]: boolean } { return { approved: this.isApproved(value), pending: !this.isApproved(value) }; }
   getScanClass(value: boolean): string {
     return value ? 'scanned' : 'not-scanned';
   }
@@ -239,7 +237,7 @@ export class ChuyenKhoComponent {
     //   this.filterValues.status
     // );
     const scanFilter: boolean | null = this.convertLabelToBoolean(
-      this.filterValues.scan_status
+      this.filterValues.status
     );
 
     // Lọc dữ liệu gốc theo tất cả điều kiện

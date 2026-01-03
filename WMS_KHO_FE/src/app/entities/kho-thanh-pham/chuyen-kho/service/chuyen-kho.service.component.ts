@@ -51,8 +51,8 @@ export class ChuyenKhoService {
   }
 
   //phe duyet chuyen kho
-  patchRequestScanStatus(requestId: number, body: { scan_status: boolean }): Observable<any> {
-    return this.http.patch<any[]>(`${this.apiUrl}/iwrt/requests/${requestId}`, body);
+  patchRequestScanStatus(requestId: number, body: { status: boolean }): Observable<any> {
+    return this.http.patch<any[]>(`${this.apiUrl}/iwtr/requests/${requestId}`, body);
   }
 
 

@@ -99,12 +99,12 @@
                     {{ getTotalScannedQuantity(selectedItemId!) }} {{ getSelectedProductInfo()!.dvt }}
                 </span>
                 </div>
-                <div class="info-item highlight">
+                <!-- <div class="info-item highlight">
                 <span class="label">Còn lại:</span>
                 <span class="value" [class.warning]="getRemainingQuantity(selectedItemId!) > 0">
                     {{ getRemainingQuantity(selectedItemId!) }} {{ getSelectedProductInfo()!.dvt }}
                 </span>
-                </div>
+                </div> -->
             </div>
             </mat-card-content>
         </mat-card>
@@ -154,9 +154,9 @@
                     </ng-container>
 
                     <!-- Mã hàng hoá Column -->
-                    <ng-container matColumnDef="productId">
+                    <ng-container matColumnDef="productCode">
                         <th mat-header-cell *matHeaderCellDef>Mã sản phẩm</th>
-                        <td mat-cell *matCellDef="let item">{{item.productId}}</td>
+                        <td mat-cell *matCellDef="let item">{{item.productCode}}</td>
                     </ng-container>
 
                     <!-- Tên hàng hoá Column -->
@@ -219,7 +219,7 @@
                     <div class="scan-card-content">
                         <div class="info-row">
                             <span class="info-label">Mã sản phẩm:</span>
-                            <span class="info-value">{{item.productId}}</span>
+                            <span class="info-value">{{item.productCode}}</span>
                         </div>
 
                         <div class="info-row">
@@ -277,7 +277,7 @@
     <div class="action-footer">
         <button mat-button class="cancel-btn" (click)="back()">
             <mat-icon>arrow_back</mat-icon>
-            Back
+            Trở lại
         </button>
         <button mat-raised-button color="primary" class="confirm-btn" (click)="submitScan()">
             <mat-icon>check</mat-icon>

@@ -371,11 +371,35 @@ export class AuthService {
     if (this.isAuthenticated()) {
       this.startSessionTimer();
       this.startTokenRefresh();
+      this.trackUserActivity();
     }
   }
+  private trackUserActivity(): void {
+    this.activitySub?.unsubscribe();
 
+    // Theo dõi các sự kiện tương tác của user
+    const events$ = merge(
+      fromEvent(document, 'mousedown'),
+      fromEvent(document, 'keydown'),
+      fromEvent(document, 'touchstart'),
+      fromEvent(document, 'scroll'),
+      fromEvent(document, 'click')
+    );
+
+    this.ngZone.runOutsideAngular(() => {
+      this.activitySub = events$.pipe(
+        throttleTime(5000) // Chỉ xử lý mỗi 5 giây một lần để tránh quá tải
+      ).subscribe(() => {
+        this.ngZone.run(() => {
+          console.log('[AuthService] User activity detected, resetting session timer');
+          this.resetSession();
+        });
+      });
+    });
+  }
   private startSessionTimer(): void {
     this.sessionTimer?.unsubscribe();
+    this.warningSub?.unsubscribe();
 
     const loginTime = parseInt(localStorage.getItem('login_time') || '0');
     const elapsed = Date.now() - loginTime;
@@ -387,11 +411,31 @@ export class AuthService {
       return;
     }
 
+    // Warning timer - cảnh báo trước 1 phút
+    const warningTime = remaining - this.WARNING_BEFORE;
+    if (warningTime > 0) {
+      this.ngZone.runOutsideAngular(() => {
+        this.warningSub = timer(warningTime).subscribe(() => {
+          this.ngZone.run(() => {
+            console.log('[AuthService] Session expiring soon - showing warning');
+            const shouldContinue = confirm(
+              'Phiên đăng nhập sẽ hết hạn sau 60 giây do không có hoạt động.\n' +
+              'Nhấn OK để tiếp tục phiên làm việc.'
+            );
+            if (shouldContinue) {
+              this.resetSession();
+            }
+          });
+        });
+      });
+    }
+
+    // Session timeout
     this.ngZone.runOutsideAngular(() => {
       this.sessionTimer = timer(remaining).subscribe(() => {
         this.ngZone.run(() => {
           console.log('[AuthService] Session timeout - auto logout');
-          alert('Phiên đăng nhập đã hết hạn sau 30 phút. Vui lòng đăng nhập lại.');
+          alert('Phiên đăng nhập đã hết hạn sau 30 phút không hoạt động. Vui lòng đăng nhập lại.');
           this.logout().subscribe();
         });
       });
@@ -405,30 +449,14 @@ export class AuthService {
     this.activitySub?.unsubscribe();
     this.warningSub?.unsubscribe();
   }
-  // private showTimeoutWarning(): void {
-  //   // Hiển thị modal/alert cho user, cho phép họ "Keep me logged in" 
-  //   // Nếu họ tương tác (nhấn nút), gọi this.resetSession() để reset timer 
-  //   alert('Phiên đăng nhập sẽ hết hạn sau 60 giây. Nhấn OK để tiếp tục phiên.');
-  //   // Nếu user xác nhận, reset timer 
-  //   this.resetSession();
-  // }
   resetSession(): void {
-    // Cập nhật last activity và restart timer 
-    localStorage.setItem('last_activity', Date.now().toString());
-    this.startSessionTimer();
-    // Optionally call server to refresh session token 
-    // this.refreshToken().subscribe();
-  }
+    console.log('[AuthService] Resetting session timer');
+    // Cập nhật login time thành thời điểm hiện tại
+    localStorage.setItem('login_time', Date.now().toString());
 
-  // private handleSessionExpired(): void {
-  //   console.log('[AuthService] Session expired due to inactivity');
-  //   // Thực hiện logout, chuyển về login page, show message... // 
-  //   this.logout().subscribe();
-  //   alert('Phiên đăng nhập đã hết hạn do không hoạt động. Vui lòng đăng nhập lại.');
-  //   // cleanup timers 
-  //   this.activitySub?.unsubscribe();
-  //   this.warningSub?.unsubscribe();
-  // }
+    // Restart session timer
+    this.startSessionTimer();
+  }
 
   private startTokenRefresh(): void {
     this.tokenRefreshTimer?.unsubscribe();
@@ -497,7 +525,8 @@ export class AuthService {
 
     this.sessionTimer?.unsubscribe();
     this.tokenRefreshTimer?.unsubscribe();
-
+    this.activitySub?.unsubscribe();
+    this.warningSub?.unsubscribe();
     const idToken = localStorage.getItem('id_token'); // Cần lưu id_token khi login
 
     return new Observable((observer) => {

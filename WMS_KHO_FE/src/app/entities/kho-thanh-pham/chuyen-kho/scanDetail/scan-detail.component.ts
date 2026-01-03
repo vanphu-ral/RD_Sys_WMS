@@ -11,6 +11,7 @@ export interface ScannedItem {
   id?: number;
   productId: number;
   inventoryCode: string;
+  productCode?: string;
   serialPallet: string;
   quantity: number;
   originalQuantity: number;
@@ -41,6 +42,7 @@ export interface DetailItem {
 export class ScanDetailComponent implements OnInit {
   // ===== ROUTE PARAMS =====
   requestId: number | undefined;
+  scanRequestId: number | undefined;
   scanMode: 'single' | 'all' = 'all';
   selectedItemId: number | null = null;
   // ===== SCAN INPUTS =====
@@ -56,7 +58,7 @@ export class ScanDetailComponent implements OnInit {
   // ===== TABLE =====
   displayedColumns: string[] = [
     'stt',
-    'productId',
+    'productCode',
     'productName',
     'serialPallet',
     'quantity',
@@ -87,7 +89,7 @@ export class ScanDetailComponent implements OnInit {
   qrScanner?: Html5Qrcode;
   availableCameras: CameraDevice[] = [];
   debugLogs: string[] = [];
-
+  locationMap: Map<number, string> = new Map();
   // ===== VIEWCHILD =====
   @ViewChild('palletInput') palletInput!: ElementRef;
   @ViewChild('locationInput') locationInput!: ElementRef;
@@ -104,15 +106,44 @@ export class ScanDetailComponent implements OnInit {
   ngOnInit(): void {
     this.checkIfMobile();
     const state = history.state;
-    this.requestId = +this.route.snapshot.paramMap.get('id')!;
-    const scanModeParam = this.route.snapshot.paramMap.get('reqId');
-    const queryMode = this.route.snapshot.queryParamMap.get('mode');
 
+    this.requestId = Number(this.route.snapshot.paramMap.get('id')) || undefined;
+
+    const scanIdParam = this.route.snapshot.paramMap.get('scanId')
+      ?? this.route.snapshot.paramMap.get('reqId')
+      ?? this.route.snapshot.paramMap.get('requestId');
+
+    if (scanIdParam) {
+      this.scanRequestId = Number(scanIdParam) || undefined;
+    } else {
+      // fallback: lấy từ URL segments: /detail/:id/scan/:scanRequestId
+      const segments = this.route.snapshot.url.map(s => s.path).filter(Boolean);
+      const scanIndex = segments.findIndex(seg => seg.toLowerCase() === 'scan');
+      if (scanIndex !== -1 && segments.length > scanIndex + 1) {
+        const segVal = segments[scanIndex + 1];
+        this.scanRequestId = Number(segVal) || undefined;
+      }
+    }
+
+    if (!this.scanRequestId && this.requestId) {
+      this.scanRequestId = undefined;
+    }
+
+    // Load data chỉ khi requestId/scanRequestId đã xác định
     if (this.requestId) {
       this.loadDetailList();
-      this.loadScannedData();
+      // gọi loadScannedData chỉ khi scanRequestId có giá trị hợp lệ
+      if (this.scanRequestId) {
+        this.loadScannedData();
+      } else {
+        console.warn('scanRequestId not found in route; scanned data will not be loaded.');
+      }
+
+      this.loadLocations();
 
       // Xác định chế độ scan
+      const scanModeParam = this.route.snapshot.paramMap.get('reqId');
+      const queryMode = this.route.snapshot.queryParamMap.get('mode');
       if (queryMode === 'all' || scanModeParam === 'all') {
         this.scanMode = 'all';
       } else if (scanModeParam && scanModeParam !== 'all') {
@@ -122,10 +153,27 @@ export class ScanDetailComponent implements OnInit {
     }
   }
 
+
   checkIfMobile(): void {
     this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     ) || window.innerWidth <= 768;
+  }
+  // method to load minimal locations
+  loadLocations(): void {
+    this.chuyenKhoService.getMinimalLocations().subscribe({
+      next: (res) => {
+        this.locationMap.clear();
+        (res || []).forEach((loc: any) => {
+          if (loc && loc.id != null) {
+            this.locationMap.set(Number(loc.id), String(loc.code || '').trim());
+          }
+        });
+      },
+      error: (err) => {
+        console.warn('Không tải được danh sách locations:', err);
+      }
+    });
   }
 
   // ===== LOAD DETAIL LIST =====
@@ -153,31 +201,67 @@ export class ScanDetailComponent implements OnInit {
 
   // ===== LOAD SCANNED DATA (Đã lưu trong DB) =====
   loadScannedData(): void {
-    this.chuyenKhoService.getScannedData(this.requestId!).subscribe({
-      next: (res) => {
-        this.scannedList = res.map((item: any) => ({
+    const idToUse = this.scanRequestId ?? this.requestId;
+    if (!idToUse) {
+      console.warn('No scanRequestId available to load scanned data');
+      return;
+    }
+
+    const mapAndSetScanned = (res: any[]) => {
+      const detailById = new Map<number, any>();
+      (this.detailList || []).forEach((d: any) => {
+        if (d && d.id != null) detailById.set(Number(d.id), d);
+      });
+
+      this.scannedList = (res || []).map((item: any) => {
+        const productId = item.product_in_iwtr_id ?? item.products_in_iwtr_id ?? item.product_in_osr_id ?? item.product_id;
+        const detail = productId != null ? detailById.get(Number(productId)) : undefined;
+
+        return {
           id: item.id,
-          productId: item.products_in_IWTR_id,
+          productId: item.products_in_iwtr_id,
+          productCode: detail?.product_code ?? (item.sap_code ?? item.product_code ?? item.inventory_code),
+          productName: detail?.product_name ?? (item.product_name ?? ''),
           inventoryCode: item.inventory_identifier,
           serialPallet: item.serial_pallet,
           quantity: item.quantity_dispatched,
           originalQuantity: item.quantity_dispatched,
           scanTime: this.formatDateTime(item.scan_time),
-          warehouse: item.scan_by || 'N/A',
+          warehouse: this.getLocationCodeById(item.location_id) || 'N/A',
           confirmed: true,
           isNew: false,
-        }));
-        this.totalItems = this.scannedList.length;
-        this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+        } as ScannedItem;
+      });
 
-        this.setPagedData();
-        this.updateDetailStatus();
+      this.totalItems = this.scannedList.length;
+      this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+      this.setPagedData();
+      this.updateDetailStatus();
+    };
+
+    this.chuyenKhoService.getScannedData(idToUse).subscribe({
+      next: (res) => {
+        if ((this.detailList || []).length === 0 && this.requestId) {
+          this.chuyenKhoService.getTransferItemsById(this.requestId).subscribe({
+            next: (details) => {
+              this.detailList = details.map((item: any) => ({ ...item, scanned_quantity: 0, status: 'pending' as const }));
+              mapAndSetScanned(res);
+            },
+            error: () => {
+              mapAndSetScanned(res);
+            }
+          });
+        } else {
+          mapAndSetScanned(res);
+        }
       },
       error: (err) => {
         console.error('Lỗi khi tải dữ liệu scan:', err);
       },
     });
   }
+
+
   // ===== SELECT MODE =====
   onSelectMode(mode: 'pallet' | 'thung'): void {
     this.selectedMode = mode;
@@ -541,109 +625,121 @@ export class ScanDetailComponent implements OnInit {
   }
 
   // ===== ADD SCANNED ITEM (CHƯA LƯU DB) =====
-  // ===== ADD SCANNED ITEM (CHƯA LƯU DB) =====
   addScannedItem(inventory: any): boolean {
-    // CHECK TRÙNG MÃ THÙNG
+    // Normalize helpers
+    const norm = (v: any) => (v === null || v === undefined) ? '' : String(v).trim();
+    const normUpper = (v: any) => norm(v).toUpperCase();
+
+    const invIdentifier = norm(inventory.identifier);
+    const invSap = normUpper(inventory.sap_code);
+    const invQty = Number(inventory.available_quantity ?? inventory.quantity ?? 0);
+
+    // CHECK TRÙNG MÃ THÙNG (bảo đảm tồn tại identifier)
+    if (!invIdentifier) {
+      console.warn('Inventory missing identifier, skip', inventory);
+      return false;
+    }
+
     const existingItem = this.scannedList.find(
-      (item) => item.inventoryCode.toUpperCase() === inventory.identifier.toUpperCase()
+      (item) => normUpper(item.inventoryCode) === invIdentifier.toUpperCase()
     );
 
     if (existingItem) {
       if (existingItem.confirmed) {
         this.snackBar.open(
-          `Thùng ${inventory.identifier} đã được scan và xác nhận trước đó!`,
+          `Thùng ${invIdentifier} đã được scan và xác nhận trước đó!`,
           'Đóng',
-          {
-            duration: 3000,
-            panelClass: ['snackbar-warning'],
-          }
+          { duration: 3000, panelClass: ['snackbar-warning'] }
         );
         return false;
       }
 
-      existingItem.warehouse = this.scanLocation;
+      existingItem.warehouse = inventory.location_code || inventory.location_id || 'N/A';
       existingItem.scanTime = this.formatDateTime(new Date().toISOString());
 
       this.snackBar.open(
-        `Thùng ${inventory.identifier} đã có trong danh sách! Đã cập nhật kho.`,
+        `Thùng ${invIdentifier} đã có trong danh sách! Đã cập nhật kho.`,
         '',
-        {
-          duration: 2000,
-          panelClass: ['snackbar-info'],
-        }
+        { duration: 2000, panelClass: ['snackbar-info'] }
       );
       return false;
     }
 
     // KIỂM TRA MÃ CÓ TRONG DETAIL LIST KHÔNG
-    const detailItem = this.detailList.find(
-      (item) => item.product_code === inventory.sap_code
-    );
+    // So sánh sap_code của inventory với product_code của detail
+    let detailItem = this.detailList.find((d: any) => {
+      const detailCode = normUpper(d.product_code);
+
+      // So sánh trực tiếp
+      if (detailCode && invSap && detailCode === invSap) return true;
+
+      // Fallback: so sánh numeric nếu cả hai có thể parse số
+      const detailNum = Number(d.product_code);
+      const invNum = Number(inventory.sap_code);
+      if (!Number.isNaN(detailNum) && !Number.isNaN(invNum) && detailNum === invNum) return true;
+
+      return false;
+    });
+
+    console.log('Product code matching:', {
+      invSap,
+      detailItem,
+      allDetailCodes: this.detailList.map(d => normUpper(d.product_code))
+    });
 
     if (!detailItem) {
       this.snackBar.open(
-        `Sản phẩm ${inventory.sap_code} không nằm trong yêu cầu chuyển kho!`,
+        `Sản phẩm ${invSap || invIdentifier} không nằm trong yêu cầu xuất kho!`,
         'Đóng',
-        {
-          duration: 3000,
-          panelClass: ['snackbar-error'],
-        }
+        { duration: 3000, panelClass: ['snackbar-error'] }
       );
       return false;
     }
 
-    // **KIỂM TRA CHẾ ĐỘ SINGLE - CHỈ CHO SCAN SẢN PHẨM ĐÃ CHỌN**
+    // SINGLE MODE check
     if (this.scanMode === 'single' && this.selectedItemId !== null) {
       if (detailItem.id !== this.selectedItemId) {
         this.snackBar.open(
           `Sản phẩm này không phải là sản phẩm được chọn để scan!`,
           'Đóng',
-          {
-            duration: 3000,
-            panelClass: ['snackbar-warning'],
-          }
+          { duration: 3000, panelClass: ['snackbar-warning'] }
         );
         return false;
       }
     }
 
-    // **KIỂM TRA TỔNG SỐ LƯỢNG SCAN CỦA SẢN PHẨM NÀY**
+    // TÍNH SỐ ĐÃ SCAN HIỆN TẠI
     const currentScannedQty = this.scannedList
       .filter((item) => item.productId === detailItem.id)
-      .reduce((sum, item) => sum + item.quantity, 0);
+      .reduce((sum, item) => sum + Number(item.quantity || 0), 0);
 
-    const newTotalQty = currentScannedQty + (inventory.available_quantity || 0);
+    const newTotalQty = currentScannedQty + invQty;
 
-    // **KIỂM TRA VƯỢT QUÁ SỐ LƯỢNG YÊU CẦU**
-    if (newTotalQty > detailItem.total_quantity) {
-      const remaining = detailItem.total_quantity - currentScannedQty;
+    // Nếu available_quantity = 0 thì không thêm
+    if (!invQty || invQty <= 0) {
       this.snackBar.open(
-        `Vượt quá số lượng yêu cầu!\n` +
-        `Yêu cầu: ${detailItem.total_quantity} ${detailItem.dvt}\n` +
-        `Đã scan: ${currentScannedQty} ${detailItem.dvt}\n` +
-        `Còn lại: ${remaining} ${detailItem.dvt}\n` +
-        `Thùng này: ${inventory.available_quantity} ${detailItem.dvt}`,
+        `Thùng ${invIdentifier} không có số lượng khả dụng để scan.`,
         'Đóng',
-        {
-          duration: 5000,
-          panelClass: ['snackbar-error'],
-        }
+        { duration: 3000, panelClass: ['snackbar-warning'] }
       );
       return false;
     }
-
-    // THÊM ITEM MỚI VÀO DANH SÁCH
+    const resolvedWarehouse = this.getLocationCodeById(inventory.location_id) ||
+      (inventory.location_code ? String(inventory.location_code).trim() : undefined) ||
+      (inventory.location_id != null ? String(inventory.location_id) : 'N/A');
+    // THÊM ITEM MỚI
     const now = new Date();
     const newItem: ScannedItem = {
       id: undefined,
       productId: detailItem.id,
-      inventoryCode: inventory.identifier,
-      serialPallet: inventory.serial_pallet || 'N/A',
-      quantity: inventory.available_quantity || 0, // ✅ Số lượng từng thùng
-      originalQuantity: inventory.initial_quantity || 0,
+      productCode: invSap,
+      inventoryCode: invIdentifier,
+      serialPallet: norm(inventory.serial_pallet) || 'N/A',
+      quantity: invQty,
+      originalQuantity: Number(inventory.initial_quantity ?? 0),
       productName: inventory.name || detailItem.product_name,
       scanTime: this.formatDateTime(now.toISOString()),
-      warehouse: this.scanLocation,
+      warehouse: resolvedWarehouse,
       confirmed: false,
       isNew: true,
     };
@@ -652,23 +748,19 @@ export class ScanDetailComponent implements OnInit {
     this.totalItems = this.scannedList.length;
     this.totalPages = Math.ceil(this.totalItems / this.pageSize);
 
-    this.setPagedData(); // Cập nhật lại pagination
+    this.setPagedData();
     this.updateDetailStatus();
 
-    // **HIỂN THỊ THÔNG BÁO CHI TIẾT**
-    const updatedScannedQty = currentScannedQty + (inventory.available_quantity || 0);
-    const remaining = detailItem.total_quantity - updatedScannedQty;
+    const updatedScannedQty = currentScannedQty + invQty;
+    const remaining = Number(detailItem.total_quantity || 0) - updatedScannedQty;
 
     this.snackBar.open(
-      `✓ Đã thêm thùng ${inventory.identifier}\n` +
-      `SL thùng: ${inventory.available_quantity} ${detailItem.dvt}\n` +
+      `✓ Đã thêm thùng ${invIdentifier}\n` +
+      `SL thùng: ${invQty} ${detailItem.dvt}\n` +
       `Tổng đã scan: ${updatedScannedQty}/${detailItem.total_quantity} ${detailItem.dvt}\n` +
       `Còn lại: ${remaining} ${detailItem.dvt}`,
       '',
-      {
-        duration: 3000,
-        panelClass: ['snackbar-success'],
-      }
+      { duration: 3000, panelClass: ['snackbar-success'] }
     );
 
     return true;
@@ -772,7 +864,7 @@ export class ScanDetailComponent implements OnInit {
 
     const payload = {
       scan_details: newItems.map((item) => ({
-        products_in_IWTR_id: item.productId,
+        product_in_iwtr_id: item.productId,
         inventory_identifier: item.inventoryCode,
         serial_pallet: item.serialPallet,
         quantity_dispatched: item.quantity,
@@ -850,4 +942,11 @@ export class ScanDetailComponent implements OnInit {
       this.requestId,
     ]);
   }
+  private getLocationCodeById(id: any): string | undefined {
+    if (id == null) return undefined;
+    const n = Number(id);
+    if (Number.isNaN(n)) return undefined;
+    return this.locationMap.get(n);
+  }
+
 }
