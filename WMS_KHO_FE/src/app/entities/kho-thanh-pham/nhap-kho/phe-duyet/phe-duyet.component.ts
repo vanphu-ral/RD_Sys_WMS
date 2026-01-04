@@ -489,7 +489,6 @@ export class PheDuyetComponent implements OnInit {
         updates: this.detailList.map(p => ({
           id: p.id,            // <-- đảm bảo có id
           confirmed: true,
-          updated_by: username,
         }))
       };
       apiCalls.push(this.nhapKhoService.updatePalletInfo(palletPayload));
@@ -500,7 +499,6 @@ export class PheDuyetComponent implements OnInit {
         updates: this.pagedBoxList.map(b => ({
           id: b.id,
           confirmed: true,
-          updated_by: username,
         }))
       };
       // Kiểm tra nhanh: nếu có phần tử nào thiếu id thì log và không gọi API box
