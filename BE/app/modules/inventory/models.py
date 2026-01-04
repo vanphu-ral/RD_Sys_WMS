@@ -199,6 +199,7 @@ class ProductsInIWTR(Base):
     den_kho = Column(Integer, nullable=True)
     total_quantity = Column(Integer, nullable=True)
     dvt = Column(String(20), nullable=True)
+    quantity_scanned = Column(Integer, default=0)
     updated_by = Column(String(15), nullable=True)
     updated_date = Column(DateTime, default=func.now())
 
@@ -248,6 +249,7 @@ class ProductsInOSR(Base):
     product_name = Column(String(255), nullable=True)
     total_quantity = Column(Integer, nullable=True)
     dvt = Column(String(20), nullable=True)
+    quantity_scanned = Column(Integer, default=0)
     updated_by = Column(String(15), nullable=True)
     updated_date = Column(DateTime, default=func.now())
 

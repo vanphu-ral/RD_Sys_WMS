@@ -62,9 +62,9 @@ async def update_import_wh_status(
     requirement_id: int,
     request: UpdateImportStatusRequest,
     db: AsyncSession = Depends(get_db),
-    #current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)  
 ):
-    return await WarehouseImportService.update_import_requirement_status(db, requirement_id, request.status)
+    return await WarehouseImportService.update_import_requirement_status(db, requirement_id, request.status, request.updated_by)
 
 # cập nhật tất cả các trường của container inventory thông qua ID
 @router.patch("/container-inventories")

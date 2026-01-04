@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func
-
+from datetime import datetime
 from app.modules.inventory.models import (
      Area,
      Location,
@@ -1029,6 +1029,133 @@ class WarehouseImportService:
         ]
 
     @staticmethod
+    async def search_warehouse_import_requirement_by_query(db: AsyncSession, search_query: str) -> dict:
+
+        from sqlalchemy import select
+        
+        if not search_query:
+            raise HTTPException(status_code=400)
+        
+        warehouse_import_requirements = []
+
+        if search_query.startswith('B'):
+
+            result = await db.execute(
+                select(ContainerInventory).where(
+                    ContainerInventory.inventory_identifier == search_query
+                )
+            )
+            container_inventories = result.scalars().all()
+            
+            if not container_inventories:
+                raise HTTPException(status_code=404, detail=f"No container inventory found with inventory_identifier: {search_query}")
+
+            for container_inventory in container_inventories:
+                result = await db.execute(
+                    select(ImportPalletInfo).where(
+                        ImportPalletInfo.id == container_inventory.import_pallet_id
+                    )
+                )
+                import_pallet = result.scalar_one_or_none()
+                
+                if import_pallet:
+                    result = await db.execute(
+                        select(WarehouseImportRequirement).where(
+                            WarehouseImportRequirement.id == import_pallet.warehouse_import_requirement_id
+                        )
+                    )
+                    warehouse_import_req = result.scalar_one_or_none()
+                    
+                    if warehouse_import_req:
+                        warehouse_import_requirements.append({
+                            "id": warehouse_import_req.id,
+                            "po_number": warehouse_import_req.po_number,
+                            "client_id": warehouse_import_req.client_id,
+                            "inventory_code": warehouse_import_req.inventory_code,
+                            "inventory_name": warehouse_import_req.inventory_name,
+                            "number_of_pallet": warehouse_import_req.number_of_pallet,
+                            "number_of_box": warehouse_import_req.number_of_box,
+                            "box_scan_progress": warehouse_import_req.box_scan_progress,
+                            "quantity": warehouse_import_req.quantity,
+                            "wo_code": warehouse_import_req.wo_code,
+                            "lot_number": warehouse_import_req.lot_number,
+                            "production_date": warehouse_import_req.production_date,
+                            "branch": warehouse_import_req.branch,
+                            "production_team": warehouse_import_req.production_team,
+                            "production_decision_number": warehouse_import_req.production_decision_number,
+                            "item_no_sku": warehouse_import_req.item_no_sku,
+                            "status": warehouse_import_req.status,
+                            "approver": warehouse_import_req.approver,
+                            "note": warehouse_import_req.note,
+                            "destination_warehouse": warehouse_import_req.destination_warehouse,
+                            "pallet_note_creation_session_id": warehouse_import_req.pallet_note_creation_session_id,
+                            "created_by": warehouse_import_req.created_by,
+                            "updated_by": warehouse_import_req.updated_by,
+                            "updated_date": warehouse_import_req.updated_date,
+                            "deleted_at": warehouse_import_req.deleted_at,
+                            "deleted_by": warehouse_import_req.deleted_by,
+                        })
+        
+        elif search_query.startswith('P'):
+            result = await db.execute(
+                select(ImportPalletInfo).where(
+                    ImportPalletInfo.serial_pallet == search_query
+                )
+            )
+            import_pallets = result.scalars().all()
+            
+            if not import_pallets:
+                raise HTTPException(status_code=404, detail=f"No import pallet found with serial_pallet: {search_query}")
+            
+            for import_pallet in import_pallets:
+                result = await db.execute(
+                    select(WarehouseImportRequirement).where(
+                        WarehouseImportRequirement.id == import_pallet.warehouse_import_requirement_id
+                    )
+                )
+                warehouse_import_req = result.scalar_one_or_none()
+                
+                if warehouse_import_req:
+                    warehouse_import_requirements.append({
+                        "id": warehouse_import_req.id,
+                        "po_number": warehouse_import_req.po_number,
+                        "client_id": warehouse_import_req.client_id,
+                        "inventory_code": warehouse_import_req.inventory_code,
+                        "inventory_name": warehouse_import_req.inventory_name,
+                        "number_of_pallet": warehouse_import_req.number_of_pallet,
+                        "number_of_box": warehouse_import_req.number_of_box,
+                        "box_scan_progress": warehouse_import_req.box_scan_progress,
+                        "quantity": warehouse_import_req.quantity,
+                        "wo_code": warehouse_import_req.wo_code,
+                        "lot_number": warehouse_import_req.lot_number,
+                        "production_date": warehouse_import_req.production_date,
+                        "branch": warehouse_import_req.branch,
+                        "production_team": warehouse_import_req.production_team,
+                        "production_decision_number": warehouse_import_req.production_decision_number,
+                        "item_no_sku": warehouse_import_req.item_no_sku,
+                        "status": warehouse_import_req.status,
+                        "approver": warehouse_import_req.approver,
+                        "note": warehouse_import_req.note,
+                        "destination_warehouse": warehouse_import_req.destination_warehouse,
+                        "pallet_note_creation_session_id": warehouse_import_req.pallet_note_creation_session_id,
+                        "created_by": warehouse_import_req.created_by,
+                        "updated_by": warehouse_import_req.updated_by,
+                        "updated_date": warehouse_import_req.updated_date,
+                        "deleted_at": warehouse_import_req.deleted_at,
+                        "deleted_by": warehouse_import_req.deleted_by,
+                    })
+        else:
+            raise HTTPException(status_code=400, detail="Mã thùng phải bắt đầu bằng 'B', mã pallet bắt đầu bằng 'P'")
+        
+        if not warehouse_import_requirements:
+            raise HTTPException(status_code=404, detail=f"Mã thùng/pallet chưa được tạo đơn nhập kho: {search_query}")
+        
+        return {
+            "warehouse_import_requirements": warehouse_import_requirements,
+            "count": len(warehouse_import_requirements)
+        }
+
+    @staticmethod
     async def get_import_requirement_by_id(db: AsyncSession, req_id: int) -> WarehouseImportRequirement:
         result = await db.execute(select(WarehouseImportRequirement).where(WarehouseImportRequirement.id == req_id))
         req = result.scalar_one_or_none()
@@ -1139,16 +1266,17 @@ class WarehouseImportService:
             return bool(value)
 
     @staticmethod
-    async def update_import_requirement_status(db: AsyncSession, req_id: int, status: str) -> WarehouseImportRequirement:
+    async def update_import_requirement_status(db: AsyncSession, req_id: int, status: str, updated_by: Optional[str] = None) -> WarehouseImportRequirement:
         req = await WarehouseImportService.get_import_requirement_by_id(db, req_id)
         req.status = WarehouseImportService._convert_to_boolean(status)
+        if updated_by:
+            req.updated_by = updated_by
         await db.commit()
         await db.refresh(req)
         return req
 
     @staticmethod
     async def update_import_requirement(db: AsyncSession, req_id: int, update_data: dict) -> WarehouseImportRequirement:
-        """Update warehouse import requirement by ID - only fields provided will be updated"""
         async with db.begin():
             req = await WarehouseImportService.get_import_requirement_by_id(db, req_id)
             
@@ -1472,7 +1600,7 @@ class WarehouseImportService:
                 'inventory_code': general_info.get('inventory_code'),
                 'inventory_name': general_info.get('inventory_name'),
                 'wo_code': general_info.get('wo_code'),
-                'sap_wo': general_info.get('wo_code'),  # Using wo_code as sap_wo
+                'sap_wo': general_info.get('wo_code'), 
                 'lot_number': general_info.get('lot_number'),
                 'production_date': general_info.get('production_date'),
                 'branch': general_info.get('branch'),
@@ -1521,17 +1649,32 @@ class WarehouseImportService:
                 await db.flush()
                 await db.refresh(pallet_info)
                 total_pallets += 1
-                
+                prod_date_str = pallet_data.get('production_date')
+                if prod_date_str:
+                    manufacturing_date = datetime.strptime(prod_date_str, '%d/%m/%Y')
+                else:
+                    manufacturing_date = None
+
                 # Step 4: Create container_inventories records for each box
                 for box_data in list_box:
                     container_inventory = ContainerInventory(
                         import_pallet_id=pallet_info.id,
+                        po=pallet_data.get('po_number'),
+                        lot=general_info.get('lot_number'),
+                        sap_code=general_info.get('inventory_code'),
+                        name=general_info.get('inventory_name'),
                         inventory_identifier=box_data.get('box_code'),
                         serial_pallet=pallet_data.get('serial_pallet'),
                         quantity_imported=box_data.get('quantity'),
                         comments=box_data.get('note'),
                         list_serial_items=box_data.get('list_serial_items'),
-                        confirmed=False
+                        location_id=general_info.get('destination_warehouse') if general_info.get('destination_warehouse') else 1,
+                        # msd_level=box_data.msd_level if box_data.msd_level else "1",
+                        # vendor=box_data.vendor if box_data.vendor else "RD",
+                        msd_level="1",
+                        vendor="RD",
+                        manufacturing_date=manufacturing_date,
+                        confirmed=False,
                     )
                     db.add(container_inventory)
                     total_boxes += 1
@@ -1624,6 +1767,53 @@ class IWTRService:
             return req
 
     @staticmethod
+    async def update_iwtr_request(db: AsyncSession, req_id: int, update_data: dict) -> InternalWarehouseTransferRequest:
+        """Update IWTR request by ID - only fields provided will be updated"""
+        async with db.begin():
+            req = await IWTRService.get_iwtr_request_by_id(db, req_id)
+            
+            # Only update fields that are provided in the request
+            if 'ma_yc_cknb' in update_data:
+                req.ma_yc_cknb = update_data.get('ma_yc_cknb')
+            if 'tu_kho' in update_data:
+                req.tu_kho = update_data.get('tu_kho')
+            if 'den_kho' in update_data:
+                req.den_kho = update_data.get('den_kho')
+            if 'don_vi_linh' in update_data:
+                req.don_vi_linh = update_data.get('don_vi_linh')
+            if 'don_vi_nhan' in update_data:
+                req.don_vi_nhan = update_data.get('don_vi_nhan')
+            if 'ly_do_xuat_nhap' in update_data:
+                req.ly_do_xuat_nhap = update_data.get('ly_do_xuat_nhap')
+            if 'ngay_chung_tu' in update_data:
+                req.ngay_chung_tu = update_data.get('ngay_chung_tu')
+            if 'so_phieu_xuat' in update_data:
+                req.so_phieu_xuat = update_data.get('so_phieu_xuat')
+            if 'so_chung_tu' in update_data:
+                req.so_chung_tu = update_data.get('so_chung_tu')
+            if 'series_pgh' in update_data:
+                req.series_pgh = update_data.get('series_pgh')
+            if 'status' in update_data:
+                req.status = update_data.get('status')
+            if 'note' in update_data:
+                req.note = update_data.get('note')
+            if 'scan_status' in update_data:
+                req.scan_status = update_data.get('scan_status')
+            if 'updated_by' in update_data:
+                req.updated_by = update_data.get('updated_by')
+            if 'deleted_at' in update_data:
+                req.deleted_at = update_data.get('deleted_at')
+            if 'deleted_by' in update_data:
+                req.deleted_by = update_data.get('deleted_by')
+            
+            # Update the updated_date to current time
+            req.updated_date = func.now()
+            
+            await db.flush()
+            await db.refresh(req)
+            return req
+
+    @staticmethod
     async def scan_iwtr(db: AsyncSession, req_id: int, scan_details: list) -> dict:
 
         from datetime import datetime
@@ -1657,8 +1847,6 @@ class IWTRService:
 
             return {
                 "success": True,
-                "message": f"Successfully scanned {len(created_details)} items",
-                "records_created": len(created_details),
                 "details": [
                     {
                         "id": detail.id,
@@ -1694,6 +1882,7 @@ class IWTRService:
                     den_kho=inv_data.get('den_kho'),
                     total_quantity=inv_data.get('total_quantity'),
                     dvt=inv_data.get('dvt'),
+                    quantity_scanned=inv_data.get('quantity_scanned', 0),
                     updated_by=inv_data.get('updated_by'),
                     updated_date=datetime.now()
                 )
@@ -1741,6 +1930,7 @@ class IWTRService:
                 "den_kho": inv.den_kho,
                 "total_quantity": inv.total_quantity,
                 "dvt": inv.dvt,
+                "quantity_scanned": inv.quantity_scanned,
                 "updated_by": inv.updated_by,
                 "updated_date": inv.updated_date
             }
@@ -1857,6 +2047,111 @@ class IWTRService:
             }
             for detail in scan_details
         ]
+
+    @staticmethod
+    async def get_iwtr_request_details(
+        db: AsyncSession,
+        request_id: int
+    ) -> dict:
+        """Get full IWTR request details with nested products and inventories"""
+        from app.modules.inventory.models import InventoriesInIWTR
+        from app.core.exceptions import NotFoundException
+        from sqlalchemy.orm import joinedload
+
+        try:
+            # Get the main IWTR request
+            result = await db.execute(
+                select(InternalWarehouseTransferRequest).where(
+                    InternalWarehouseTransferRequest.id == request_id
+                )
+            )
+            request = result.scalar_one_or_none()
+            if not request:
+                raise NotFoundException("IWTR", str(request_id))
+
+            # Get products in IWTR with their inventories
+            result = await db.execute(
+                select(ProductsInIWTR).where(
+                    ProductsInIWTR.internal_warehouse_transfer_requests_id == request_id
+                ).order_by(ProductsInIWTR.updated_date.desc())
+            )
+            products = result.scalars().all()
+
+            # Get all inventories for these products
+            product_ids = [p.id for p in products]
+            if product_ids:
+                result = await db.execute(
+                    select(InventoriesInIWTR).where(
+                        InventoriesInIWTR.product_in_iwtr_id.in_(product_ids)
+                    ).order_by(InventoriesInIWTR.scan_time.desc())
+                )
+                inventories = result.scalars().all()
+            else:
+                inventories = []
+
+            # Convert to response format
+            request_data = {
+                "id": request.id,
+                "ma_yc_cknb": request.ma_yc_cknb,
+                "tu_kho": request.tu_kho,
+                "den_kho": request.den_kho,
+                "don_vi_linh": request.don_vi_linh,
+                "don_vi_nhan": request.don_vi_nhan,
+                "ly_do_xuat_nhap": request.ly_do_xuat_nhap,
+                "ngay_chung_tu": request.ngay_chung_tu,
+                "so_phieu_xuat": request.so_phieu_xuat,
+                "so_chung_tu": request.so_chung_tu,
+                "series_pgh": request.series_pgh,
+                "status": request.status,
+                "note": request.note,
+                "scan_status": request.scan_status,
+                "updated_by": request.updated_by,
+                "updated_date": request.updated_date,
+                "deleted_at": request.deleted_at,
+                "deleted_by": request.deleted_by
+            }
+
+            products_data = [
+                {
+                    "id": p.id,
+                    "internal_warehouse_transfer_requests_id": p.internal_warehouse_transfer_requests_id,
+                    "product_code": p.product_code,
+                    "product_name": p.product_name,
+                    "tu_kho": p.tu_kho,
+                    "den_kho": p.den_kho,
+                    "total_quantity": p.total_quantity,
+                    "dvt": p.dvt,
+                    "quantity_scanned": p.quantity_scanned,
+                    "updated_by": p.updated_by,
+                    "updated_date": p.updated_date
+                }
+                for p in products
+            ]
+
+            inventories_data = [
+                {
+                    "id": inv.id,
+                    "product_in_iwtr_id": inv.product_in_iwtr_id,
+                    "inventory_identifier": inv.inventory_identifier,
+                    "serial_pallet": inv.serial_pallet,
+                    "scan_by": inv.scan_by,
+                    "quantity_dispatched": inv.quantity_dispatched,
+                    "scan_time": inv.scan_time,
+                    "confirmed": inv.confirmed
+                }
+                for inv in inventories
+            ]
+
+            return {
+                "request": request_data,
+                "products": products_data,
+                "inventories": inventories_data
+            }
+
+        except NotFoundException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error fetching IWTR details: {str(e)}")
 
     @staticmethod
     async def update_inventories_in_iwrt(
@@ -1976,6 +2271,53 @@ class OSRService:
             return req
 
     @staticmethod
+    async def update_osr_request(db: AsyncSession, req_id: int, update_data: dict) -> OutboundShipmentRequestOnOrder:
+        """Update OSR request by ID - only fields provided will be updated"""
+        async with db.begin():
+            req = await OSRService.get_osr_request_by_id(db, req_id)
+            
+            # Only update fields that are provided in the request
+            if 'ma_yc_xk' in update_data:
+                req.ma_yc_xk = update_data.get('ma_yc_xk')
+            if 'kho_xuat' in update_data:
+                req.kho_xuat = update_data.get('kho_xuat')
+            if 'xuat_toi' in update_data:
+                req.xuat_toi = update_data.get('xuat_toi')
+            if 'don_vi_linh' in update_data:
+                req.don_vi_linh = update_data.get('don_vi_linh')
+            if 'don_vi_nhan' in update_data:
+                req.don_vi_nhan = update_data.get('don_vi_nhan')
+            if 'ly_do_xuat_nhap' in update_data:
+                req.ly_do_xuat_nhap = update_data.get('ly_do_xuat_nhap')
+            if 'ngay_chung_tu' in update_data:
+                req.ngay_chung_tu = update_data.get('ngay_chung_tu')
+            if 'so_phieu_xuat' in update_data:
+                req.so_phieu_xuat = update_data.get('so_phieu_xuat')
+            if 'so_chung_tu' in update_data:
+                req.so_chung_tu = update_data.get('so_chung_tu')
+            if 'series_pgh' in update_data:
+                req.series_pgh = update_data.get('series_pgh')
+            if 'status' in update_data:
+                req.status = update_data.get('status')
+            if 'note' in update_data:
+                req.note = update_data.get('note')
+            if 'scan_status' in update_data:
+                req.scan_status = update_data.get('scan_status')
+            if 'updated_by' in update_data:
+                req.updated_by = update_data.get('updated_by')
+            if 'deleted_at' in update_data:
+                req.deleted_at = update_data.get('deleted_at')
+            if 'deleted_by' in update_data:
+                req.deleted_by = update_data.get('deleted_by')
+            
+            # Update the updated_date to current time
+            req.updated_date = func.now()
+            
+            await db.flush()
+            await db.refresh(req)
+            return req
+
+    @staticmethod
     async def scan_osr(db: AsyncSession, req_id: int, scan_details: list) -> dict:
 
         from datetime import datetime
@@ -2009,8 +2351,6 @@ class OSRService:
 
             return {
                 "success": True,
-                "message": f"Successfully scanned {len(created_details)} items",
-                "records_created": len(created_details),
                 "details": [
                     {
                         "id": detail.id,
@@ -2043,6 +2383,7 @@ class OSRService:
                 product_name=inv_data.get('product_name'),
                 total_quantity=inv_data.get('total_quantity'),
                 dvt=inv_data.get('dvt'),
+                quantity_scanned=inv_data.get('quantity_scanned', 0),
                 updated_by=inv_data.get('updated_by'),
                 updated_date=datetime.now()
             )
@@ -2087,6 +2428,7 @@ class OSRService:
                 "product_name": inv.product_name,
                 "total_quantity": inv.total_quantity,
                 "dvt": inv.dvt,
+                "quantity_scanned": inv.quantity_scanned,
                 "updated_by": inv.updated_by,
                 "updated_date": inv.updated_date
             }
@@ -2164,6 +2506,109 @@ class OSRService:
         ]
 
     @staticmethod
+    async def get_osr_request_details(
+        db: AsyncSession,
+        request_id: int
+    ) -> dict:
+        """Get full OSR request details with nested products and inventories"""
+        from app.modules.inventory.models import InventoriesInOSR
+        from app.core.exceptions import NotFoundException
+        from sqlalchemy.orm import joinedload
+
+        try:
+            # Get the main OSR request
+            result = await db.execute(
+                select(OutboundShipmentRequestOnOrder).where(
+                    OutboundShipmentRequestOnOrder.id == request_id
+                )
+            )
+            request = result.scalar_one_or_none()
+            if not request:
+                raise NotFoundException("OSR", str(request_id))
+
+            # Get products in OSR with their inventories
+            result = await db.execute(
+                select(ProductsInOSR).where(
+                    ProductsInOSR.outbound_shipment_request_on_order_id == request_id
+                ).order_by(ProductsInOSR.updated_date.desc())
+            )
+            products = result.scalars().all()
+
+            # Get all inventories for these products
+            product_ids = [p.id for p in products]
+            if product_ids:
+                result = await db.execute(
+                    select(InventoriesInOSR).where(
+                        InventoriesInOSR.product_in_osr_id.in_(product_ids)
+                    ).order_by(InventoriesInOSR.scan_time.desc())
+                )
+                inventories = result.scalars().all()
+            else:
+                inventories = []
+
+            # Convert to response format
+            request_data = {
+                "id": request.id,
+                "ma_yc_xk": request.ma_yc_xk,
+                "kho_xuat": request.kho_xuat,
+                "xuat_toi": request.xuat_toi,
+                "don_vi_linh": request.don_vi_linh,
+                "don_vi_nhan": request.don_vi_nhan,
+                "ly_do_xuat_nhap": request.ly_do_xuat_nhap,
+                "ngay_chung_tu": request.ngay_chung_tu,
+                "so_phieu_xuat": request.so_phieu_xuat,
+                "so_chung_tu": request.so_chung_tu,
+                "series_pgh": request.series_pgh,
+                "status": request.status,
+                "note": request.note,
+                "scan_status": request.scan_status,
+                "updated_by": request.updated_by,
+                "updated_date": request.updated_date,
+                "deleted_at": request.deleted_at,
+                "deleted_by": request.deleted_by
+            }
+
+            products_data = [
+                {
+                    "id": p.id,
+                    "outbound_shipment_request_on_order_id": p.outbound_shipment_request_on_order_id,
+                    "product_code": p.product_code,
+                    "product_name": p.product_name,
+                    "total_quantity": p.total_quantity,
+                    "dvt": p.dvt,
+                    "quantity_scanned": p.quantity_scanned,
+                    "updated_by": p.updated_by,
+                    "updated_date": p.updated_date
+                }
+                for p in products
+            ]
+
+            inventories_data = [
+                {
+                    "id": inv.id,
+                    "product_in_osr_id": inv.product_in_osr_id,
+                    "inventory_identifier": inv.inventory_identifier,
+                    "serial_pallet": inv.serial_pallet,
+                    "scan_by": inv.scan_by,
+                    "quantity_dispatched": inv.quantity_dispatched,
+                    "scan_time": inv.scan_time,
+                    "confirmed": inv.confirmed
+                }
+                for inv in inventories
+            ]
+
+            return {
+                "request": request_data,
+                "products": products_data,
+                "inventories": inventories_data
+            }
+
+        except NotFoundException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error fetching OSR details: {str(e)}")
+
+    @staticmethod
     async def update_inventories_in_osr(
         db: AsyncSession,
         updates: List[dict]
@@ -2239,7 +2684,8 @@ class ContainerInventoryService:
                 location_id=container_data.get('location_id'),
                 serial_pallet=container_data.get('serial_pallet'),
                 quantity_imported=container_data.get('quantity_imported'),
-                scan_by=container_data.get('scan_by'),
+                # scan_by=container_data.get('scan_by'),
+                scan_by=None,
                 confirmed=container_data.get('confirmed', False)
             )
             db.add(container_inventory)

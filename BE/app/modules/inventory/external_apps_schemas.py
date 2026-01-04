@@ -379,6 +379,7 @@ class InventoryInIWTRItem(BaseModel):
     product_name: str = Field(..., max_length=255, description="Tên sản phẩm")
     total_quantity: int = Field(..., ge=0, description="Tổng số lượng")
     dvt: str = Field(..., max_length=20, description="Đơn vị tính")
+    quantity_scanned: Optional[int] = Field(None, ge=0, description="Số lượng đã scan")
     updated_by: Optional[str] = Field(None, max_length=10, description="Người cập nhật")
 
     class Config:
@@ -388,6 +389,7 @@ class InventoryInIWTRItem(BaseModel):
                 "product_name": "Sản phẩm A",
                 "total_quantity": 100,
                 "dvt": "Cái",
+                "quantity_scanned": 0,
                 "updated_by": "admin"
             }
         }
@@ -437,6 +439,10 @@ class IWTRSimpleRequest(BaseModel):
     series_pgh: str = Field(..., max_length=50, description="Series PGH")
     tu_kho: int = Field(..., description="ID kho xuất")
     updated_by: str = Field(..., max_length=15, description="Người cập nhật")
+    so_phieu_xuat: Optional[str] = Field(None, max_length=50, description="Số phiếu xuất")
+    so_chung_tu: Optional[str] = Field(None, max_length=50, description="Số chứng từ")
+    scan_status: Optional[bool] = Field(None, description="Trạng thái scan")
+    status: Optional[bool] = Field(None, description="Trạng thái")
 
     class Config:
         json_schema_extra = {
@@ -463,6 +469,7 @@ class InventoryInIWTRResponse(BaseModel):
     product_name: str
     total_quantity: int
     dvt: str
+    quantity_scanned: Optional[int] = None
     updated_by: Optional[str] = None
     updated_date: Optional[datetime] = None
 
@@ -538,6 +545,7 @@ class InventoryInOSRItem(BaseModel):
     product_name: str = Field(..., max_length=255, description="Tên sản phẩm")
     total_quantity: int = Field(..., ge=0, description="Tổng số lượng")
     dvt: str = Field(..., max_length=20, description="Đơn vị tính")
+    quantity_scanned: Optional[int] = Field(None, ge=0, description="Số lượng đã scan")
     updated_by: Optional[str] = Field(None, max_length=10, description="Người cập nhật")
 
     class Config:
@@ -547,6 +555,7 @@ class InventoryInOSRItem(BaseModel):
                 "product_name": "Sản phẩm A",
                 "total_quantity": 100,
                 "dvt": "Cái",
+                "quantity_scanned": 0,
                 "updated_by": "admin"
             }
         }
@@ -600,6 +609,7 @@ class InventoryInOSRResponse(BaseModel):
     den_kho: Optional[int] = None
     total_quantity: int
     dvt: str
+    quantity_scanned: Optional[int] = None
     updated_by: Optional[str] = None
     updated_date: Optional[datetime] = None
 
@@ -647,7 +657,7 @@ class OSRInventoriesCreateResponse(BaseModel):
 
 class OSRScanDetailItem(BaseModel):
 
-    products_in_osr_id: int = Field(..., description="ID của inventory trong OSR")
+    product_in_osr_id: int = Field(..., description="ID của inventory trong OSR")
     inventory_identifier: str = Field(..., max_length=20, description="Mã định danh inventory")
     serial_pallet: str = Field(..., max_length=50, description="Serial pallet")
     quantity_dispatched: int = Field(..., ge=0, description="Số lượng đã xuất")
@@ -657,7 +667,7 @@ class OSRScanDetailItem(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "products_in_osr_id": 1,
+                "product_in_osr_id": 1,
                 "inventory_identifier": "INV-001",
                 "serial_pallet": "PLT-001",
                 "quantity_dispatched": 50,
@@ -676,7 +686,7 @@ class OSRScanDetailRequest(BaseModel):
             "example": {
                 "scan_details": [
                     {
-                        "products_in_osr_id": 1,
+                        "product_in_osr_id": 1,
                         "inventory_identifier": "INV-001",
                         "serial_pallet": "PLT-001",
                         "quantity_dispatched": 50,
@@ -684,7 +694,7 @@ class OSRScanDetailRequest(BaseModel):
                         "scan_by": "admin"
                     },
                     {
-                        "products_in_osr_id": 1,
+                        "product_in_osr_id": 1,
                         "inventory_identifier": "INV-002",
                         "serial_pallet": "PLT-002",
                         "quantity_dispatched": 30,
@@ -699,20 +709,16 @@ class OSRScanDetailRequest(BaseModel):
 class OSRScanDetailResponse(BaseModel):
     """Response schema for OSR scan operation"""
     success: bool
-    message: str
-    records_created: int = 0
     details: Optional[List[dict]] = None
 
     class Config:
         json_schema_extra = {
             "example": {
                 "success": True,
-                "message": "Successfully scanned 2 items",
-                "records_created": 2,
                 "details": [
                     {
                         "id": 1,
-                        "products_in_osr_id": 1,
+                        "product_in_osr_id": 1,
                         "inventory_identifier": "INV-001",
                         "serial_pallet": "PLT-001",
                         "scan_time": "2024-01-15T10:30:00"
@@ -723,7 +729,7 @@ class OSRScanDetailResponse(BaseModel):
 
 
 class IWTRScanDetailItem(BaseModel):
-    products_in_iwtr_id: int = Field(..., description="ID của product trong IWTR")
+    product_in_iwtr_id: int = Field(..., description="ID của product trong IWTR")
     inventory_identifier: str = Field(..., max_length=20, description="Mã định danh inventory")
     serial_pallet: str = Field(..., max_length=50, description="Serial pallet")
     quantity_dispatched: int = Field(..., ge=0, description="Số lượng đã xuất")
@@ -733,7 +739,7 @@ class IWTRScanDetailItem(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "products_in_iwtr_id": 1,
+                "product_in_iwtr_id": 1,
                 "inventory_identifier": "INV-001",
                 "serial_pallet": "PLT-001",
                 "quantity_dispatched": 50,
@@ -752,7 +758,7 @@ class IWTRScanDetailRequest(BaseModel):
             "example": {
                 "scan_details": [
                     {
-                        "products_in_iwtr_id": 1,
+                        "product_in_iwtr_id": 1,
                         "inventory_identifier": "INV-001",
                         "serial_pallet": "PLT-001",
                         "quantity_dispatched": 50,
@@ -760,7 +766,7 @@ class IWTRScanDetailRequest(BaseModel):
                         "scan_by": "admin"
                     },
                     {
-                        "products_in_iwtr_id": 1,
+                        "product_in_iwtr_id": 1,
                         "inventory_identifier": "INV-002",
                         "serial_pallet": "PLT-002",
                         "quantity_dispatched": 30,
@@ -775,20 +781,16 @@ class IWTRScanDetailRequest(BaseModel):
 class IWTRScanDetailResponse(BaseModel):
     """Response schema for IWTR scan operation"""
     success: bool
-    message: str
-    records_created: int = 0
     details: Optional[List[dict]] = None
 
     class Config:
         json_schema_extra = {
             "example": {
                 "success": True,
-                "message": "Successfully scanned 2 items",
-                "records_created": 2,
                 "details": [
                     {
                         "id": 1,
-                        "products_in_iwtr_id": 1,
+                        "product_in_iwtr_id": 1,
                         "inventory_identifier": "INV-001",
                         "serial_pallet": "PLT-001",
                         "scan_time": "2024-01-15T10:30:00"
@@ -800,7 +802,7 @@ class IWTRScanDetailResponse(BaseModel):
 
 class UpdateImportStatusRequest(BaseModel):
     """Request schema for updating import requirement status"""
-    status: str = Field(..., description="New status for the import requirement")
+    status: bool = Field(..., description="New status for the import requirement")
     updated_by: Optional[str] = Field(None, description="User updating the status")
 
     class Config:

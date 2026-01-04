@@ -3,12 +3,12 @@ from typing import List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.modules.inventory.schemas import BulkUpdateInventoriesInIWTRRequest
+from app.modules.inventory.schemas import BulkUpdateInventoriesInIWTRRequest, IWTRUpdateRequest
 from app.core.database import get_db, get_external_apps_db
 from app.core.security import get_current_user
 from app.modules.inventory.service import IWTRService
 from app.modules.inventory.external_apps_service import ExternalAppsIWTRService, ExternalAppsDataMapper
-from app.modules.inventory.schemas import IWTRResponse
+from app.modules.inventory.schemas import IWTRResponse, IWTRFullDetailResponse
 from app.modules.inventory.external_apps_schemas import (
     IWTRHeaderResponse,
     IWTRCreateRequest,
@@ -159,6 +159,22 @@ async def confirm_iwtr_location(
     return await IWTRService.confirm_iwtr_location(db, request_id, location_id)
 
 
+@router.patch("/requests/{request_id}", response_model=IWTRResponse)
+async def update_iwtr_request(
+    request_id: int,
+    update_data: IWTRUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+    #current_user: str = Depends(get_current_user)
+):
+    try:
+        # Convert Pydantic model to dict for service layer
+        update_dict = update_data.model_dump(exclude_unset=True)
+        iwtr = await IWTRService.update_iwtr_request(db, request_id, update_dict)
+        return iwtr
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating IWTR: {str(e)}")
+
+
 @router.post("/requests/{request_id}/scan", response_model=IWTRScanDetailResponse)
 async def scan_iwtr(
     request_id: int,
@@ -195,6 +211,7 @@ async def create_products_in_iwtr(
                 "product_name": inv.product_name,
                 "total_quantity": inv.total_quantity,
                 "dvt": inv.dvt,
+                "quantity_scanned": inv.quantity_scanned if hasattr(inv, 'quantity_scanned') else 0,
                 "updated_by": inv.updated_by
             }
             for inv in request_data.items
@@ -232,7 +249,7 @@ async def get_iwtr_inventories_by_request_id(
         )
 
 
-@router.get("/request/{product_in_iwtr_id}/scan", response_model=List[dict])
+@router.get("/requests/{product_in_iwtr_id}/scan", response_model=List[dict])
 async def get_iwtr_scan_details_by_product_in_iwtr_id(
     product_in_iwtr_id: int,
     db: AsyncSession = Depends(get_db),
@@ -246,6 +263,28 @@ async def get_iwtr_scan_details_by_product_in_iwtr_id(
         raise HTTPException(
             status_code=500,
             detail=f"Error fetching IWTR scan details: {str(e)}"
+        )
+
+
+@router.get("/requests/details/{request_id}", response_model=IWTRFullDetailResponse)
+async def get_iwtr_request_details(
+    request_id: int,
+    db: AsyncSession = Depends(get_db),
+    #current_user: str = Depends(get_current_user)
+):
+    """
+    Get full details of an IWTR request including:
+    - Main request information
+    - Products in the request
+    - Inventories for each product
+    """
+    try:
+        details = await IWTRService.get_iwtr_request_details(db, request_id)
+        return IWTRFullDetailResponse(**details)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error fetching IWTR request details: {str(e)}"
         )
 
 
@@ -266,8 +305,11 @@ async def create_iwtr_with_inventories(
             "don_vi_nhan": request_data.don_vi_nhan,
             "ly_do_xuat_nhap": request_data.ly_do_xuat_nhap,
             "ngay_chung_tu": request_data.ngay_chung_tu,
-            "status": False,
+            "so_phieu_xuat": request_data.so_phieu_xuat,
+            "so_chung_tu": request_data.so_chung_tu,
             "series_pgh": request_data.series_pgh,
+            "status": request_data.status if request_data.status is not None else False,
+            "scan_status": request_data.scan_status if request_data.scan_status is not None else False,
             "note": request_data.note,
             "updated_by": request_data.updated_by
         }

@@ -1,6 +1,5 @@
-
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, field_validator
 
 
@@ -151,6 +150,7 @@ class LocationListResponse(BaseModel):
     """Paginated location list response"""
     data: list[LocationResponse]
     meta: LocationListMeta
+
 
 class WarehouseImportRequirementUpdate(BaseModel):
     """Schema for updating warehouse import requirement - only fields provided will be updated"""
@@ -387,6 +387,26 @@ class IWTRResponse(BaseModel):
         from_attributes = True
 
 
+class IWTRUpdateRequest(BaseModel):
+    """Schema for updating internal warehouse transfer requests - only fields provided will be updated"""
+    ma_yc_cknb: Optional[str] = None
+    tu_kho: Optional[int] = None
+    den_kho: Optional[int] = None
+    don_vi_linh: Optional[str] = None
+    don_vi_nhan: Optional[str] = None
+    ly_do_xuat_nhap: Optional[str] = None
+    ngay_chung_tu: Optional[str] = None
+    so_phieu_xuat: Optional[str] = None
+    so_chung_tu: Optional[str] = None
+    series_pgh: Optional[str] = None
+    status: Optional[bool] = None
+    note: Optional[str] = None
+    scan_status: Optional[bool] = None
+    updated_by: Optional[str] = None
+    deleted_at: Optional[datetime] = None
+    deleted_by: Optional[str] = None
+
+
 class ProductsInIWTRResponse(BaseModel):
     """Response schema for products in IWTR"""
     id: int
@@ -397,6 +417,7 @@ class ProductsInIWTRResponse(BaseModel):
     den_kho: Optional[int] = None
     total_quantity: Optional[int] = None
     dvt: Optional[str] = None
+    quantity_scanned: Optional[int] = None
     updated_by: Optional[str] = None
     updated_date: datetime
 
@@ -417,6 +438,13 @@ class InventoriesInIWTRResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class IWTRFullDetailResponse(BaseModel):
+    """Response schema for full IWTR details with nested products and inventories"""
+    request: IWTRResponse
+    products: List[ProductsInIWTRResponse]
+    inventories: List[InventoriesInIWTRResponse]
 
 
 class OSRResponse(BaseModel):
@@ -444,6 +472,26 @@ class OSRResponse(BaseModel):
         from_attributes = True
 
 
+class OSRUpdateRequest(BaseModel):
+    """Schema for updating outbound shipment requests on order - only fields provided will be updated"""
+    ma_yc_xk: Optional[str] = None
+    kho_xuat: Optional[int] = None
+    xuat_toi: Optional[int] = None
+    don_vi_linh: Optional[str] = None
+    don_vi_nhan: Optional[str] = None
+    ly_do_xuat_nhap: Optional[str] = None
+    ngay_chung_tu: Optional[str] = None
+    so_phieu_xuat: Optional[str] = None
+    so_chung_tu: Optional[str] = None
+    series_pgh: Optional[str] = None
+    status: Optional[bool] = None
+    note: Optional[str] = None
+    scan_status: Optional[bool] = None
+    updated_by: Optional[str] = None
+    deleted_at: Optional[datetime] = None
+    deleted_by: Optional[str] = None
+
+
 class ProductsInOSRResponse(BaseModel):
     """Response schema for products in OSR"""
     id: int
@@ -452,6 +500,7 @@ class ProductsInOSRResponse(BaseModel):
     product_name: Optional[str] = None
     total_quantity: Optional[int] = None
     dvt: Optional[str] = None
+    quantity_scanned: Optional[int] = None
     updated_by: Optional[str] = None
     updated_date: datetime
 
@@ -474,6 +523,13 @@ class InventoriesInOSRResponse(BaseModel):
         from_attributes = True
 
 
+class OSRFullDetailResponse(BaseModel):
+    """Response schema for full OSR details with nested products and inventories"""
+    request: OSRResponse
+    products: List[ProductsInOSRResponse]
+    inventories: List[InventoriesInOSRResponse]
+
+
 class UpdateContainerInventoryRequest(BaseModel):
     """Schema for updating container inventory - only fields provided will be updated"""
     import_container_id: int
@@ -482,10 +538,12 @@ class UpdateContainerInventoryRequest(BaseModel):
     confirmed: Optional[bool] = None
     location_id: Optional[int] = None
 
+
 class SimpleContainerInventoryUpdate(BaseModel):
     """Simplified schema for updating container inventory by ID with confirmed field"""
     id: int
     confirmed: bool
+
 
 class UpdateContainerInventoryByIdRequest(BaseModel):
     """Schema for updating container inventory by ID - only fields provided will be updated"""
@@ -509,6 +567,7 @@ class UpdateContainerInventoryByIdRequest(BaseModel):
     confirmed: Optional[bool] = None
     list_serial_items: Optional[str] = None
 
+
 class UpdateInventoriesInIWTRRequest(BaseModel):
     product_in_iwtr_id: int
     inventory_identifier: str
@@ -520,13 +579,16 @@ class BulkUpdateContainerInventoryRequest(BaseModel):
 
     updates: list[UpdateContainerInventoryRequest]
 
+
 class BulkSimpleContainerInventoryUpdate(BaseModel):
     """Bulk update schema for simplified container inventory updates"""
     updates: list[SimpleContainerInventoryUpdate]
 
+
 class BulkUpdateContainerInventoryByIdRequest(BaseModel):
     """Schema for bulk updating container inventory by ID"""
     updates: list[UpdateContainerInventoryByIdRequest]
+
 
 class UpdateImportPalletInfoRequest(BaseModel):
     """Schema for updating import pallet info"""
@@ -544,13 +606,16 @@ class UpdateImportPalletInfoRequest(BaseModel):
     scan_status: Optional[bool] = None
     confirmed: Optional[bool] = None
 
+
 class BulkUpdateImportPalletInfoRequest(BaseModel):
     """Schema for bulk updating import pallet info"""
     updates: list[UpdateImportPalletInfoRequest]
 
+
 class BulkUpdateInventoriesInIWTRRequest(BaseModel):
 
     updates: list[UpdateInventoriesInIWTRRequest]
+
 
 class UpdateInventoriesInOSRRequest(BaseModel):
     product_in_osr_id: int
@@ -565,6 +630,8 @@ class BulkUpdateInventoriesInOSRRequest(BaseModel):
 
 
 # Schemas for WMS Import Requirements API
+
+
 class BoxInfo(BaseModel):
     """Schema for box information in pallet"""
     box_code: str

@@ -56,14 +56,13 @@ async def update_import_requirement(
     db: AsyncSession = Depends(get_db),
     # #current_user: str = Depends(get_current_user)
 ):
-    """Update warehouse import requirement by ID - only fields provided will be updated"""
+
     try:
         # Convert the Pydantic model to dict for the service
         update_data = update_request.model_dump(exclude_unset=True)
         
-        # Add updated_by if not provided
-        if 'updated_by' not in update_data:
-            update_data['updated_by'] = "system"  # Must be <= 10 chars to fit String(10) column
+        # if 'updated_by' not in update_data:
+        #     update_data['updated_by'] = "unknown"
         
         updated_requirement = await WarehouseImportService.update_import_requirement(db, req_id, update_data)
         
@@ -185,3 +184,19 @@ async def create_wms_import_requirement(
     except Exception as e:
         logger.error(f"Gửi nhập kho WMS thất bại: {str(e)}", exc_info=True)
         raise HTTPException(status_code=400, detail=f"Gửi nhập kho WMS thất bại: {str(e)}")
+
+@router.get("/search/{search_query}", response_model=dict)
+async def search_warehouse_import_requirement(
+    search_query: str,
+    db: AsyncSession = Depends(get_db),
+    # #current_user: str = Depends(get_current_user)
+):
+    """
+    Tìm kiếm yêu cầu nhập kho theo mã thùng (bắt đầu bằng 'B') hoặc mã pallet (bắt đầu bằng 'P')
+    """
+    try:
+        result = await WarehouseImportService.search_warehouse_import_requirement_by_query(db, search_query)
+        return result
+    except Exception as e:
+        logger.error(f"Error searching warehouse import requirement: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=400, detail=f"Error searching warehouse import requirement: {str(e)}")

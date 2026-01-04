@@ -8,7 +8,7 @@ from app.core.database import get_db, get_external_apps_db
 from app.core.security import get_current_user
 from app.modules.inventory.service import OSRService
 from app.modules.inventory.external_apps_service import ExternalAppsOSRService, ExternalAppsDataMapper
-from app.modules.inventory.schemas import OSRResponse
+from app.modules.inventory.schemas import OSRResponse, OSRUpdateRequest
 from app.modules.inventory.external_apps_schemas import (
     OSRHeaderResponse,
     OSRCreateRequest,
@@ -21,7 +21,7 @@ from app.modules.inventory.external_apps_schemas import (
     OSRScanDetailRequest,
     OSRScanDetailResponse
 )
-from app.modules.inventory.schemas import BulkUpdateInventoriesInOSRRequest
+from app.modules.inventory.schemas import BulkUpdateInventoriesInOSRRequest, OSRFullDetailResponse
 
 router = APIRouter()
 
@@ -144,6 +144,22 @@ async def confirm_osr_location(
     return await OSRService.confirm_osr_location(db, request_id, location_id)
 
 
+@router.patch("/requests/{request_id}", response_model=OSRResponse)
+async def update_osr_request(
+    request_id: int,
+    update_data: OSRUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+    #current_user: str = Depends(get_current_user)
+):
+    try:
+        # Convert Pydantic model to dict for service layer
+        update_dict = update_data.model_dump(exclude_unset=True)
+        osr = await OSRService.update_osr_request(db, request_id, update_dict)
+        return osr
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating OSR: {str(e)}")
+
+
 @router.post("/requests/{request_id}/scan", response_model=OSRScanDetailResponse)
 async def scan_osr(
     request_id: int,
@@ -224,7 +240,13 @@ async def create_osr_inventories(
                 raise HTTPException(status_code=404, detail=f"OSR with ID {request_id} not found")
 
             # Convert inventories to dict list
-            inventories_data = [inv.model_dump() for inv in request_data.inventories]
+            inventories_data = [
+                {
+                    **inv.model_dump(),
+                    "quantity_scanned": inv.quantity_scanned if hasattr(inv, 'quantity_scanned') else 0
+                }
+                for inv in request_data.inventories
+            ]
 
             # Create inventories in OSR
             inventories = await OSRService.create_products_in_osr(
@@ -300,3 +322,21 @@ async def update_inventories_in_osr(
         db,
         updates
     )
+
+
+@router.get("/requests/details/{request_id}", response_model=OSRFullDetailResponse)
+async def get_osr_request_details(
+    request_id: int,
+    db: AsyncSession = Depends(get_db),
+    #current_user: str = Depends(get_current_user)
+):
+    """
+    Get full OSR request details with nested products and inventories
+    """
+    try:
+        details = await OSRService.get_osr_request_details(db, request_id)
+        return OSRFullDetailResponse(**details)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching OSR details: {str(e)}")
