@@ -44,7 +44,7 @@ class Settings(BaseSettings):
                                     "http://192.168.20.101:4200",
                                     "http://localhost:9004", 
                                     "http://192.168.20.101:9004",
-                                    "https://ral.wms-logistic.rangdong.com.vn:9004",
+                                    "https://ral-wms-logistic.rangdong.com.vn:9004",
                                     "https://192.168.68.77:4200",
                                     "http://192.168.68.77:9040",
                                     "http://192.168.18.103:9000",
@@ -55,7 +55,8 @@ class Settings(BaseSettings):
                                     "http://localhost:9041",
                                     "http://localhost:9000",
                                     "https://192.168.18.105:4200",
-                                    "https://192.168.18.101:4200" ]
+                                    "https://192.168.18.101:4200",
+                                     "https://192.168.18.105:4200" ]
     LOG_LEVEL: str = "INFO"
 
     class Config:
