@@ -73,7 +73,7 @@ export const appConfig: ApplicationConfig = {
 
       // HTTP Link
       const http = httpLink.create({
-        uri: 'http://192.168.20.101:8050/graphql',
+        uri: 'https://ral-wms-logistic.rangdong.com.vn:9004/graphql',
       });
 
       // Combine all links
