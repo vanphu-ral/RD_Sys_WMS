@@ -1,0 +1,55 @@
+{
+  "general_info": {
+    "order_id": "WO-151804-1",
+    "client_id": "Current / YNK",
+    "inventory_name": "LED00084407",
+    "ten_sp": "Bộ vỏ hộp nguồn panel MQL 1064 ENCL-DRVR NBT SKD(Current)",
+    "wo_code": "123075",
+    "lot_number": "251117130004A",
+    "ngay_nhap": "2025/11/20",
+    "ghi_chu": "Đạt",
+    "create_by": "Sơn",
+    "industry": "LRSP LED2",
+    "production_team": "Tổ Panel khổ lớn",
+    "production_decision_number": "322.25",
+    "item_no_sku": "95059979"
+  },
+  "detail": [
+    {
+      "serial_pallet": "P20250321000115",
+      "box_code": "B01420251121000695",
+      "quantity": 28,
+      "list_serial_items": ""
+    },
+    {
+      "serial_pallet": "P20250321000114",
+      "box_code": "B01420251121000694",
+      "quantity": 28,
+      "list_serial_items": ""
+    },
+    {
+      "serial_pallet": "P20250321000119",
+      "box_code": "B01420251121000699",
+      "quantity": 28,
+      "list_serial_items": ""
+    },
+    {
+      "serial_pallet": "P20250321000117",
+      "box_code": "B01420251121000697",
+      "quantity": 28,
+      "list_serial_items": ""
+    },
+    {
+      "serial_pallet": "P20250321000123",
+      "box_code": "B01420251121000703",
+      "quantity": 28,
+      "list_serial_items": ""
+    },
+    {
+      "serial_pallet": "P20250321000121",
+      "box_code": "B01420251121000701",
+      "quantity": 28,
+      "list_serial_items": ""
+    }
+  ]
+}
