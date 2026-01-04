@@ -10,7 +10,6 @@ from app.modules.locations.schemas import (
     LocationUpdate
 )
 from app.modules.locations.service import LocationService
-from app.core.database import get_db
 
 
 # Strawberry types for GraphQL
@@ -34,32 +33,47 @@ class LocationQuery:
     @strawberry.field
     async def locations(self, info: Info) -> List[LocationType]:
         """Get all locations"""
-        db = next(get_db())
-        return await LocationService.get_locations(db)
+        from app.core.database import AsyncSessionLocal
+        from app.modules.locations.schemas import Location as LocationSchema
+        async with AsyncSessionLocal() as db:
+            locations = await LocationService.get_locations(db)
+            return [LocationSchema.from_orm(loc) for loc in locations]
 
     @strawberry.field
     async def location(self, info: Info, id: int) -> LocationType:
         """Get location by ID"""
-        db = next(get_db())
-        return await LocationService.get_location_by_id(db, id)
+        from app.core.database import AsyncSessionLocal
+        from app.modules.locations.schemas import Location as LocationSchema
+        async with AsyncSessionLocal() as db:
+            loc = await LocationService.get_location_by_id(db, id)
+            return LocationSchema.from_orm(loc)
 
     @strawberry.field
     async def location_by_code(self, info: Info, code: str) -> LocationType:
         """Get location by code"""
-        db = next(get_db())
-        return await LocationService.get_location_by_code(db, code)
+        from app.core.database import AsyncSessionLocal
+        from app.modules.locations.schemas import Location as LocationSchema
+        async with AsyncSessionLocal() as db:
+            loc = await LocationService.get_location_by_code(db, code)
+            return LocationSchema.from_orm(loc)
 
     @strawberry.field
     async def locations_by_area(self, info: Info, area_id: int) -> List[LocationType]:
         """Get locations by area"""
-        db = next(get_db())
-        return await LocationService.get_locations_by_area(db, area_id)
+        from app.core.database import AsyncSessionLocal
+        from app.modules.locations.schemas import Location as LocationSchema
+        async with AsyncSessionLocal() as db:
+            locations = await LocationService.get_locations_by_area(db, area_id)
+            return [LocationSchema.from_orm(loc) for loc in locations]
 
     @strawberry.field
     async def active_locations(self, info: Info) -> List[LocationType]:
         """Get active locations"""
-        db = next(get_db())
-        return await LocationService.get_active_locations(db)
+        from app.core.database import AsyncSessionLocal
+        from app.modules.locations.schemas import Location as LocationSchema
+        async with AsyncSessionLocal() as db:
+            locations = await LocationService.get_active_locations(db)
+            return [LocationSchema.from_orm(loc) for loc in locations]
 
 
 @strawberry.type
@@ -69,17 +83,24 @@ class LocationMutation:
     @strawberry.mutation
     async def create_location(self, info: Info, input: LocationCreateInput) -> LocationType:
         """Create new location"""
-        db = next(get_db())
-        return await LocationService.create_location(db, input)
+        from app.core.database import AsyncSessionLocal
+        from app.modules.locations.schemas import Location as LocationSchema
+        async with AsyncSessionLocal() as db:
+            loc = await LocationService.create_location(db, input)
+            return LocationSchema.from_orm(loc)
 
     @strawberry.mutation
     async def update_location(self, info: Info, id: int, input: LocationUpdateInput) -> LocationType:
         """Update existing location"""
-        db = next(get_db())
-        return await LocationService.update_location(db, id, input)
+        from app.core.database import AsyncSessionLocal
+        from app.modules.locations.schemas import Location as LocationSchema
+        async with AsyncSessionLocal() as db:
+            loc = await LocationService.update_location(db, id, input)
+            return LocationSchema.from_orm(loc)
 
     @strawberry.mutation
     async def delete_location(self, info: Info, id: int) -> bool:
         """Delete location"""
-        db = next(get_db())
-        return await LocationService.delete_location(db, id)
+        from app.core.database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            return await LocationService.delete_location(db, id)

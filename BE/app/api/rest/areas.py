@@ -8,7 +8,7 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.modules.inventory.service import AreaService
 from app.modules.inventory.models import Area
-from app.modules.inventory.schemas import AreaListResponse, AreaResponse
+from app.modules.inventory.schemas import AreaListResponse, AreaResponse, AreaUpdate
 
 router = APIRouter()
 
@@ -24,7 +24,7 @@ async def get_areas(
     address: Optional[str] = Query(None),
     is_active: Optional[bool] = Query(None),
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
     return await AreaService.get_areas_paginated(
         db,
@@ -43,7 +43,7 @@ async def get_areas(
 async def create_areas(
     areas_data: List[dict],
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
     if len(areas_data) != 1:
         raise HTTPException(status_code=400, detail="Chỉ gửi thông tin 1 kho")
@@ -55,15 +55,25 @@ async def update_area_status(
     area_id: int,
     is_active: int,
     db: AsyncSession = Depends(get_db),
-    # current_user: str = Depends(get_current_user)
+    #current_user: str = Depends(get_current_user)
 ):
     return await AreaService.update_area_status(db, area_id, bool(is_active))
+
+
+@router.patch("/{area_id}", response_model=AreaResponse)
+async def update_area(
+    area_id: int,
+    area_update: AreaUpdate,
+    db: AsyncSession = Depends(get_db),
+    #current_user: str = Depends(get_current_user)
+):
+    return await AreaService.update_area(db, area_id, area_update.model_dump(exclude_unset=True))
 
 # @router.patch("/{location_id}/status")
 # async def update_location_status(
 #     location_id: int,
 #     is_active: int,
 #     db: Session = Depends(get_db),
-#     # current_user: str = Depends(get_current_user)
+#     #current_user: str = Depends(get_current_user)
 # ):
 #     return LocationService.update_location_status(db, location_id, bool(is_active))

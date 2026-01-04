@@ -1,7 +1,4 @@
-"""
-External Apps Database Models for OWTR (Internal Warehouse Transfer) and ORDR (Sales Orders)
-These models map to the External Apps database tables at 192.168.21.61:1433/BANHANG_Thang6
-"""
+
 from sqlalchemy import Column, Integer, String, Float, DateTime, Numeric, Text
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -9,10 +6,7 @@ ExternalAppsBase = declarative_base()
 
 
 class OWTR(ExternalAppsBase):
-    """
-    SAP Internal Warehouse Transfer Request Header (Chuyển Kho Nội Bộ)
-    Maps to OWTR table in SAP database
-    """
+    """OWTR - Phiếu chuyển kho nội bộ (Header)"""
     __tablename__ = "OWTR"
     
     # Primary Key
@@ -32,39 +26,29 @@ class OWTR(ExternalAppsBase):
     CardName = Column(String(100))
     
     # Warehouse Information
-    BPLId = Column(Integer)  # From Branch
-    FromWhsCode = Column(String(8))  # From Warehouse
-    ToWhsCode = Column(String(8))  # To Warehouse
+    BPLId = Column(Integer)  # Từ chi nhánh
+    ToWhsCode = Column(String(8))  # Đến kho
     
     # Additional Information
     OwnerCode = Column(Integer)
     Comments = Column(Text)
-    JrnlMemo = Column(String(50))
+    JrnlMemo = Column(Text)  # Ghi chú nhật ký chuyển kho
     
     # User Defined Fields (UDF)
-    U_CodeSerial = Column(String(254))
-    U_CodeInv = Column(String(254))
-    U_Docnum = Column(String(254))
-    U_InvCode = Column(String(254))
-    U_Description_vn = Column(String(254))
-    U_Pur_Nvgiao = Column(String(254))
-    U_Pur_NvNhan = Column(String(254))
-    U_Category = Column(String(254))
-    U_hangmuc = Column(String(254))
-    U_OriginalNo = Column(String(254))
-    U_GRPO = Column(String(254))
-    U_DNBH = Column(String(254))
-    U_CTA = Column(String(254))
-    U_SQDSX = Column(String(254))
-    U_MaKH = Column(String(254))
-    U_YCKH = Column(String(254))
+    U_CodeSerial = Column(String(254))  # Số hoá đơn điện tử
+    U_CodeInv = Column(String(254))  # Số seri điện tử
+    U_Docnum = Column(String(254))  # Số chứng từ
+    U_InvCode = Column(String(254))  # Số phiếu giao hàng
+    U_Description_vn = Column(String(254))  # Diễn giải
+    U_Pur_NVGiao = Column(String(254))  # Forwarder
+    U_Pur_NVNhan = Column(String(254))  # Đơn vị lĩnh
+    U_Category = Column(String(254))  # Lý do nhập/xuất
+    U_hangmuc = Column(String(254))  # Hạng mục công trình
+    U_OriginalNo = Column(String(254))  # Số hợp đồng gốc
 
 
 class WTR1(ExternalAppsBase):
-    """
-    SAP Internal Warehouse Transfer Request Detail (Chi tiết Chuyển Kho)
-    Maps to WTR1 table in SAP database
-    """
+    """WTR1 - Chi tiết phiếu chuyển kho nội bộ (Detail)"""
     __tablename__ = "WTR1"
     
     # Composite Primary Key
@@ -72,38 +56,27 @@ class WTR1(ExternalAppsBase):
     LineNum = Column(Integer, primary_key=True)
     
     # Item Information
-    ItemCode = Column(String(50))
-    Dscription = Column(String(100))
+    ItemCode = Column(String(50))  # Mã hàng hoá
+    Dscription = Column(String(100))  # Tên hàng hoá
     
     # Base Document Reference
-    BaseEntry = Column(Integer)
-    BaseLine = Column(Integer)
-    
-    # Warehouse Information
-    FromWhsCod = Column(String(8))
-    WhsCode = Column(String(8))
+    BaseEntry = Column(Integer)  # Tham chiếu chứng từ gốc
+    BaseLine = Column(Integer)  # Dòng chứng từ gốc
     
     # Quantity and Unit
-    Quantity = Column(Numeric(19, 6))
-    UomCode = Column(String(100))
+    Quantity = Column(Numeric(19, 6))  # Số lượng sản phẩm
+    UomCode = Column(String(100))  # Mã đơn vị tính
     
     # Additional Information
-    ShipDate = Column(DateTime)
-    FreeTxt = Column(Text)
+    ShipDate = Column(DateTime)  # Ngày giao hàng
+    FreeTxt = Column(Text)  # Ghi chú sản phẩm trong phiếu
     
     # User Defined Fields
-    U_PO = Column(String(254))
-    DateCode = Column(String(254))
-    U_QDDNGH = Column(String(254))
-    U_soPOPI = Column(String(254))
-    WsCode = Column(String(8))
+    U_PO = Column(String(254))  # Mã PO theo sản phẩm
 
 
 class ORDR(ExternalAppsBase):
-    """
-    SAP Sales Order Header (Đơn Hàng Bán)
-    Maps to ORDR table in SAP database
-    """
+    """ORDR - Đơn hàng bán (Header)"""
     __tablename__ = "ORDR"
     
     # Primary Key
@@ -114,44 +87,41 @@ class ORDR(ExternalAppsBase):
     DocType = Column(String(1))
     CANCELED = Column(String(1))
     DocStatus = Column(String(1))
-    DocDate = Column(DateTime)
-    DocDueDate = Column(DateTime)
-    TaxDate = Column(DateTime)
+    DocDate = Column(DateTime)  # Ngày nhập
+    DocDueDate = Column(DateTime)  # Ngày giao hàng
+    TaxDate = Column(DateTime)  # Ngày chứng từ
     
     # Business Partner Information
-    CardCode = Column(String(15))
-    CardName = Column(String(100))
-    CntctCode = Column(Integer)
+    CardCode = Column(String(15))  # Mã khách hàng
+    CardName = Column(String(100))  # Tên khách hàng
+    CntctCode = Column(Integer)  # Người đại diện
     
     # Sales Information
-    SlpCode = Column(Integer)
-    OwnerCode = Column(Integer)
-    Comments = Column(Text)
+    SlpCode = Column(Integer)  # Nhân viên kinh doanh
+    OwnerCode = Column(Integer)  # Người tạo đơn hàng bán
+    Comments = Column(Text)  # Ghi chú
     
     # User Defined Fields (UDF)
-    U_CodeSerial = Column(String(254))
-    U_CodeInv = Column(String(254))
-    U_Docnum = Column(String(254))
-    U_InvCode = Column(String(254))
-    U_Description_vn = Column(String(254))
-    U_Pur_Nvgiao = Column(String(254))
-    U_Pur_NvNhan = Column(String(254))
-    U_Category = Column(String(254))
-    U_hangmuc = Column(String(254))
-    U_OriginalNo = Column(String(254))
-    U_GRPO = Column(String(254))
-    U_DNBH = Column(String(254))
-    U_CTA = Column(String(254))
-    U_SQDSX = Column(String(254))
-    U_MaKH = Column(String(254))
-    U_YCKH = Column(String(254))
+    U_CodeSerial = Column(String(254))  # Số hoá đơn điện tử
+    U_CodeInv = Column(String(254))  # Số seri điện tử
+    U_Docnum = Column(String(254))  # Số chứng từ
+    U_InvCode = Column(String(254))  # Số phiếu giao hàng
+    U_Description_vn = Column(String(254))  # Diễn giải
+    U_Pur_NVGiao = Column(String(254))  # Forwarder
+    U_Pur_NVNhan = Column(String(254))  # Đơn vị lĩnh
+    U_Category = Column(String(254))  # Lý do nhập/xuất
+    U_hangmuc = Column(String(254))  # Hạng mục công trình
+    U_OriginalNo = Column(String(254))  # Số hợp đồng gốc
+    U_GRPO = Column(String(254))  # Đến mã kho
+    U_DNBH = Column(String(254))  # Đề nghị xuất kho
+    U_CTA = Column(String(254))  # Chứng từ ảo
+    U_SQDSX = Column(String(254))  # Số quyết định sản xuất
+    U_MaKH = Column(String(254))  # Mã khách hàng 2 (khách hàng phụ)
+    U_YCKH = Column(String(254))  # Yêu cầu khách hàng về đóng hàng
 
 
 class RDR1(ExternalAppsBase):
-    """
-    SAP Sales Order Detail (Chi tiết Đơn Hàng Bán)
-    Maps to RDR1 table in SAP database
-    """
+    """RDR1 - Chi tiết đơn hàng bán (Detail)"""
     __tablename__ = "RDR1"
     
     # Composite Primary Key
@@ -159,25 +129,22 @@ class RDR1(ExternalAppsBase):
     LineNum = Column(Integer, primary_key=True)
     
     # Item Information
-    ItemCode = Column(String(50))
-    Dscription = Column(String(100))
+    ItemCode = Column(String(50))  # Mã hàng hoá
+    Dscription = Column(String(100))  # Tên hàng hoá
     
     # Base Document Reference
-    BaseEntry = Column(Integer)
-    BaseLine = Column(Integer)
+    BaseEntry = Column(Integer)  # Tham chiếu chứng từ gốc (nếu có)
+    BaseLine = Column(Integer)  # Dòng chi tiết trong chứng từ gốc
     
     # Quantity and Unit
-    Quantity = Column(Numeric(19, 6))
-    UomCode = Column(String(100))
+    Quantity = Column(Numeric(19, 6))  # Số lượng sản phẩm
+    UomCode = Column(String(100))  # Mã đơn vị tính
     
     # Warehouse and Shipping
-    WhsCode = Column(String(8))
-    ShipDate = Column(DateTime)
-    FreeTxt = Column(Text)
+    ShipDate = Column(DateTime)  # Ngày giao hàng
+    FreeTxt = Column(Text)  # Ghi chú sản phẩm trong đơn hàng
     
     # User Defined Fields
-    U_PO = Column(String(254))
-    DateCode = Column(String(254))
-    U_QDDNGH = Column(String(254))
-    U_soPOPI = Column(String(254))
-    WsCode = Column(String(8))
+    U_PO = Column(String(254))  # Mã PO theo sản phẩm trong đơn hàng bán
+    U_QDDNGH = Column(String(254))  # Quyết định đề nghị giao hàng
+    U_soPOPI = Column(String(254))  # Số hợp đồng theo sản phẩm

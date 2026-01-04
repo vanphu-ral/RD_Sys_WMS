@@ -32,25 +32,22 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db)
 ):
-    """Login endpoint to get access token"""
-    # Here you would implement user authentication logic
-    # For now, return a mock token
+
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": form_data.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/register")
-async def register(user_data: dict, db: AsyncSession = Depends(get_db)):
-    """Register new user"""
-    # Here you would implement user registration logic
-    return {"message": "User registered successfully"}
 
 @router.get("/me")
-async def read_users_me(current_user: str = Depends(get_current_user)):
-    """Get current user information"""
-    return {"username": current_user}
+async def read_users_me(current_user: dict = Depends(get_current_user)):
+    return {
+        "sub": current_user["sub"],
+        "username": current_user["preferred_username"],
+        "name": current_user["name"],
+        "roles": current_user["roles"]
+    }
 
 # Keycloak OIDC endpoints
 @router.get("/keycloak/login")
@@ -68,7 +65,6 @@ async def keycloak_callback(
     code: str = Query(...),
     state: str = Query(...)
 ):
-    """Handle Keycloak callback and store tokens in HTTP-only cookies"""
     try:
         print(f"Received callback with code: {code[:20]}...")
         print(f"Attempting token exchange with client_id: {settings.KEYCLOAK_CLIENT_ID}")
@@ -98,7 +94,6 @@ async def keycloak_callback(
                 max_age=token_response.get("refresh_expires_in", 1800)
             )
         
-        # Redirect to frontend callback
         return RedirectResponse(url=f"http://localhost:4200/auth/callback?code={code}&state={state}")
     except Exception as e:
         print(f"Token exchange error: {str(e)}")
@@ -111,14 +106,12 @@ async def refresh_access_token(
     response: Response,
     refresh_token: Optional[str] = Cookie(None)
 ):
-    """Refresh access token using refresh token from cookie"""
     if not refresh_token:
         raise HTTPException(status_code=401, detail="No refresh token found")
     
     try:
         token_response = keycloak_refresh_token(refresh_token)
         
-        # Update access token cookie
         response.set_cookie(
             key="access_token",
             value=token_response["access_token"],
@@ -148,7 +141,6 @@ async def get_keycloak_userinfo(
     token_param: Optional[str] = Query(None, alias="access_token")
 ):
     """Get user information from Keycloak using token from cookie or query param"""
-    # Try to get token from cookie first, then from query parameter
     token = access_token or token_param
     
     if not token:
@@ -156,7 +148,6 @@ async def get_keycloak_userinfo(
     
     try:
         user_info = get_user_info(token)
-        # Add authorities from realm roles
         user_info["authorities"] = user_info.get("realm_access", {}).get("roles", [])
         return user_info
     except Exception as e:
@@ -172,7 +163,6 @@ async def keycloak_logout_endpoint(
         if refresh_token:
             keycloak_logout_user(refresh_token)
         
-        # Clear authentication cookies
         response.delete_cookie(key="access_token")
         response.delete_cookie(key="refresh_token")
         

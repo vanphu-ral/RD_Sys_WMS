@@ -15,7 +15,6 @@ from app.api.rest.inventories import router as inventories_router
 from app.api.rest.iwtr import router as iwtr_router
 from app.api.rest.osr import router as osr_router
 from app.api.rest.external_apps import router as external_apps_router
-from app.api.rest.ui import router as ui_router
 from app.api.rest.warehouse_import import router as warehouse_import_router
 
 app = FastAPI(
@@ -50,7 +49,6 @@ app.include_router(inventories_router, prefix="/api/inventories", tags=["Invento
 app.include_router(iwtr_router, prefix="/api/iwtr", tags=["IWTR"])
 app.include_router(osr_router, prefix="/api/osr", tags=["OSR"])
 app.include_router(external_apps_router, prefix="/api/external-apps", tags=["External Apps"])
-app.include_router(ui_router, prefix="/api/ui", tags=["UI"])
 app.include_router(warehouse_import_router, prefix="/api/warehouse-import", tags=["Warehouse Import"])
 
 graphql_app = GraphQLRouter(schema)
@@ -58,7 +56,7 @@ app.include_router(graphql_app, prefix="/graphql")
 
 @app.on_event("startup")
 async def startup_event():
-    create_tables()
+    await create_tables()
 
 @app.get("/")
 async def root():

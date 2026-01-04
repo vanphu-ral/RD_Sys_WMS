@@ -13,8 +13,11 @@ async def get_system_status():
     return {"status": "running", "version": "1.0.0"}
 
 @router.get("/protected")
-async def get_protected_data(current_user: str = Depends(get_current_user)):
-    return {"message": f"Hello {current_user}, this is protected data"}
+async def get_protected_data(current_user: dict = Depends(get_current_user)):
+    return {
+        "message": f"Hello {current_user['preferred_username']}, this is protected data",
+        "user_info": current_user
+    }
 
 @router.get("/health")
 async def health_check(db: AsyncSession = Depends(get_db)):

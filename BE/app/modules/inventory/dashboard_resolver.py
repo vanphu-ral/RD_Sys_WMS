@@ -1,8 +1,6 @@
-"""
-GraphQL resolvers for dashboard data
-"""
+
 import strawberry
-from typing import List
+from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.types import Info
 
@@ -12,7 +10,8 @@ from app.modules.inventory.service import (
     InventoryService,
     WarehouseImportService,
     IWTRService,
-    OSRService
+    OSRService,
+    TransactionDashboardService
 )
 
 
@@ -37,56 +36,368 @@ class DashboardDataType:
 
 
 @strawberry.type
+class InventoryDashboardItem:
+    id: int
+    name: Optional[str]
+    client_id: Optional[int]
+    serial_pallet: Optional[str]
+    identifier: str
+    po: Optional[str]
+    available_quantity: int
+    initial_quantity: int
+    location_id: int
+    area_code: Optional[str]
+    area_name: Optional[str]
+    status: str
+    updated_by: Optional[str]
+    received_date: Optional[str]
+    updated_date: Optional[str]
+
+
+@strawberry.type
+class InventoryDashboardGroupItem:
+    group_key: str
+    group_value: str
+    total_available_quantity: int
+    total_initial_quantity: int
+    item_count: int 
+    
+    total_unique_products: int
+    total_clients: int
+    total_pos: int
+    total_pallets: int
+    total_containers: int
+    total_locations: int
+    
+    last_updated: Optional[str]
+    last_received: Optional[str]
+
+
+@strawberry.type
+class PaginationMeta:
+    page: int
+    size: int
+    total_items: int
+    total_pages: int
+
+
+@strawberry.type
+class InventoryDashboardResponse:
+    data: List[InventoryDashboardItem]
+    meta: PaginationMeta
+
+
+@strawberry.type
+class InventoryDashboardGroupResponse:
+    data: List[InventoryDashboardGroupItem]
+    meta: PaginationMeta
+
+
+@strawberry.type
+class FullInventoryItem:
+    id: int
+    identifier: str
+    serial_pallet: Optional[str]
+    location_id: int
+    parent_location_id: Optional[int]
+    last_location_id: Optional[int]
+    parent_inventory_id: Optional[str]
+    expiration_date: Optional[str]
+    received_date: Optional[str]
+    updated_date: Optional[str]
+    updated_by: Optional[str]
+    calculated_status: Optional[str]
+    manufacturing_date: Optional[str]
+    initial_quantity: int
+    available_quantity: int
+    quantity: Optional[int]
+    name: Optional[str]
+    sap_code: Optional[str]
+    po: Optional[str]
+    lot: Optional[str]
+    vendor: Optional[str]
+    msd_level: Optional[str]
+    comments: Optional[str]
+
+
+@strawberry.type
+class FullInventoryResponse:
+    data: List[FullInventoryItem]
+    meta: PaginationMeta
+
+
+@strawberry.type
+class TransactionDashboardItem:
+    """Unified transaction dashboard item for all transaction types"""
+    id: int
+    transaction_type: str
+    request_code: str
+    doc_entry: Optional[int]
+    branch: Optional[str]
+    production_team: Optional[str]
+    from_warehouse: Optional[int]
+    to_warehouse: Optional[int]
+    created_date: str
+    status: Optional[bool]
+    updated_by: Optional[str]
+    updated_date: Optional[str]
+    po_number: Optional[str]
+    client_id: Optional[str]
+    lot_number: Optional[str]
+    don_vi_linh: Optional[str]
+    don_vi_nhan: Optional[str]
+    note: Optional[str]
+
+
+@strawberry.type
+class TransactionDashboardResponse:
+    """Response for unified transaction dashboard"""
+    data: List[TransactionDashboardItem]
+    meta: PaginationMeta
+
+
+@strawberry.type
 class DashboardQuery:
-    """GraphQL queries for dashboard"""
 
     @strawberry.field
     async def dashboard(self, info: Info) -> DashboardDataType:
-        """Get dashboard data"""
-        # Note: Using sync session for now, should be converted to async later
-        from app.core.database import get_db
-        db = next(get_db())
 
-        # Get counts
-        total_areas = len(AreaService.get_areas(db))
-        total_locations = len(LocationService.get_locations(db))
-        total_inventory_items = len(InventoryService.get_inventories(db))
+        from app.core.database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            total_areas = len(await AreaService.get_areas(db))
+            total_locations = len(await LocationService.get_locations(db))
+            total_inventory_items = len(await InventoryService.get_inventories(db))
 
-        # Get active import requirements
-        import_reqs = WarehouseImportService.get_import_requirements(db)
-        active_import_requirements = len([req for req in import_reqs if req.status == 'Mới tạo'])
+            import_reqs = await WarehouseImportService.get_import_requirements(db)
+            active_import_requirements = len([req for req in import_reqs if req.get('status') == 'False'])
 
-        # Get pending IWTR and OSR
-        iwtr_requests = IWTRService.get_iwtr_requests(db)
-        pending_iwtr = len([req for req in iwtr_requests if req.status != 'Hoàn thành'])
+            iwtr_requests = await IWTRService.get_iwtr_requests(db)
+            pending_iwtr = len([req for req in iwtr_requests if req.get('status') != 'Hoàn thành'])
 
-        osr_requests = OSRService.get_osr_requests(db)
-        pending_osr = len([req for req in osr_requests if req.status != 'Hoàn thành'])
+            osr_requests = await OSRService.get_osr_requests(db)
+            pending_osr = len([req for req in osr_requests if req.get('status') != 'Hoàn thành'])
 
-        # Mock recent activities (should be implemented with actual activity log)
-        recent_activities = [
-            ActivityType(
-                id=1,
-                type="IMPORT",
-                description="New import requirement created",
-                timestamp="2023-11-02T10:00:00Z",
-                user="admin"
-            ),
-            ActivityType(
-                id=2,
-                type="TRANSFER",
-                description="IWTR request processed",
-                timestamp="2023-11-02T09:30:00Z",
-                user="operator"
+            return DashboardDataType(
+                total_areas=total_areas,
+                total_locations=total_locations,
+                total_inventory_items=total_inventory_items,
+                active_import_requirements=active_import_requirements,
+                pending_iwtr=pending_iwtr,
+                pending_osr=pending_osr,
+                recent_activities=[],
             )
+
+    @strawberry.field
+    async def inventoryDashboard(
+        self,
+        info: Info,
+        page: int = 1,
+        size: int = 20,
+        name: Optional[str] = None,
+        client_id: Optional[int] = None,
+        serial_pallet: Optional[str] = None,
+        identifier: Optional[str] = None,
+        po: Optional[str] = None,
+        location_id: Optional[int] = None,
+        area_id: Optional[int] = None,
+        status: Optional[str] = None,
+        updated_by: Optional[str] = None
+    ) -> InventoryDashboardResponse:
+        from app.core.database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            result = await InventoryService.get_inventory_dashboard(
+                db=db,
+                page=page,
+                size=size,
+                name=name,
+                client_id=client_id,
+                serial_pallet=serial_pallet,
+                identifier=identifier,
+                po=po,
+                location_id=location_id,
+                area_id=area_id,
+                status=status,
+                updated_by=updated_by
+            )
+
+        data = [
+            InventoryDashboardItem(
+                id=item["id"],
+                name=item["name"],
+                client_id=item["client_id"],
+                serial_pallet=item["serial_pallet"],
+                identifier=item["identifier"],
+                po=item["po"],
+                available_quantity=item["available_quantity"],
+                initial_quantity=item["initial_quantity"],
+                location_id=item["location_id"],
+                area_code=item["area_code"],
+                area_name=item["area_name"],
+                status=item["status"],
+                updated_by=item["updated_by"],
+                received_date=item["received_date"],
+                updated_date=item["updated_date"]
+            )
+            for item in result["data"]
         ]
 
-        return DashboardDataType(
-            total_areas=total_areas,
-            total_locations=total_locations,
-            total_inventory_items=total_inventory_items,
-            active_import_requirements=active_import_requirements,
-            pending_iwtr=pending_iwtr,
-            pending_osr=pending_osr,
-            recent_activities=recent_activities
+        meta = PaginationMeta(
+            page=result["meta"]["page"],
+            size=result["meta"]["size"],
+            total_items=result["meta"]["total_items"],
+            total_pages=result["meta"]["total_pages"]
         )
+
+        return InventoryDashboardResponse(data=data, meta=meta)
+    
+
+    @strawberry.field
+    async def inventoryDashboardGrouped(
+        self,
+        info: Info,
+        group_by: str = None,
+        page: int = 1,
+        size: int = 20,
+        name: Optional[str] = None,
+        client_id: Optional[int] = None,
+        serial_pallet: Optional[str] = None,
+        identifier: Optional[str] = None,
+        po: Optional[str] = None,
+        location_id: Optional[int] = None,
+        area_id: Optional[int] = None,
+        status: Optional[str] = None,
+        updated_by: Optional[str] = None
+    ) -> InventoryDashboardGroupResponse:
+        from app.core.database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            result = await InventoryService.get_inventory_dashboard_grouped(
+                db=db,
+                group_by=group_by,
+                page=page,
+                size=size,
+                name=name,
+                client_id=client_id,
+                serial_pallet=serial_pallet,
+                identifier=identifier,
+                po=po,
+                location_id=location_id,
+                area_id=area_id,
+                status=status,
+                updated_by=updated_by
+            )
+
+        data = [
+            InventoryDashboardGroupItem(
+                group_key=group["group_key"],
+                group_value=group["group_value"],
+                total_available_quantity=group["total_available_quantity"],
+                total_initial_quantity=group["total_initial_quantity"],
+                item_count=group["item_count"],
+                
+
+                total_unique_products=group["total_clients"],
+                total_clients=group["total_clients"],
+                total_pos=group["total_pos"],
+                total_pallets=group["total_pallets"],
+                total_containers=group["total_containers"],
+                total_locations=group["total_locations"],
+                last_updated=group["last_updated"],
+                last_received=group["last_received"],
+                
+            )
+            for group in result["data"]
+        ]
+
+        meta = PaginationMeta(
+            page=result["meta"]["page"],
+            size=result["meta"]["size"],
+            total_items=result["meta"]["total_items"],
+            total_pages=result["meta"]["total_pages"]
+        )
+
+        return InventoryDashboardGroupResponse(data=data, meta=meta)
+
+    @strawberry.field
+    async def transactionsDashboard(
+        self,
+        info: Info,
+        page: int = 1,
+        size: int = 20,
+        transaction_type: Optional[str] = None,
+        request_code: Optional[str] = None,
+        branch: Optional[str] = None,
+        production_team: Optional[str] = None,
+        from_warehouse: Optional[int] = None,
+        to_warehouse: Optional[int] = None,
+        status: Optional[bool] = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
+        updated_by: Optional[str] = None
+    ) -> TransactionDashboardResponse:
+        """
+        Unified dashboard for all transaction types (IMPORT, TRANSFER, EXPORT)
+        
+        Args:
+            transaction_type: Filter by type (IMPORT, TRANSFER, EXPORT)
+            request_code: Filter by request code (wo_code, ma_yc_cknb, ma_yc_xk)
+            branch: Filter by branch (IMPORT only)
+            production_team: Filter by production team (IMPORT only)
+            from_warehouse: Filter by source warehouse (TRANSFER, EXPORT)
+            to_warehouse: Filter by destination warehouse (all types)
+            status: Filter by status
+            from_date: Filter by date range start
+            to_date: Filter by date range end
+            updated_by: Filter by user who updated
+        """
+        from app.core.database import AsyncSessionLocal
+        
+        async with AsyncSessionLocal() as db:
+            result = await TransactionDashboardService.get_transactions_dashboard(
+                db=db,
+                page=page,
+                size=size,
+                transaction_type=transaction_type,
+                request_code=request_code,
+                industry=branch,
+                production_team=production_team,
+                from_warehouse=from_warehouse,
+                to_warehouse=to_warehouse,
+                status=status,
+                from_date=from_date,
+                to_date=to_date,
+                updated_by=updated_by
+            )
+
+        # Convert to Strawberry types
+        data = [
+            TransactionDashboardItem(
+                id=item["id"],
+                transaction_type=item["transaction_type"],
+                request_code=item["request_code"],
+                doc_entry=item["doc_entry"],
+                branch=item["industry"],
+                production_team=item["production_team"],
+                from_warehouse=item["from_warehouse"],
+                to_warehouse=item["to_warehouse"],
+                created_date=item["created_date"],
+                status=item["status"],
+                updated_by=item["updated_by"],
+                updated_date=item["updated_date"],
+                po_number=item["po_number"],
+                client_id=item["client_id"],
+                lot_number=item["lot_number"],
+                don_vi_linh=item["don_vi_linh"],
+                don_vi_nhan=item["don_vi_nhan"],
+                note=item["note"]
+            )
+            for item in result["data"]
+        ]
+
+        meta = PaginationMeta(
+            page=result["meta"]["page"],
+            size=result["meta"]["size"],
+            total_items=result["meta"]["total_items"],
+            total_pages=result["meta"]["total_pages"]
+        )
+
+        return TransactionDashboardResponse(data=data, meta=meta)
