@@ -435,6 +435,7 @@ class InventoriesInIWTRResponse(BaseModel):
     quantity_dispatched: Optional[int] = None
     scan_time: datetime
     confirmed: bool
+    new_location: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -573,6 +574,10 @@ class UpdateInventoriesInIWTRRequest(BaseModel):
     inventory_identifier: str
     quantity_imported: int
     confirmed: bool
+    new_location: Optional[int] = None
+    new_loaditon: Optional[int] = None
+    sap_code: Optional[str] = None
+    name: Optional[str] = None
 
 
 class BulkUpdateContainerInventoryRequest(BaseModel):

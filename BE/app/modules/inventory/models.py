@@ -216,6 +216,8 @@ class InventoriesInIWTR(Base):
     quantity_dispatched = Column(Integer, nullable=True)
     scan_time = Column(DateTime, default=func.now())
     confirmed = Column(Boolean, default=False)
+    new_location = Column(Integer, nullable=True)
+
 
 
 class OutboundShipmentRequestOnOrder(Base):

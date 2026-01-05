@@ -381,6 +381,7 @@ class InventoryInIWTRItem(BaseModel):
     dvt: str = Field(..., max_length=20, description="Đơn vị tính")
     quantity_scanned: Optional[int] = Field(None, ge=0, description="Số lượng đã scan")
     updated_by: Optional[str] = Field(None, max_length=10, description="Người cập nhật")
+    new_location: Optional[int] = Field(None, description="ID vị trí mới")
 
     class Config:
         json_schema_extra = {
@@ -390,7 +391,8 @@ class InventoryInIWTRItem(BaseModel):
                 "total_quantity": 100,
                 "dvt": "Cái",
                 "quantity_scanned": 0,
-                "updated_by": "admin"
+                "updated_by": "admin",
+                "new_location": 2
             }
         }
 
@@ -472,6 +474,7 @@ class InventoryInIWTRResponse(BaseModel):
     quantity_scanned: Optional[int] = None
     updated_by: Optional[str] = None
     updated_date: Optional[datetime] = None
+    new_location: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -510,7 +513,8 @@ class IWTRInventoriesCreateResponse(BaseModel):
                         "internal_warehouse_transfer_requests_id": 1,
                         "product_code": "P001",
                         "product_name": "Sản phẩm A",
-                        "total_quantity": 100
+                        "total_quantity": 100,
+                        "new_location": 2
                     }
                 ]
             }
@@ -532,7 +536,17 @@ class IWTRWithInventoriesResponse(BaseModel):
                     "tu_kho": 1,
                     "den_kho": 2,
                     "status": False
-                }
+                },
+                "inventories": [
+                    {
+                        "id": 1,
+                        "internal_warehouse_transfer_requests_id": 1,
+                        "product_code": "P001",
+                        "product_name": "Sản phẩm A",
+                        "total_quantity": 100,
+                        "new_location": 2
+                    }
+                ]
             }
         }
 
@@ -735,6 +749,7 @@ class IWTRScanDetailItem(BaseModel):
     quantity_dispatched: int = Field(..., ge=0, description="Số lượng đã xuất")
     scan_time: datetime = Field(..., description="Thời gian scan")
     scan_by: str = Field(..., max_length=10, description="Người scan")
+    new_location: Optional[int] = Field(None, description="ID vị trí mới")
 
     class Config:
         json_schema_extra = {
@@ -744,7 +759,8 @@ class IWTRScanDetailItem(BaseModel):
                 "serial_pallet": "PLT-001",
                 "quantity_dispatched": 50,
                 "scan_time": "2024-01-15T10:30:00",
-                "scan_by": "admin"
+                "scan_by": "admin",
+                "new_location": 2
             }
         }
 
@@ -793,7 +809,8 @@ class IWTRScanDetailResponse(BaseModel):
                         "product_in_iwtr_id": 1,
                         "inventory_identifier": "INV-001",
                         "serial_pallet": "PLT-001",
-                        "scan_time": "2024-01-15T10:30:00"
+                        "scan_time": "2024-01-15T10:30:00",
+                        "new_location": 2
                     }
                 ]
             }

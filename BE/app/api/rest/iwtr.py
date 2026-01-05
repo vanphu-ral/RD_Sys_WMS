@@ -338,7 +338,8 @@ async def update_inventories_in_iwrt(
             "product_in_iwtr_id": update.product_in_iwtr_id,
             "inventory_identifier": update.inventory_identifier,
             "quantity_imported": update.quantity_imported,
-            "confirmed": update.confirmed
+            "confirmed": update.confirmed,
+            "new_location": update.new_location
         }
         for update in request.updates
     ]

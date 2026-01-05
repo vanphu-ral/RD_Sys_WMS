@@ -1844,7 +1844,8 @@ class IWTRService:
                     scan_by=detail.get('scan_by'),
                     quantity_dispatched=detail.get('quantity_dispatched'),
                     scan_time=detail.get('scan_time', datetime.now()),
-                    confirmed=detail.get('confirmed', False)
+                    confirmed=detail.get('confirmed', False),
+                    new_location=detail.get('new_location')
                 )
                 db.add(inventories_in_iwtr)
                 created_details.append(inventories_in_iwtr)
@@ -1866,7 +1867,8 @@ class IWTRService:
                         "scan_by": detail.scan_by,
                         "quantity_dispatched": detail.quantity_dispatched,
                         "scan_time": detail.scan_time,
-                        "confirmed": detail.confirmed
+                        "confirmed": detail.confirmed,
+                        "new_location": detail.new_location
                     }
                     for detail in created_details
                 ]
@@ -2024,7 +2026,9 @@ class IWTRService:
                 "scan_by": detail.InventoriesInIWTR.scan_by,
                 "quantity_dispatched": detail.InventoriesInIWTR.quantity_dispatched,
                 "scan_time": detail.InventoriesInIWTR.scan_time,
-                "confirmed": detail.InventoriesInIWTR.confirmed
+                "confirmed": detail.InventoriesInIWTR.confirmed,
+                "new_location": detail.InventoriesInIWTR.new_location
+ 
             }
             for detail in scan_details
         ]
@@ -2053,7 +2057,8 @@ class IWTRService:
                 "scan_by": detail.scan_by,
                 "quantity_dispatched": detail.quantity_dispatched,
                 "scan_time": detail.scan_time,
-                "confirmed": detail.confirmed
+                "confirmed": detail.confirmed,
+                "new_location": detail.new_location
             }
             for detail in scan_details
         ]
@@ -2147,7 +2152,8 @@ class IWTRService:
                     "scan_by": inv.scan_by,
                     "quantity_dispatched": inv.quantity_dispatched,
                     "scan_time": inv.scan_time,
-                    "confirmed": inv.confirmed
+                    "confirmed": inv.confirmed,
+                    "new_location": inv.new_location
                 }
                 for inv in inventories
             ]
@@ -2179,6 +2185,7 @@ class IWTRService:
                 inventory_identifier = update_data.get('inventory_identifier')
                 quantity_imported = update_data.get('quantity_imported')
                 confirmed = update_data.get('confirmed')
+                new_location = update_data.get('new_location')
                 # Find the inventories in iwtr
                 result = await db.execute(
                     select(InventoriesInIWTR).where(
@@ -2193,6 +2200,14 @@ class IWTRService:
 
                 inventories_in_iwtr.quantity_dispatched = quantity_imported
                 inventories_in_iwtr.confirmed = confirmed
+                if new_location is not None:
+                    inventories_in_iwtr.new_location = new_location
+                if new_loaditon is not None:
+                    inventories_in_iwtr.new_loaditon = new_loaditon
+                if sap_code is not None:
+                    inventories_in_iwtr.sap_code = sap_code
+                if name is not None:
+                    inventories_in_iwtr.name = name
                 updated_inventories.append(inventories_in_iwtr)
 
             await db.flush()
