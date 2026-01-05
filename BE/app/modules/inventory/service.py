@@ -1210,6 +1210,7 @@ class WarehouseImportService:
                 "note": pallet.note,
                 "scan_status": pallet.scan_status,
                 "confirmed": pallet.confirmed,
+                "location_id": pallet.location_id,
                 "list_box": list_box
             }
             list_pallet.append(pallet_info)
@@ -1570,6 +1571,8 @@ class WarehouseImportService:
                     pallet_info.scan_status = update_data.get('scan_status')
                 if 'confirmed' in update_data:
                     pallet_info.confirmed = update_data.get('confirmed')
+                if 'location_id' in update_data:
+                    pallet_info.location_id = update_data.get('location_id')
 
                 updated_pallets.append(pallet_info)
 
@@ -1643,6 +1646,7 @@ class WarehouseImportService:
                     date_code=pallet_data.get('date_code'),
                     note=pallet_data.get('note'),
                     scan_status=False,
+                    location_id=pallet_data.get('location_id'),
                     created_by=general_info.get('created_by')
                 )
                 db.add(pallet_info)

@@ -125,6 +125,7 @@ class ImportPalletInfo(Base):
     production_date = Column(String(50), nullable=True)
     scan_status = Column(Boolean, default=False)
     confirmed = Column(Boolean, default=False)
+    location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
     created_by = Column(String(10), nullable=True)
     updated_date = Column(DateTime, default=func.now())
 

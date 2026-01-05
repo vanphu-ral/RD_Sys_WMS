@@ -605,6 +605,7 @@ class UpdateImportPalletInfoRequest(BaseModel):
     note: Optional[str] = None
     scan_status: Optional[bool] = None
     confirmed: Optional[bool] = None
+    location_id: Optional[int] = None
 
 
 class BulkUpdateImportPalletInfoRequest(BaseModel):
@@ -652,6 +653,7 @@ class PalletInfo(BaseModel):
     item_no_sku: Optional[str] = None
     date_code: Optional[str] = None
     note: Optional[str] = None
+    location_id: Optional[int] = None
     list_box: list[BoxInfo]
 
 

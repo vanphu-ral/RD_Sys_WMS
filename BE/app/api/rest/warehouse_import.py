@@ -220,6 +220,8 @@ async def update_import_pallet_info(
             update_dict["scan_status"] = update.scan_status
         if update.confirmed is not None:
             update_dict["confirmed"] = update.confirmed
+        if update.location_id is not None:
+            update_dict["location_id"] = update.location_id
         updates.append(update_dict)
     
     return await WarehouseImportService.update_import_pallet_info_by_id(
