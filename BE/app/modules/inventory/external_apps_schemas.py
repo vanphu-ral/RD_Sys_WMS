@@ -658,7 +658,7 @@ class OSRInventoriesCreateResponse(BaseModel):
 class OSRScanDetailItem(BaseModel):
 
     product_in_osr_id: int = Field(..., description="ID của inventory trong OSR")
-    inventory_identifier: str = Field(..., max_length=20, description="Mã định danh inventory")
+    inventory_identifier: str = Field(..., max_length=50, description="Mã định danh inventory")
     serial_pallet: str = Field(..., max_length=50, description="Serial pallet")
     quantity_dispatched: int = Field(..., ge=0, description="Số lượng đã xuất")
     scan_time: datetime = Field(..., description="Thời gian scan")
@@ -730,7 +730,7 @@ class OSRScanDetailResponse(BaseModel):
 
 class IWTRScanDetailItem(BaseModel):
     product_in_iwtr_id: int = Field(..., description="ID của product trong IWTR")
-    inventory_identifier: str = Field(..., max_length=20, description="Mã định danh inventory")
+    inventory_identifier: str = Field(..., max_length=50, description="Mã định danh inventory")
     serial_pallet: str = Field(..., max_length=50, description="Serial pallet")
     quantity_dispatched: int = Field(..., ge=0, description="Số lượng đã xuất")
     scan_time: datetime = Field(..., description="Thời gian scan")
