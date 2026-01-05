@@ -27,6 +27,7 @@ export interface DetailItem {
   note: string;
   scanStatus: 'Đã scan' | 'Chưa scan';
   listBox?: any[];             // giữ list_box nếu cần hiển thị chi tiết hộp
+  confirmed?: boolean;
 }
 
 export interface BoxItem {
@@ -221,6 +222,7 @@ export class PheDuyetComponent implements OnInit {
               productionDecisionNumber: p.production_decision_number ?? '',
               productionTeam: (info.production_team ?? '').toString().trim(),
               note: p.note ?? '',
+              confirmed: p.confirmed,
               scanStatus: p.scan_status ? 'Đã scan' : 'Chưa scan',
               listBox: Array.isArray(p.list_box) ? p.list_box : []
             };
@@ -360,25 +362,42 @@ export class PheDuyetComponent implements OnInit {
       return;
     }
 
-    // Kiểm tra: chỉ cần đảm bảo tất cả pallet/box đã được scan (không cần confirmed)
+    // Kiểm tra scan (giữ nguyên logic hiện tại)
     const palletNotScanned = (this.detailList || []).some((p: any) => {
-      // pallet được coi là đã scan nếu scan_status === true hoặc scanStatus chứa 'đã'
-      const palletScanned = (p.scan_status === true) ||
+      const palletScanned =
+        p.scan_status === true ||
         ((p.scanStatus ?? '').toString().toLowerCase().includes('đã'));
       if (palletScanned) return false;
 
-      // nếu pallet chưa có flag scan, kiểm tra từng box trong pallet: nếu có box chưa có time_checked và không có scan_status thì coi pallet chưa scan
-      const listBox = Array.isArray(p.listBox) ? p.listBox : [];
+      const listBox = Array.isArray(p.listBox) ? p.listBox : (Array.isArray(p.list_box) ? p.list_box : []);
       return listBox.some((b: any) => !this.isBoxScanned(b));
     });
 
-    // Kiểm tra các box độc lập trên trang (pagedBoxList): chỉ cần box đã scan (time_checked hoặc scan_status)
     const boxNotScanned = (this.pagedBoxList || []).some((b: any) => !this.isBoxScanned(b));
 
     if (palletNotScanned || boxNotScanned) {
       this.snackBar.open('Vui lòng scan tất cả pallet/thùng trước khi phê duyệt', 'Đóng', {
         duration: 4000,
         panelClass: ['snackbar-error'],
+      });
+      return;
+    }
+
+    // Kiểm tra nếu tất cả đã confirmed rồi -> thông báo và dừng
+    const allPalletsConfirmed = (this.detailList || []).every((p: any) => p.confirmed === true);
+    // pagedBoxList có thể chứa các box độc lập; nếu không có pagedBoxList thì coi là true
+    const allBoxesConfirmed = (this.pagedBoxList || []).every((b: any) => b.confirmed === true);
+
+    // Nếu trong detailList có pallet chứa list_box, cũng kiểm tra các box trong đó
+    const nestedBoxesConfirmed = (this.detailList || []).every((p: any) => {
+      const listBox = Array.isArray(p.listBox) ? p.listBox : (Array.isArray(p.list_box) ? p.list_box : []);
+      return listBox.every((b: any) => b.confirmed === true);
+    });
+
+    if (allPalletsConfirmed && allBoxesConfirmed && nestedBoxesConfirmed) {
+      this.snackBar.open('Yêu cầu này đã được phê duyệt trước đó.', 'Đóng', {
+        duration: 4000,
+        panelClass: ['snackbar-success'],
       });
       return;
     }
@@ -399,6 +418,7 @@ export class PheDuyetComponent implements OnInit {
       }
     });
   }
+
 
 
 
@@ -480,32 +500,86 @@ export class PheDuyetComponent implements OnInit {
     const progress = this.computeBoxScanProgress();
     console.log('[Approve] box_scan_progress to set:', progress);
 
-    const apiCalls: Observable<any>[] = [];
     const username = this.authService.getUsername();
 
-    // Pallet payload: đảm bảo có id cho mỗi update
-    if ((this.detailList || []).length > 0) {
-      const palletPayload = {
-        updates: this.detailList.map(p => ({
-          id: p.id,            // <-- đảm bảo có id
-          confirmed: true,
-        }))
-      };
+    // --- Chuẩn bị danh sách chỉ gồm những pallet/box CHƯA confirmed ---
+    const palletsToConfirm = (this.detailList || [])
+      .filter((p: any) => p.confirmed !== true)
+      .map((p: any) => ({
+        id: p.id,
+        serial_pallet: p.serial_pallet ?? p.palletCode ?? p.pallet_code,
+        confirmed: true
+      }));
+
+    // Lấy box từ pagedBoxList (các box độc lập trên trang)
+    const boxesToConfirmFromPaged = (this.pagedBoxList || [])
+      .filter((b: any) => b.confirmed !== true)
+      .map((b: any) => ({
+        id: b.id,
+        box_code: b.box_code ?? b.boxCode,
+        confirmed: true
+      }));
+
+    // Lấy box từ nested list trong detailList (nếu có)
+    const boxesToConfirmFromPallets: any[] = [];
+    (this.detailList || []).forEach((p: any) => {
+      const listBox = Array.isArray(p.listBox) ? p.listBox : (Array.isArray(p.list_box) ? p.list_box : []);
+      listBox.forEach((b: any) => {
+        if (b.confirmed !== true) {
+          boxesToConfirmFromPallets.push({
+            id: b.id,
+            box_code: b.box_code ?? b.boxCode ?? b.boxCode,
+            import_pallet_id: b.import_pallet_id ?? b.importPalletId ?? p.id,
+            confirmed: true
+          });
+        }
+      });
+    });
+
+    // Nếu không có gì để confirm (đã được kiểm tra trước nhưng double-check)
+    if (palletsToConfirm.length === 0 && boxesToConfirmFromPaged.length === 0 && boxesToConfirmFromPallets.length === 0) {
+      this.isProcessingApprove = false;
+      this.snackBar.open('Không có mục nào cần phê duyệt.', 'Đóng', { duration: 3000 });
+      return;
+    }
+
+    // --- Kiểm tra duplicate identifier trong những mục sẽ confirm ---
+    const identifiers: string[] = [];
+    palletsToConfirm.forEach(p => { if (p.serial_pallet) identifiers.push(String(p.serial_pallet)); });
+    boxesToConfirmFromPaged.forEach(b => { if (b.box_code) identifiers.push(String(b.box_code)); });
+    boxesToConfirmFromPallets.forEach(b => { if (b.box_code) identifiers.push(String(b.box_code)); });
+
+    const dupes = identifiers.reduce((acc: string[], id: string, idx: number, arr: string[]) => {
+      if (id && arr.indexOf(id) !== idx && !acc.includes(id)) acc.push(id);
+      return acc;
+    }, []);
+
+    if (dupes.length > 0) {
+      this.isProcessingApprove = false;
+      console.warn('Duplicate identifiers detected in confirm payload:', dupes);
+      this.snackBar.open(`Không thể phê duyệt: phát hiện mã trùng  ${dupes.slice(0, 3).join(', ')}. Vui lòng kiểm tra.`, 'Đóng', {
+        duration: 8000,
+        panelClass: ['snackbar-error'],
+      });
+      return;
+    }
+
+    // --- Xây payload API chỉ với phần tử cần confirm ---
+    const apiCalls: Observable<any>[] = [];
+
+    if (palletsToConfirm.length > 0) {
+      const palletPayload = { updates: palletsToConfirm.map(p => ({ id: p.id, confirmed: true })) };
+      console.log('palletPayload', palletPayload);
       apiCalls.push(this.nhapKhoService.updatePalletInfo(palletPayload));
     }
-    // Box payload: phải include id (hoặc trường id đúng theo API)
-    if ((this.pagedBoxList || []).length > 0) {
-      const boxPayload = {
-        updates: this.pagedBoxList.map(b => ({
-          id: b.id,
-          confirmed: true,
-        }))
-      };
-      // Kiểm tra nhanh: nếu có phần tử nào thiếu id thì log và không gọi API box
+
+    // Gộp boxes từ paged + nested
+    const boxesToConfirm = [...boxesToConfirmFromPaged, ...boxesToConfirmFromPallets];
+    if (boxesToConfirm.length > 0) {
+      const boxPayload = { updates: boxesToConfirm.map(b => ({ id: b.id, confirmed: true })) };
       const missingBoxIds = boxPayload.updates.filter((u: any) => !u.id);
       if (missingBoxIds.length > 0) {
         console.warn('Missing box id(s) in payload:', missingBoxIds);
-        // Thông báo rõ cho user và dừng quá trình
         this.isProcessingApprove = false;
         this.snackBar.open('Có thùng/pallet thiếu ID, không thể phê duyệt. Vui lòng kiểm tra dữ liệu.', 'Đóng', {
           duration: 6000,
@@ -513,9 +587,11 @@ export class PheDuyetComponent implements OnInit {
         });
         return;
       }
+      console.log('boxPayload', boxPayload);
       apiCalls.push(this.nhapKhoService.updateContainerInventories(boxPayload));
     }
 
+    // Thực hiện patch progress -> confirm items -> update status
     this.nhapKhoService.patchImportRequirement(this.importId, { box_scan_progress: progress })
       .pipe(
         switchMap(() => apiCalls.length ? forkJoin(apiCalls) : of(null)),
@@ -534,14 +610,12 @@ export class PheDuyetComponent implements OnInit {
           this.isProcessingApprove = false;
           console.error('Lỗi khi phê duyệt hoặc cập nhật:', err);
 
-          // --- Xử lý lỗi chi tiết và thân thiện với người dùng ---
           const status = err?.status;
           const errBody = err?.error;
 
-          // 1) Nếu backend trả detail là mảng (ví dụ pydantic validation), gom các msg
+          // Nếu backend trả validation array (pydantic)
           if (Array.isArray(errBody?.detail)) {
             const messages = errBody.detail.map((d: any) => {
-              // nếu có loc và msg thì format rõ ràng
               const loc = Array.isArray(d.loc) ? d.loc.join('.') : d.loc;
               return loc ? `${loc}: ${d.msg}` : d.msg || JSON.stringify(d);
             });
@@ -550,7 +624,17 @@ export class PheDuyetComponent implements OnInit {
             return;
           }
 
-          // 2) Nếu backend trả { detail: '...' } hoặc { message: '...' }
+          // Kiểm tra duplicate/unique violation
+          const raw = JSON.stringify(errBody || err?.message || err);
+          if (raw.toLowerCase().includes('duplicate') || raw.toLowerCase().includes('unique') || raw.toLowerCase().includes('inventories_identifier_key')) {
+            this.snackBar.open('Phê duyệt thất bại: phát hiện mã trùng trong kho (identifier đã tồn tại). Vui lòng kiểm tra pallet/thùng.', 'Đóng', {
+              duration: 8000,
+              panelClass: ['snackbar-error'],
+            });
+            return;
+          }
+
+          // Các xử lý lỗi khác
           if (typeof errBody?.detail === 'string' && errBody.detail.trim()) {
             this.snackBar.open(`Lỗi server: ${errBody.detail}`, 'Đóng', { duration: 6000, panelClass: ['snackbar-error'] });
             return;
@@ -559,24 +643,17 @@ export class PheDuyetComponent implements OnInit {
             this.snackBar.open(`Lỗi server: ${errBody.message}`, 'Đóng', { duration: 6000, panelClass: ['snackbar-error'] });
             return;
           }
-
-          // 3) Nếu err.error là object khác, cố gắng lấy các trường phổ biến
           if (errBody && typeof errBody === 'object') {
             const keys = Object.keys(errBody);
-            // lấy giá trị text đầu tiên
             const firstVal = errBody[keys[0]];
             const text = typeof firstVal === 'string' ? firstVal : JSON.stringify(firstVal);
             this.snackBar.open(`Lỗi server (${status || '??'}): ${text}`, 'Đóng', { duration: 6000, panelClass: ['snackbar-error'] });
             return;
           }
-
-          // 4) Fallback: hiển thị message mặc định kèm status
           const fallback = err?.message || `Phê duyệt thất bại (status ${status || '??'})`;
           this.snackBar.open(fallback, 'Đóng', { duration: 6000, panelClass: ['snackbar-error'] });
         }
       });
   }
-
-
 
 }

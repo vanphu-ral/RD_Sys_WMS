@@ -270,14 +270,18 @@ export class ScanCheckComponent implements OnInit {
     console.log('Scan mode:', this.scanMode);
     console.log('Target pallet ID:', this.targetPalletId);
 
+    // reset trước khi load lại
+    this.scannedPallets = [];
+    this.scannedBoxes = [];
+
     // ============================================
     // LỌC PALLETS THEO MODE
     // ============================================
-    let filteredPallets = pallets;
+    let filteredPallets = pallets || [];
 
     if (this.scanMode === 'single' && this.targetPalletId) {
       // Chỉ lấy pallet được chọn
-      filteredPallets = pallets.filter(p => p.id === this.targetPalletId);
+      filteredPallets = filteredPallets.filter(p => p.id === this.targetPalletId);
 
       if (filteredPallets.length === 0) {
         console.warn('Không tìm thấy pallet với ID:', this.targetPalletId);
@@ -291,11 +295,14 @@ export class ScanCheckComponent implements OnInit {
     // LOAD PALLETS ĐÃ SCAN (CHỈ PALLET ĐƯỢC LỌC)
     // ============================================
     filteredPallets.forEach((p: any) => {
-      const isScanned = p.scan_status === true ||
-        p.scan_status === 'Đã scan' ||
-        p.confirmed === true;
+      const palletSerial = p.serial_pallet ?? p.serialPallet ?? p.pallet_code ?? '';
+      const palletScanStatus = p.scan_status ?? p.scanStatus;
+      const isPalletScanned =
+        p.confirmed === true ||
+        palletScanStatus === true ||
+        (typeof palletScanStatus === 'string' && palletScanStatus.toString().toLowerCase().includes('đã'));
 
-      if (isScanned && p.serial_pallet && p.serial_pallet.trim()) {
+      if (isPalletScanned && palletSerial && palletSerial.toString().trim()) {
         const scannedPallet = this.mapPalletToScannedPallet(p);
         this.scannedPallets.push(scannedPallet);
         console.log('Loaded pallet:', scannedPallet.serialPallet);
@@ -303,34 +310,50 @@ export class ScanCheckComponent implements OnInit {
     });
 
     // ============================================
-    // LOAD BOXES ĐÃ SCAN (CHỈ BOX THUỘC PALLET ĐƯỢC LỌC)
+    // LOAD BOXES ĐÃ SCAN (BAO GỒM THÙNG LẺ)
     // ============================================
     filteredPallets.forEach((p: any) => {
-      const palletSerial = p.serial_pallet || '';
-      const isLoosePallet = !palletSerial || palletSerial.trim() === '';
+      const palletSerial = p.serial_pallet ?? p.serialPallet ?? '';
+      const isLoosePallet = !palletSerial || palletSerial.toString().trim() === '';
 
-      (p.list_box || []).forEach((box: any) => {
-        const isBoxScanned = box.scan_status === true ||
-          box.scan_status === 'Đã scan' ||
-          box.confirmed === true;
+      const listBox = Array.isArray(p.list_box) ? p.list_box : (Array.isArray(p.listBox) ? p.listBox : []);
+
+      listBox.forEach((box: any) => {
+        // Kiểm tra box đã scan: scan_status, confirmed hoặc có time_checked/scan_time/updated_date
+        const boxScanStatus = box.scan_status ?? box.scanStatus;
+        const timeCheckedRaw = box.time_checked ?? box.timeChecked ?? box.scan_time ?? box.updated_date ?? box.timeCheckedAt;
+        const isBoxScanned =
+          box.confirmed === true ||
+          boxScanStatus === true ||
+          (typeof boxScanStatus === 'string' && boxScanStatus.toString().toLowerCase().includes('đã')) ||
+          Boolean(timeCheckedRaw);
 
         if (isBoxScanned) {
+          // chuyển location_id (có thể là string) về number và lấy code kho
+          const rawLocationId = box.location_id ?? box.locationId ?? null;
+          const locationIdNumber = rawLocationId !== null && rawLocationId !== undefined
+            ? Number(rawLocationId)
+            : 0;
+          const locationCode = locationIdNumber && !isNaN(locationIdNumber)
+            ? this.getLocationCode(locationIdNumber)
+            : (box.location_code ?? box.locationCode ?? '');
+
           const scannedBox: ScannedBox = {
             id: box.id,
-            boxCode: box.box_code,
+            boxCode: box.box_code ?? box.boxCode ?? '',
             quantity: box.quantity || 0,
             quantityImported: box.quantity_imported || box.quantity || 0,
-            locationId: box.location_id || 0,
-            locationCode: box.location_code || '',
+            locationId: locationIdNumber || 0,
+            locationCode: locationCode || '',
             note: box.note || '',
             serialPallet: palletSerial,
             isLooseBox: isLoosePallet,
-            scanBy: box.scan_by || '',
-            timeChecked: box.scan_time || box.updated_date || '',
-            sapCode: this.importRequirementInfo?.inventory_code || '',
-            name: this.importRequirementInfo?.inventory_name || '',
-            lot: this.importRequirementInfo?.lot_number || '',
-            confirmed: box.confirmed || false,
+            scanBy: box.scan_by ?? box.scanBy ?? '',
+            timeChecked: timeCheckedRaw ?? '',
+            sapCode: box.sap_code ?? this.importRequirementInfo?.inventory_code ?? '',
+            name: box.name ?? this.importRequirementInfo?.inventory_name ?? '',
+            lot: box.lot ?? this.importRequirementInfo?.lot_number ?? '',
+            confirmed: box.confirmed === true,
           };
 
           this.scannedBoxes.push(scannedBox);
@@ -339,7 +362,7 @@ export class ScanCheckComponent implements OnInit {
       });
     });
 
-    // Sắp xếp theo thời gian mới nhất
+    // Sắp xếp theo thời gian mới nhất (nếu có)
     this.scannedPallets.sort((a, b) => {
       const timeA = new Date(a.timeChecked || 0).getTime();
       const timeB = new Date(b.timeChecked || 0).getTime();
@@ -364,6 +387,8 @@ export class ScanCheckComponent implements OnInit {
       this.activeTab = 'box';
     }
   }
+
+
   onSelectMode(mode: 'pallet' | 'thung'): void {
     this.selectedMode = mode;
     setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
@@ -775,7 +800,7 @@ export class ScanCheckComponent implements OnInit {
       // Cho phép cập nhật location nếu khác
       if (existing.locationId !== locationId) {
         const dialogRef = this.dialog.open(AlertDialogComponent, {
-          data: `Pallet này đã được scan vào kho ${existing.locationCode}. Bạn có muốn cập nhật sang kho ${locationCode}?`
+          data: `Pallet này đã được scan vào kho ${existing.locationCode}`
         });
 
         dialogRef.afterClosed().subscribe(result => {
@@ -894,7 +919,7 @@ export class ScanCheckComponent implements OnInit {
 
       if (existing.locationId !== locationId) {
         const dialogRef = this.dialog.open(AlertDialogComponent, {
-          data: `Thùng này đã được scan vào kho ${existing.locationCode}. Bạn có muốn cập nhật sang kho ${locationCode}?`
+          data: `Thùng này đã được scan vào kho ${existing.locationCode}.`
         });
 
         dialogRef.afterClosed().subscribe(result => {
@@ -1005,11 +1030,11 @@ export class ScanCheckComponent implements OnInit {
           item_no_sku: item.itemNoSku || '',
           date_code: item.dateCode || '',
           note: item.note || '',
-          scan_status: true, // Đã scan
-          confirmed: false,   // Đã confirm
-          location_id: item.locationId, // Thêm location_id nếu API cần
+          location_id: item.locationId,
           scan_by: username,
-          scan_time: new Date().toISOString()
+          scan_time: new Date().toISOString(),
+          scan_status: true,
+          confirmed: false,
         }))
       };
 
@@ -1026,11 +1051,11 @@ export class ScanCheckComponent implements OnInit {
       const boxPayload = {
         updates: this.scannedBoxes.map(item => ({
           id: item.id,
-          inventory_identifier: item.boxCode, // Box code là identifier
-          quantity_imported: item.quantityImported, // Số lượng đã nhập
-          confirmed: true, // Đã confirm
-          location_id: item.locationId, // Location
-          scan_status: true, // Đã scan
+          inventory_identifier: item.boxCode,
+          quantity_imported: item.quantityImported,
+          location_id: item.locationId,
+          confirmed: false,
+          scan_status: true,
           scan_by: username,
           scan_time: new Date().toISOString()
         }))
