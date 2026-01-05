@@ -1190,7 +1190,13 @@ class WarehouseImportService:
                     "confirmed": box.confirmed,
                     "scan_by": box.scan_by,
                     "time_checked": box.time_checked,
-                    "list_serial_items": box.list_serial_items
+                    "list_serial_items": box.list_serial_items,
+                    "location_id": box.location_id,
+                    "name": box.name,
+                    "serial_pallet": box.serial_pallet,
+                    "sap_code": box.sap_code,
+                    "lot": box.lot,
+                    "po": box.po
                 }
                 for box in boxes
             ]
