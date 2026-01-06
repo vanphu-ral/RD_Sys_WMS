@@ -18,6 +18,7 @@ export interface ScannedItem {
   scanTime?: string;
   warehouse: string;
   confirmed?: boolean;
+  location_id?: number;
   isNew?: boolean; // Flag để đánh dấu item mới scan (chưa lưu DB)
 }
 
@@ -54,7 +55,7 @@ export class ScanDetailXuatHangComponent implements OnInit {
     'serialPallet',
     'quantity',
     'scanTime',
-    'warehouse',
+    // 'warehouse',
   ];
 
   scannedList: ScannedItem[] = [];
@@ -81,6 +82,8 @@ export class ScanDetailXuatHangComponent implements OnInit {
   qrScanner?: Html5Qrcode;
   availableCameras: CameraDevice[] = [];
   debugLogs: string[] = [];
+
+  globalQuantity: number | null = null;
 
   //location
   locationMap: Map<number, string> = new Map();
@@ -192,38 +195,59 @@ export class ScanDetailXuatHangComponent implements OnInit {
       return;
     }
 
-    const detailById = new Map<number, any>();
-    (this.detailList || []).forEach((d: any) => {
-      if (d && d.id != null) detailById.set(Number(d.id), d);
-    });
+    const mapAndSetScanned = (res: any[]) => {
+      const detailById = new Map<number, any>();
+      (this.detailList || []).forEach((d: any) => {
+        if (d && d.id != null) detailById.set(Number(d.id), d);
+      });
+
+      this.scannedList = (res || []).map((item: any) => {
+        const productId = item.outbound_shipment_request_on_order_id ?? item.product_in_osr_id ?? item.product_id;
+        const detail = productId != null ? detailById.get(Number(productId)) : undefined;
+        const resolvedWarehouse = this.getLocationCodeById(item.location_id) ||
+          (item.location_code ? String(item.location_code).trim() : undefined) ||
+          (item.location_id != null ? String(item.location_id) : 'N/A');
+        return {
+          id: item.id,
+          productId: item.outbound_shipment_request_on_order_id,
+          productCode: detail?.product_code ?? (item.sap_code ?? item.product_code ?? item.inventory_code),
+          productName: detail?.product_name ?? (item.product_name ?? ''),
+          inventoryCode: item.inventory_identifier,
+          serialPallet: item.serial_pallet,
+          quantity: item.quantity_dispatched,
+          originalQuantity: item.quantity_dispatched,
+          scanTime: this.formatDateTime(item.scan_time),
+          warehouse: resolvedWarehouse || 'N/A',
+          confirmed: true,
+          isNew: false,
+        } as ScannedItem;
+      });
+
+      this.totalItems = this.scannedList.length;
+      this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+      this.setPagedData();
+      this.updateDetailStatus();
+    };
 
     this.xuatKhoService.getScanList(idToUse).subscribe({
       next: (res) => {
-        this.scannedList = (res || []).map((item: any) => {
-          const productId = item.outbound_shipment_request_on_order_id ?? item.product_in_osr_id ?? item.product_id;
-          const detail = productId != null ? detailById.get(Number(productId)) : undefined;
-
-          return {
-            id: item.id,
-            productId: item.outbound_shipment_request_on_order_id,
-            productCode: detail?.product_code ?? item.sap_code,
-            productName: detail?.product_name ?? item.product_name ?? '',
-            inventoryCode: item.product_code,
-            serialPallet: item.serial_pallet,
-            quantity: Number(item.total_quantity ?? item.quantity ?? 0),
-            originalQuantity: Number(item.total_quantity ?? item.quantity ?? 0), // <-- thêm đây
-            scanTime: this.formatDateTime(item.scan_time),
-            warehouse: item.scan_by || 'N/A',
-            isNew: false,
-          } as ScannedItem;
-        });
-
-
-        this.totalItems = this.scannedList.length;
-        this.totalPages = Math.ceil(this.totalItems / this.pageSize);
-
-        this.setPagedData();
-        this.updateDetailStatus();
+        if ((this.detailList || []).length === 0 && this.requestId) {
+          this.xuatKhoService.getSalesItemsById(this.requestId).subscribe({
+            next: (details) => {
+              this.detailList = details.map((item: any) => ({
+                ...item,
+                quantity_scanned: 0,
+                status: 'pending' as const
+              }));
+              mapAndSetScanned(res);
+            },
+            error: () => {
+              mapAndSetScanned(res);
+            }
+          });
+        } else {
+          mapAndSetScanned(res);
+        }
       },
       error: (err) => {
         console.error('Lỗi khi tải dữ liệu scan:', err);
@@ -571,7 +595,7 @@ export class ScanDetailXuatHangComponent implements OnInit {
     const invIdentifier = norm(inventory.identifier);
     const invSap = (inventory.sap_code || '').toString().trim().toUpperCase();
     let detailItem = this.detailMapByCode.get(invSap);
-    const invQty = Number(inventory.available_quantity ?? inventory.quantity ?? 0);
+    const invQty = Number(inventory.available_quantity ?? 0);
     if (!detailItem) { detailItem = this.detailList.find(d => (d.product_code || '').toString().trim().toUpperCase() === invSap); }
     // CHECK TRÙNG MÃ THÙNG (bảo đảm tồn tại identifier)
     if (!invIdentifier) {
@@ -700,9 +724,7 @@ export class ScanDetailXuatHangComponent implements OnInit {
 
     this.snackBar.open(
       `✓ Đã thêm thùng ${invIdentifier}\n` +
-      `SL thùng: ${invQty} ${detailItem.dvt}\n` +
-      `Tổng đã scan: ${updatedScannedQty}/${detailItem.total_quantity} ${detailItem.dvt}\n` +
-      `Còn lại: ${remaining} ${detailItem.dvt}`,
+      `SL thùng: ${invQty} ${detailItem.dvt}\n`,
       '',
       { duration: 3000, panelClass: ['snackbar-success'] }
     );
@@ -835,6 +857,18 @@ export class ScanDetailXuatHangComponent implements OnInit {
     });
   }
 
+
+  applyGlobalQuantity(): void {
+    if (this.globalQuantity == null || this.globalQuantity < 0) return;
+
+    this.scannedList.forEach((item) => {
+      if (!item.confirmed) {
+        item.quantity = this.globalQuantity!;
+      }
+    });
+
+    this.snackBar.open('Đã áp dụng số lượng cho tất cả!', '', { duration: 1500 });
+  }
   // ===== PAGINATION =====
   setPagedData(): void {
     const startIndex = (this.currentPage - 1) * this.pageSize;

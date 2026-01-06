@@ -19,6 +19,7 @@ export interface ScannedItem {
   scanTime?: string;
   warehouse: string;
   confirmed?: boolean;
+  location_id?: number;
   isNew?: boolean; // Flag để đánh dấu item mới scan (chưa lưu DB)
 }
 
@@ -176,7 +177,7 @@ export class ScanDetailComponent implements OnInit {
     });
   }
 
-  // ===== LOAD DETAIL LIST =====
+  // ===== LOAD DETAIL LIST ===== 
   loadDetailList(): void {
     this.isLoading = true;
     this.chuyenKhoService.getTransferItemsById(this.requestId!).subscribe({
@@ -227,7 +228,7 @@ export class ScanDetailComponent implements OnInit {
           quantity: item.quantity_dispatched,
           originalQuantity: item.quantity_dispatched,
           scanTime: this.formatDateTime(item.scan_time),
-          warehouse: this.getLocationCodeById(item.location_id) || 'N/A',
+          warehouse: this.getLocationCodeById(item.new_location) || 'N/A',
           confirmed: true,
           isNew: false,
         } as ScannedItem;
@@ -632,7 +633,7 @@ export class ScanDetailComponent implements OnInit {
 
     const invIdentifier = norm(inventory.identifier);
     const invSap = normUpper(inventory.sap_code);
-    const invQty = Number(inventory.available_quantity ?? inventory.quantity ?? 0);
+    const invQty = Number(inventory.available_quantity ?? 0);
 
     // CHECK TRÙNG MÃ THÙNG (bảo đảm tồn tại identifier)
     if (!invIdentifier) {
@@ -727,6 +728,24 @@ export class ScanDetailComponent implements OnInit {
     const resolvedWarehouse = this.getLocationCodeById(inventory.location_id) ||
       (inventory.location_code ? String(inventory.location_code).trim() : undefined) ||
       (inventory.location_id != null ? String(inventory.location_id) : 'N/A');
+    let resolvedLocationId: number | null = null;
+    const scannedLocCode = this.scanLocation.trim().toUpperCase();
+    for (const [id, code] of this.locationMap.entries()) {
+      if (code.toUpperCase() === scannedLocCode) {
+        resolvedLocationId = id;
+        break;
+      }
+    }
+
+    // Nếu không tìm thấy location hợp lệ
+    if (!resolvedLocationId) {
+      this.snackBar.open(
+        `Location "${this.scanLocation}" không hợp lệ!`,
+        'Đóng',
+        { duration: 3000, panelClass: ['snackbar-error'] }
+      );
+      return false;
+    }
     // THÊM ITEM MỚI
     const now = new Date();
     const newItem: ScannedItem = {
@@ -739,7 +758,8 @@ export class ScanDetailComponent implements OnInit {
       originalQuantity: Number(inventory.initial_quantity ?? 0),
       productName: inventory.name || detailItem.product_name,
       scanTime: this.formatDateTime(now.toISOString()),
-      warehouse: resolvedWarehouse,
+      warehouse: scannedLocCode,
+      location_id: resolvedLocationId,
       confirmed: false,
       isNew: true,
     };
@@ -868,6 +888,7 @@ export class ScanDetailComponent implements OnInit {
         inventory_identifier: item.inventoryCode,
         serial_pallet: item.serialPallet,
         quantity_dispatched: item.quantity,
+        new_location: item.location_id,
         scan_time: new Date().toISOString().slice(0, 19),
         scan_by: username,
       })),

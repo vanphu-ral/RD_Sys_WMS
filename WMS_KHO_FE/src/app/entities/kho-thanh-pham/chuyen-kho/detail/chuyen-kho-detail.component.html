@@ -173,8 +173,17 @@
         </div>
 
         <!-- Pagination -->
-        <div class="pagination" *ngIf="detailList.length > pageSize">
-            <div class="pagination-controls">
+        <div class="pagination-wrapper" *ngIf="detailList.length > 0">
+            <div class="pagination-info">
+                <span class="info-text">
+                    Hiển thị {{ (currentPage - 1) * pageSize + 1 }} -
+                    {{ Math.min(currentPage * pageSize, detailList.length) }}
+                    trong tổng số {{ detailList.length }} mục
+                </span>
+            </div>
+
+            <div class="pagination-controls-wrapper">
+                <!-- Page Size Selector -->
                 <mat-form-field appearance="outline" class="page-size-select">
                     <mat-label>Số dòng/trang</mat-label>
                     <mat-select [(value)]="pageSize" (selectionChange)="onPageSizeChange($event.value)">
@@ -183,15 +192,42 @@
                         </mat-option>
                     </mat-select>
                 </mat-form-field>
-            </div>
 
-            <div class="pagination-numbers">
-                <button mat-button *ngFor="let page of [].constructor(totalPages); let i = index"
-                    [class.active]="currentPage === i + 1" (click)="onPageChange(i + 1)">
-                    {{ i + 1 }}
-                </button>
-            </div>
+                <!-- Page Navigation -->
+                <div class="pagination-nav">
+                    <!-- First Page -->
+                    <button mat-icon-button [disabled]="!canGoPrevious()" (click)="onPageChange(1)"
+                        matTooltip="Trang đầu">
+                        <mat-icon>first_page</mat-icon>
+                    </button>
 
+                    <!-- Previous Page -->
+                    <button mat-icon-button [disabled]="!canGoPrevious()" (click)="previousPage()"
+                        matTooltip="Trang trước">
+                        <mat-icon>chevron_left</mat-icon>
+                    </button>
+
+                    <!-- Page Numbers -->
+                    <div class="page-numbers">
+                        <button mat-button *ngFor="let page of getPageNumbers()" [class.active]="currentPage === page"
+                            [class.ellipsis]="page === -1" [disabled]="page === -1"
+                            (click)="page > 0 && onPageChange(page)">
+                            {{ page === -1 ? '...' : page }}
+                        </button>
+                    </div>
+
+                    <!-- Next Page -->
+                    <button mat-icon-button [disabled]="!canGoNext()" (click)="nextPage()" matTooltip="Trang sau">
+                        <mat-icon>chevron_right</mat-icon>
+                    </button>
+
+                    <!-- Last Page -->
+                    <button mat-icon-button [disabled]="!canGoNext()" (click)="onPageChange(totalPages)"
+                        matTooltip="Trang cuối">
+                        <mat-icon>last_page</mat-icon>
+                    </button>
+                </div>
+            </div>
         </div>
     </mat-card>
     <div class="action-footer">

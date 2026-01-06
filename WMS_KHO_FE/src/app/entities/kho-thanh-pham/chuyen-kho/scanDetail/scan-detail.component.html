@@ -70,72 +70,72 @@
 
         </div>
         <div class="scan-summary" *ngIf="scanMode === 'single' && getSelectedProductInfo()">
-        <mat-card class="summary-card">
-            <mat-card-header>
-            <mat-card-title>
-                <mat-icon>qr_code_scanner</mat-icon>
-                Thông tin sản phẩm đang scan
-            </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-            <div class="product-info-grid">
-                <div class="info-item">
-                <span class="label">Mã sản phẩm:</span>
-                <span class="value">{{ getSelectedProductInfo()!.product_code }}</span>
-                </div>
-                <div class="info-item">
-                <span class="label">Tên sản phẩm:</span>
-                <span class="value">{{ getSelectedProductInfo()!.product_name }}</span>
-                </div>
-                <div class="info-item">
-                <span class="label">Số lượng yêu cầu:</span>
-                <span class="value">
-                    {{ getSelectedProductInfo()!.total_quantity }} {{ getSelectedProductInfo()!.dvt }}
-                </span>
-                </div>
-                <div class="info-item highlight">
-                <span class="label">Đã scan:</span>
-                <span class="value success">
-                    {{ getTotalScannedQuantity(selectedItemId!) }} {{ getSelectedProductInfo()!.dvt }}
-                </span>
-                </div>
-                <!-- <div class="info-item highlight">
+            <mat-card class="summary-card">
+                <mat-card-header>
+                    <mat-card-title>
+                        <mat-icon>qr_code_scanner</mat-icon>
+                        Thông tin sản phẩm đang scan
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="product-info-grid">
+                        <div class="info-item">
+                            <span class="label">Mã sản phẩm:</span>
+                            <span class="value">{{ getSelectedProductInfo()!.product_code }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Tên sản phẩm:</span>
+                            <span class="value">{{ getSelectedProductInfo()!.product_name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Số lượng yêu cầu:</span>
+                            <span class="value">
+                                {{ getSelectedProductInfo()!.total_quantity }} {{ getSelectedProductInfo()!.dvt }}
+                            </span>
+                        </div>
+                        <div class="info-item highlight">
+                            <span class="label">Đã scan:</span>
+                            <span class="value success">
+                                {{ getTotalScannedQuantity(selectedItemId!) }} {{ getSelectedProductInfo()!.dvt }}
+                            </span>
+                        </div>
+                        <!-- <div class="info-item highlight">
                 <span class="label">Còn lại:</span>
                 <span class="value" [class.warning]="getRemainingQuantity(selectedItemId!) > 0">
                     {{ getRemainingQuantity(selectedItemId!) }} {{ getSelectedProductInfo()!.dvt }}
                 </span>
                 </div> -->
-            </div>
-            </mat-card-content>
-        </mat-card>
+                    </div>
+                </mat-card-content>
+            </mat-card>
         </div>
 
         <!-- Phần hiển thị tổng quan cho mode ALL -->
         <div class="scan-summary" *ngIf="scanMode === 'all'">
-        <mat-card class="summary-card">
-            <mat-card-header>
-            <mat-card-title>
-                <mat-icon>inventory</mat-icon>
-                Tổng quan scan
-            </mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-            <div class="summary-stats">
-                <div class="stat-item">
-                <div class="stat-value">{{ scannedList.length }}</div>
-                <div class="stat-label">Tổng số thùng đã scan</div>
-                </div>
-                <div class="stat-item">
-                <div class="stat-value">{{ getTotalScannedQuantity() }}</div>
-                <div class="stat-label">Tổng số lượng đã scan</div>
-                </div>
-                <div class="stat-item">
-                <div class="stat-value">{{ detailList.length }}</div>
-                <div class="stat-label">Tổng số sản phẩm</div>
-                </div>
-            </div>
-            </mat-card-content>
-        </mat-card>
+            <mat-card class="summary-card">
+                <mat-card-header>
+                    <mat-card-title>
+                        <mat-icon>inventory</mat-icon>
+                        Tổng quan scan
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ scannedList.length }}</div>
+                            <div class="stat-label">Tổng số thùng đã scan</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ getTotalScannedQuantity() }}</div>
+                            <div class="stat-label">Tổng số lượng đã scan</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ detailList.length }}</div>
+                            <div class="stat-label">Tổng số sản phẩm</div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
         </div>
         <mat-card class="nhapkho-card">
             <div class="table-header">
@@ -235,7 +235,6 @@
                             <span class="info-label">Serial pallet:</span>
                             <span class="info-value serial-badge">{{item.serialPallet}}</span>
                         </div>
-                        -->
                         <div class="info-row">
                             <span class="info-label">Kho:</span>
                             <span class="info-value location-badge">{{item.warehouse}}</span>

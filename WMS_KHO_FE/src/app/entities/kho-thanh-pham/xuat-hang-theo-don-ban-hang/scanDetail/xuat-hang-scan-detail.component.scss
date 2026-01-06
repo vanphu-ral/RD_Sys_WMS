@@ -400,7 +400,119 @@
 .mobile-scan-list {
   display: none; // Ẩn trên desktop
 }
+.scan-summary {
+  padding: 16px 24px;
 
+  .summary-card {
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+
+    ::ng-deep .mat-mdc-card-header {
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    ::ng-deep .mat-mdc-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1e293b;
+      margin: 0;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: #14ae5c;
+      }
+    }
+
+    ::ng-deep .mat-mdc-card-content {
+      padding: 16px;
+    }
+  }
+
+  // Single Product Info Grid
+  .product-info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+
+      .label {
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .value {
+        font-size: 14px;
+        color: #1e293b;
+        font-weight: 600;
+
+        &.success {
+          color: #14ae5c;
+        }
+
+        &.warning {
+          color: #f59e0b;
+        }
+      }
+
+      &.highlight {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border-color: #86efac;
+
+        .value {
+          font-size: 16px;
+        }
+      }
+    }
+  }
+
+  // All Mode Summary Stats
+  .summary-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+
+    .stat-item {
+      text-align: center;
+      padding: 12px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+
+      .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #14ae5c;
+        margin-bottom: 4px;
+      }
+
+      .stat-label {
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 500;
+      }
+    }
+  }
+}
 @media (max-width: 768px) {
   // Container
   .chuyen-kho-detail-container {
@@ -440,6 +552,74 @@
         font-size: 22px;
         width: 22px;
         height: 22px;
+      }
+    }
+  }
+  .scan-summary {
+    padding: 12px 16px;
+
+    .summary-card {
+      ::ng-deep .mat-mdc-card-header {
+        padding: 10px 12px;
+      }
+
+      ::ng-deep .mat-mdc-card-title {
+        font-size: 14px;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      ::ng-deep .mat-mdc-card-content {
+        padding: 12px;
+      }
+    }
+
+    // Single Product Grid - Stack on mobile
+    .product-info-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+
+      .info-item {
+        padding: 8px 10px;
+
+        .label {
+          font-size: 10px;
+        }
+
+        .value {
+          font-size: 13px;
+
+          &.success,
+          &.warning {
+            font-size: 13px;
+          }
+        }
+
+        &.highlight .value {
+          font-size: 15px;
+        }
+      }
+    }
+
+    // Stats - Keep 3 columns but smaller
+    .summary-stats {
+      gap: 8px;
+
+      .stat-item {
+        padding: 10px 8px;
+
+        .stat-value {
+          font-size: 20px;
+        }
+
+        .stat-label {
+          font-size: 10px;
+          line-height: 1.3;
+        }
       }
     }
   }
@@ -620,6 +800,32 @@
           text-align: right;
           word-break: break-word;
         }
+        &.quantity-input-row {
+          background: #f8fafc;
+          align-items: flex-start;
+          padding: 12px 14px;
+          display: flex;
+          flex-direction: row;
+
+          .mobile-quantity-input {
+            flex: 1;
+            max-width: 140px;
+            margin: 0;
+
+            ::ng-deep {
+              .mat-mdc-text-field-wrapper {
+                background: white;
+              }
+
+              input {
+                font-size: 16px;
+                font-weight: 700;
+                color: #1e293b;
+                text-align: right;
+              }
+            }
+          }
+        }
       }
 
       // Highlight important fields
@@ -756,6 +962,43 @@
       }
     }
   }
+  .scan-summary {
+    padding: 10px 12px;
+
+    .product-info-grid {
+      .info-item {
+        padding: 6px 8px;
+
+        .label {
+          font-size: 9px;
+        }
+
+        .value {
+          font-size: 12px;
+        }
+
+        &.highlight .value {
+          font-size: 14px;
+        }
+      }
+    }
+
+    .summary-stats {
+      gap: 6px;
+
+      .stat-item {
+        padding: 8px 6px;
+
+        .stat-value {
+          font-size: 18px;
+        }
+
+        .stat-label {
+          font-size: 9px;
+        }
+      }
+    }
+  }
 
   .pagination-numbers button {
     min-width: 32px;
@@ -797,5 +1040,36 @@
   .mobile-scan-card {
     padding: 10px;
     margin-bottom: 8px;
+  }
+  .scan-summary {
+    padding: 8px 12px;
+
+    .summary-card {
+      ::ng-deep .mat-mdc-card-header {
+        padding: 8px 12px;
+      }
+
+      ::ng-deep .mat-mdc-card-content {
+        padding: 10px;
+      }
+    }
+
+    .product-info-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+
+      .info-item {
+        padding: 6px 8px;
+      }
+    }
+
+    .summary-stats {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+
+      .stat-item {
+        padding: 8px 4px;
+      }
+    }
   }
 }

@@ -34,12 +34,13 @@ export class ChuyenKhoDetailComponent implements OnInit {
     'updatedDate',
     'actions',
   ];
-  totalPages = 0;
+  // totalPages = 0;
   detailList: TransferItemDetail[] = [];
   pageSizeOptions = [5, 10, 20];
   pageSize = 10;
   currentPage = 1;
   globalQuantity: number | null = null;
+  Math = Math;
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -78,24 +79,65 @@ export class ChuyenKhoDetailComponent implements OnInit {
     });
   }
 
-
-
-  onPageChange(page: number): void {
-    this.currentPage = page;
-    // Load data for specific page
+  get totalPages(): number {
+    return Math.ceil(this.detailList.length / this.pageSize);
   }
 
+  onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+  }
+  canGoPrevious(): boolean {
+    return this.currentPage > 1;
+  }
+  canGoNext(): boolean {
+    return this.currentPage < this.totalPages;
+  }
   previousPage(): void {
-    if (this.currentPage > 1) {
+    if (this.canGoPrevious()) {
       this.currentPage--;
-      this.onPageChange(this.currentPage);
     }
+  }
+  //helper
+  getPageNumbers(): number[] {
+    const maxVisible = 5; // Hiển thị tối đa 5 nút page
+    const pages: number[] = [];
+
+    if (this.totalPages <= maxVisible) {
+      // Nếu tổng số trang <= 5, hiển thị tất cả
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Logic hiển thị thông minh: ... 3 4 [5] 6 7 ...
+      const start = Math.max(1, this.currentPage - 2);
+      const end = Math.min(this.totalPages, this.currentPage + 2);
+
+      if (start > 1) {
+        pages.push(1);
+        if (start > 2) {
+          pages.push(-1); // -1 để đánh dấu "..."
+        }
+      }
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (end < this.totalPages) {
+        if (end < this.totalPages - 1) {
+          pages.push(-1); // -1 để đánh dấu "..."
+        }
+        pages.push(this.totalPages);
+      }
+    }
+
+    return pages;
   }
 
   nextPage(): void {
-    if (this.currentPage < this.totalPages) {
+    if (this.canGoNext()) {
       this.currentPage++;
-      this.onPageChange(this.currentPage);
     }
   }
 
@@ -159,13 +201,19 @@ export class ChuyenKhoDetailComponent implements OnInit {
   }
   onApprove(): void {
     // kiểm tra có item nào đã scan chưa
-    const hasScanned = this.detailList.some(item => item.quantityScanned > 0);
-
-    if (!hasScanned) {
-      this.snackBar.open('Chưa có sản phẩm nào được scan, không thể phê duyệt!', 'Đóng', {
-        duration: 3000,
-        panelClass: ['snackbar-error'],
+    if (!Array.isArray(this.detailList) || this.detailList.length === 0) { this.snackBar.open('Không có sản phẩm trong yêu cầu, không thể phê duyệt!', 'Đóng', { duration: 3000, panelClass: ['snackbar-error'], }); return; }
+    const notScanned = this.detailList.filter((item: any) =>
+      Number(item.quantityScanned ?? item.scanned_quantity ?? 0) <= 0)
+      .map((item: any) => {
+        const code = (item.product_code ?? item.productCode ?? '').toString().trim();
+        const name = (item.product_name ?? item.productName ?? '').toString().trim();
+        return code || name || `ID:${item.id}`;
       });
+
+    if (notScanned.length > 0) {
+      const sample = notScanned.slice(0, 5).join(', ');
+      const more = notScanned.length > 5 ? ` và ${notScanned.length - 5} mục khác` : '';
+      this.snackBar.open(`Không thể phê duyệt: còn ${notScanned.length} sản phẩm chưa scan (${sample}${more}).`, 'Đóng', { duration: 6000, panelClass: ['snackbar-error'] });
       return;
     }
 
