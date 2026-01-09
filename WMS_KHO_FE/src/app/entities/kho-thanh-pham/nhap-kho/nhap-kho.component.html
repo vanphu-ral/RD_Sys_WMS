@@ -7,11 +7,15 @@
                 <p class="subtitle">Warehouse management from production</p>
             </div>
         </div>
-        <div>
+        <div class="input-with-camera">
             <mat-form-field class="apply-field" appearance="outline">
                 <input matInput placeholder="Tìm mã pallet/box..." [(ngModel)]="maTimKiem"
                     (keydown.enter)="onApplySearch()">
             </mat-form-field>
+            <button mat-icon-button *ngIf="isMobile" class="camera-btn" (click)="openCameraScanner('pallet')"
+                matTooltip="Quét bằng camera">
+                <mat-icon>photo_camera</mat-icon>
+            </button>
             <button mat-raised-button color="primary" class="add-btn" (click)="onApplySearch()">
                 <mat-icon>add_task</mat-icon>
                 Áp dụng
@@ -266,6 +270,11 @@
                 <input matInput [(ngModel)]="filterValues.wo_code" (keyup.enter)="applyFilter()" />
                 <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
+            <mat-form-field class="filter-field" appearance="outline">
+                <mat-label>Người cập nhật</mat-label>
+                <input matInput [(ngModel)]="filterValues.updated_by" (keyup.enter)="applyFilter()" />
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
 
             <mat-form-field class="filter-field" appearance="outline">
                 <mat-label>Trạng thái</mat-label>
@@ -479,4 +488,27 @@
 
     </mat-card>
 
+</div>
+<!-- Camera Scanner Overlay -->
+<div class="qr-scanner-overlay" *ngIf="isScanning" (click)="stopScanning()">
+    <div class="qr-scanner-modal" (click)="$event.stopPropagation()">
+        <div class="scanner-header">
+            <div class="scanner-actions">
+                <!-- Switch Camera Button -->
+                <button mat-icon-button *ngIf="availableCameras.length > 1" (click)="switchCamera()"
+                    matTooltip="Chuyển camera" class="switch-camera-btn">
+                    <mat-icon>flip_camera_android</mat-icon>
+                </button>
+
+                <!-- Close Button -->
+                <button mat-icon-button (click)="stopScanning()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
+
+        <p class="scanner-hint">Đưa mã vào khung hình để quét</p>
+    </div>
 </div>

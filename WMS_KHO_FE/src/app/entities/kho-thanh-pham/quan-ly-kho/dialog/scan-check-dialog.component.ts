@@ -4,6 +4,7 @@ import {
   Inject,
   OnInit,
   ViewChild,
+  OnDestroy,
 } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,6 +21,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { QuanLyKhoService } from '../service/quan-ly-kho.service.component';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { CameraDevice, Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-scan-check-dialog',
@@ -37,16 +40,17 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     MatSelectModule,
     MatSlideToggleModule,
     MatProgressBarModule,
+    MatTooltipModule, // ✅ Thêm import này
   ],
 })
-export class ScanCheckDialogComponent implements OnInit {
+export class ScanCheckDialogComponent implements OnInit, OnDestroy {
   isPalletMode = true;
   mode: 'check' | 'update' | 'transfer' = 'check';
   selectedScanMode: 'pallet' | 'box' | null = null;
   isInfoVisible = false;
   isBoxMode = !this.isPalletMode;
 
-  //loader
+  // Loader
   isLoading = false;
 
   palletScan = '';
@@ -61,6 +65,7 @@ export class ScanCheckDialogComponent implements OnInit {
     scannedAt: string;
     scannedBy: string;
   }[] = [];
+
   productInfo = {
     maSanPham: '',
     maThung: '',
@@ -83,9 +88,24 @@ export class ScanCheckDialogComponent implements OnInit {
     ngaySanXuat: '',
     hanSuDung: '',
   };
+
   locations: { id: number; code: string }[] = [];
+
+  // ============================================
+  // ✅ CAMERA SCAN VARIABLES
+  // ============================================
+  isMobile: boolean = false;
+  isScanning: boolean = false;
+  scannerActive: 'pallet' | 'location' | null = null;
+  qrScanner?: Html5Qrcode;
+  selectedCameraId: string | null = null;
+  availableCameras: CameraDevice[] = [];
+  lastScannedCode: string | null = null;
+  debugLogs: string[] = [];
+
   @ViewChild('palletInput') palletInput!: ElementRef;
   @ViewChild('locationInput') locationInput!: ElementRef;
+
   constructor(
     public dialogRef: MatDialogRef<ScanCheckDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -95,8 +115,10 @@ export class ScanCheckDialogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.checkIfMobile();
     this.mode = this.data.mode || 'check';
     this.updatedQuantity = parseInt(this.productInfo.soLuongHienTai);
+
     if (this.mode === 'transfer') {
       this.quanLyKhoService.getLocations().subscribe({
         next: (data) => {
@@ -113,6 +135,267 @@ export class ScanCheckDialogComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.stopScanning();
+  }
+
+  // ============================================
+  // ✅ CAMERA FUNCTIONS
+  // ============================================
+  checkIfMobile(): void {
+    this.isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      ) || window.innerWidth <= 768;
+  }
+
+  async openCameraScanner(field: 'pallet' | 'location') {
+    this.scannerActive = field;
+    this.isScanning = true;
+    this.logDebug('=== Open Scanner ===');
+
+    try {
+      if (this.qrScanner) {
+        try {
+          await this.qrScanner.stop();
+          await this.qrScanner.clear();
+          this.logDebug('Old scanner stopped');
+        } catch (e) {
+          this.logDebug('Stop old scanner failed: ' + e);
+        }
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      this.qrScanner = new Html5Qrcode('qr-reader');
+      this.logDebug('Scanner created');
+
+      const cameras = await Html5Qrcode.getCameras();
+      this.logDebug(`Found ${cameras.length} cameras`);
+      this.logDebug(
+        JSON.stringify(cameras.map((c) => ({ id: c.id, label: c.label })))
+      );
+
+      if (!cameras || cameras.length === 0) {
+        this.snackBar.open('Không tìm thấy camera', 'Đóng', { duration: 3000 });
+        this.stopScanning();
+        return;
+      }
+
+      this.availableCameras = cameras;
+
+      const backCameras = cameras.filter(
+        (c) =>
+          (c.label || '').toLowerCase().includes('back') ||
+          (c.label || '').toLowerCase().includes('environment') ||
+          (c.label || '').toLowerCase().includes('rear')
+      );
+
+      let targetCam: CameraDevice;
+      if (this.selectedCameraId) {
+        targetCam =
+          cameras.find((c) => c.id === this.selectedCameraId) ||
+          (backCameras.length > 0
+            ? backCameras[backCameras.length - 1]
+            : cameras[0]);
+      } else {
+        targetCam =
+          backCameras.length > 0
+            ? backCameras[backCameras.length - 1]
+            : cameras[0];
+      }
+
+      this.selectedCameraId = targetCam.id;
+      this.logDebug('Selected camera: ' + targetCam.label);
+
+      await this.startScanner(targetCam.id);
+    } catch (e: any) {
+      this.logDebug('=== ERROR ===');
+      this.logDebug('Error name: ' + (e?.name || 'unknown'));
+      this.logDebug('Error message: ' + (e?.message || 'unknown'));
+      this.logDebug('Error toString: ' + e?.toString());
+
+      let errorMsg = 'Không thể mở camera!';
+
+      if (e?.name === 'NotAllowedError' || e?.name === 'PermissionDeniedError') {
+        errorMsg = 'Bạn đã từ chối quyền camera. Vui lòng cấp quyền trong Cài đặt.';
+      } else if (e?.name === 'NotFoundError' || e?.name === 'DevicesNotFoundError') {
+        errorMsg = 'Không tìm thấy camera trên thiết bị!';
+      } else if (e?.name === 'NotReadableError' || e?.name === 'TrackStartError') {
+        errorMsg = 'Camera đang được sử dụng. Vui lòng đóng ứng dụng Camera/Zalo/Banking và thử lại.';
+      } else if (e?.name === 'OverconstrainedError') {
+        errorMsg = 'Camera không hỗ trợ cấu hình này!';
+      } else if (e?.message) {
+        errorMsg = 'Lỗi: ' + e.message;
+      }
+
+      this.snackBar.open(errorMsg, 'Đóng', { duration: 5000 });
+      this.stopScanning();
+    }
+  }
+
+  async startScanner(cameraId: string) {
+    const config = {
+      fps: 10,
+      qrbox: { width: 250, height: 250 },
+      aspectRatio: 1.0,
+    };
+
+    await this.qrScanner!.start(
+      cameraId,
+      config,
+      (decodedText) => {
+        this.logDebug('Scanned: ' + decodedText);
+        this.handleHtml5Scan(decodedText);
+      },
+      (errorMessage) => {
+        if (errorMessage && !errorMessage.includes('NotFoundException')) {
+          this.logDebug('Scan error: ' + errorMessage);
+        }
+      }
+    );
+
+    this.logDebug('Camera started successfully!');
+  }
+
+  async switchCamera() {
+    if (!this.qrScanner || this.availableCameras.length <= 1) {
+      this.snackBar.open('Không có camera khác để chuyển!', '', {
+        duration: 2000,
+      });
+      return;
+    }
+
+    try {
+      this.logDebug('=== Switching Camera ===');
+
+      const currentIndex = this.availableCameras.findIndex(
+        (c) => c.id === this.selectedCameraId
+      );
+
+      const nextIndex = (currentIndex + 1) % this.availableCameras.length;
+      const nextCamera = this.availableCameras[nextIndex];
+
+      this.logDebug(
+        `Switching from ${this.availableCameras[currentIndex]?.label} to ${nextCamera.label}`
+      );
+
+      await this.qrScanner.stop();
+      this.logDebug('Current camera stopped');
+
+      this.selectedCameraId = nextCamera.id;
+
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      await this.startScanner(nextCamera.id);
+
+      this.snackBar.open(`Đã chuyển sang ${nextCamera.label}`, '', {
+        duration: 2000,
+      });
+      this.logDebug('Camera switched successfully');
+    } catch (e: any) {
+      this.logDebug('Switch camera error: ' + e?.message);
+      this.snackBar.open('Lỗi khi chuyển camera!', 'Đóng', { duration: 3000 });
+
+      try {
+        await this.startScanner(this.selectedCameraId!);
+      } catch {
+        this.stopScanning();
+      }
+    }
+  }
+
+  handleHtml5Scan(code: string) {
+    code = code.trim();
+
+    // Chống scan trùng
+    if (code === this.lastScannedCode) return;
+    this.lastScannedCode = code;
+
+    this.logDebug('Processing: ' + code);
+
+    // Phân loại mã dựa trên scannerActive
+    if (this.scannerActive === 'pallet') {
+      // Scan pallet hoặc box
+      if (code.startsWith('P') || code.startsWith('B')) {
+        this.palletScan = code;
+        this.playAudio('assets/audio/successed-295058.mp3');
+        const type = code.startsWith('P') ? 'pallet' : 'thùng';
+        this.snackBar.open(`✓ Đã quét ${type}!`, '', { duration: 1000 });
+
+        // Nếu mode transfer, chuyển sang scan location
+        if (this.mode === 'transfer') {
+          this.stopScanning();
+          setTimeout(() => this.focusLocationInput(), 100);
+        } else {
+          // Nếu mode check/update, xử lý ngay
+          this.stopScanning();
+          setTimeout(() => this.onScanComplete(), 50);
+        }
+      } else {
+        this.playAudio('assets/audio/beep_warning.mp3');
+        this.snackBar.open('❌ Mã không hợp lệ! Chỉ scan mã P hoặc B.', '', {
+          duration: 2000,
+        });
+      }
+    } else if (this.scannerActive === 'location') {
+      // Scan location
+      this.locationScan = code;
+      this.playAudio('assets/audio/successed-295058.mp3');
+      this.snackBar.open('✓ Đã quét location!', '', { duration: 1000 });
+
+      // Đóng camera và xử lý
+      this.stopScanning();
+      setTimeout(() => this.onScanComplete(), 50);
+    }
+  }
+
+  async stopScanning() {
+    this.logDebug('=== Stopping Scanner ===');
+
+    this.isScanning = false;
+    this.scannerActive = null;
+    this.lastScannedCode = null;
+
+    if (this.qrScanner) {
+      try {
+        const state = await this.qrScanner.getState();
+        this.logDebug('Scanner state: ' + state);
+
+        if (state === Html5QrcodeScannerState.SCANNING) {
+          await this.qrScanner.stop();
+          this.logDebug('Scanner stopped');
+        }
+
+        await this.qrScanner.clear();
+        this.logDebug('Scanner cleared');
+      } catch (err: any) {
+        this.logDebug('Stop error: ' + (err?.message || err));
+      } finally {
+        this.qrScanner = undefined;
+      }
+    }
+  }
+
+  playAudio(file: string): void {
+    const audio = new Audio(file);
+    audio.play().catch((e) => console.log('Audio play failed:', e));
+  }
+
+  logDebug(msg: any) {
+    const text = typeof msg === 'string' ? msg : JSON.stringify(msg);
+    const timestamp = new Date().toLocaleTimeString();
+    this.debugLogs.unshift(`[${timestamp}] ${text}`);
+    console.log(`[${timestamp}] ${text}`);
+
+    if (this.debugLogs.length > 50) {
+      this.debugLogs = this.debugLogs.slice(0, 50);
+    }
+  }
+
+  // ============================================
+  // ORIGINAL FUNCTIONS
+  // ============================================
   fetchProductInfo(identifier: string): void {
     this.quanLyKhoService.getInventoryByIdentifier(identifier).subscribe({
       next: (res) => {
@@ -153,13 +436,8 @@ export class ScanCheckDialogComponent implements OnInit {
     });
   }
 
-  //cap nhat ton
   onUpdateQuantity(): void {
-    if (
-      !this.palletScan ||
-      !this.updatedQuantity ||
-      this.updatedQuantity <= 0
-    ) {
+    if (!this.palletScan || !this.updatedQuantity || this.updatedQuantity <= 0) {
       this.snackBar.open('Vui lòng nhập mã và số lượng tồn hợp lệ!', 'Đóng', {
         duration: 3000,
         panelClass: ['snackbar-error'],
@@ -190,7 +468,7 @@ export class ScanCheckDialogComponent implements OnInit {
       },
     });
   }
-  //chuyen kho
+
   onTransferSubmit(): void {
     if (this.scannedItems.length === 0) return;
 
@@ -246,6 +524,7 @@ export class ScanCheckDialogComponent implements OnInit {
       setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
     }
   }
+
   focusLocationInput() {
     setTimeout(() => this.locationInput?.nativeElement?.focus(), 100);
   }
@@ -253,6 +532,7 @@ export class ScanCheckDialogComponent implements OnInit {
   onScanComplete(): void {
     if (!this.palletScan) return;
     this.isLoading = true;
+
     if (this.mode === 'check' || this.mode === 'update') {
       this.fetchProductInfo(this.palletScan);
     }
@@ -281,6 +561,7 @@ export class ScanCheckDialogComponent implements OnInit {
   removeScannedItem(index: number): void {
     this.scannedItems.splice(index, 1);
   }
+
   onModeChange(): void {
     console.log('Mode changed:', this.isPalletMode ? 'Pallet' : 'Box');
   }
