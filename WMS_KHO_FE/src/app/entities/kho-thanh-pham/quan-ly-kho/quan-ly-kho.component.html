@@ -60,13 +60,94 @@
                     </button>
 
                     <mat-menu #columnMenu="matMenu">
-                        <div class="column-menu" (click)="$event.stopPropagation()">
-                            <mat-checkbox *ngFor="let col of allColumns" [(ngModel)]="col.visible"
-                                (change)="updateDisplayedColumns()">
-                                {{col.label}}
-                            </mat-checkbox>
+                        <div class="column-menu" (click)="$event.stopPropagation()"
+                            style="padding: 12px; max-width: 320px;">
+                            <!-- Default view columns -->
+                            <ng-container *ngIf="currentViewMode === 'default'">
+                                <div class="group-title">Mặc định</div>
+                                <mat-checkbox *ngFor="let col of viewColumns.default" [(ngModel)]="col.visible"
+                                    (change)="onColumnVisibilityChange('default')">
+                                    {{ col.label }}
+                                </mat-checkbox>
+                            </ng-container>
+
+                            <!-- PO grouped view: parent + child -->
+                            <ng-container *ngIf="currentViewMode === 'po'">
+                                <div class="group-title">PO - Cha</div>
+                                <mat-checkbox *ngFor="let col of viewColumns.poParent" [(ngModel)]="col.visible"
+                                    (change)="onColumnVisibilityChange('poParent')">
+                                    {{ col.label }}
+                                </mat-checkbox>
+
+                                <mat-divider></mat-divider>
+
+                                <div class="group-title">PO - Con</div>
+                                <mat-checkbox *ngFor="let col of viewColumns.poChild" [(ngModel)]="col.visible"
+                                    (change)="onColumnVisibilityChange('poChild')">
+                                    {{ col.label }}
+                                </mat-checkbox>
+                            </ng-container>
+
+                            <!-- Product grouped view -->
+                            <ng-container *ngIf="currentViewMode === 'product'">
+                                <div class="group-title">Sản phẩm - Cha</div>
+                                <mat-checkbox *ngFor="let col of viewColumns.productParent" [(ngModel)]="col.visible"
+                                    (change)="onColumnVisibilityChange('productParent')">
+                                    {{ col.label }}
+                                </mat-checkbox>
+
+                                <mat-divider></mat-divider>
+
+                                <div class="group-title">Sản phẩm - Con</div>
+                                <mat-checkbox *ngFor="let col of viewColumns.productChild" [(ngModel)]="col.visible"
+                                    (change)="onColumnVisibilityChange('productChild')">
+                                    {{ col.label }}
+                                </mat-checkbox>
+                            </ng-container>
+
+                            <!-- Area grouped view -->
+                            <ng-container *ngIf="currentViewMode === 'area'">
+                                <div class="group-title">Kho - Cha</div>
+                                <mat-checkbox *ngFor="let col of viewColumns.areaParent" [(ngModel)]="col.visible"
+                                    (change)="onColumnVisibilityChange('areaParent')">
+                                    {{ col.label }}
+                                </mat-checkbox>
+
+                                <mat-divider></mat-divider>
+
+                                <div class="group-title">Kho - Con</div>
+                                <mat-checkbox *ngFor="let col of viewColumns.areaChild" [(ngModel)]="col.visible"
+                                    (change)="onColumnVisibilityChange('areaChild')">
+                                    {{ col.label }}
+                                </mat-checkbox>
+                            </ng-container>
+
+                            <!-- Customer grouped view -->
+                            <ng-container *ngIf="currentViewMode === 'customer'">
+                                <div class="group-title">Khách hàng - Cha</div>
+                                <mat-checkbox *ngFor="let col of viewColumns.customerParent" [(ngModel)]="col.visible"
+                                    (change)="onColumnVisibilityChange('customerParent')">
+                                    {{ col.label }}
+                                </mat-checkbox>
+
+                                <mat-divider></mat-divider>
+
+                                <div class="group-title">Khách hàng - Con</div>
+                                <mat-checkbox *ngFor="let col of viewColumns.customerChild" [(ngModel)]="col.visible"
+                                    (change)="onColumnVisibilityChange('customerChild')">
+                                    {{ col.label }}
+                                </mat-checkbox>
+                            </ng-container>
+
+                            <mat-divider></mat-divider>
+
+                            <div style="display:flex; gap:8px; margin-top:8px;">
+                                <button mat-button (click)="resetColumnsForCurrentView()">Reset</button>
+                                <button mat-button (click)="saveColumnPrefsForCurrentView()">Save</button>
+                            </div>
                         </div>
                     </mat-menu>
+
                 </div>
                 <button mat-raised-button class="refresh-btn" matTooltip="Xuất dữ liệu" (click)="exportData()">
                     <mat-icon color="primary">ios_share</mat-icon>
@@ -83,7 +164,9 @@
             <div class="table-container">
                 <table mat-table [dataSource]="warehouseList" class="warehouse-table"
                     *ngIf="currentViewMode === 'default'">
-                    <ng-container *ngFor="let col of allColumns" [matColumnDef]="col.key">
+                    <ng-container
+                        *ngFor="let col of (currentViewMode === 'default' ? getCurrentColumns() : getCurrentColumns('parent'))"
+                        [matColumnDef]="col.key">
                         <ng-container *ngIf="col.visible">
 
                             <!-- Header -->
@@ -165,7 +248,7 @@
                 *ngIf="currentViewMode === 'po'">
 
                 <!-- Duyệt qua các cột cha -->
-                <ng-container *ngFor="let col of poParentColumns" [matColumnDef]="col.key">
+                <ng-container *ngFor="let col of viewColumns.poParent" [matColumnDef]="col.key">
                     <th mat-header-cell *matHeaderCellDef>
                         <ng-container [ngSwitch]="col.key">
                             <!-- Cột mở rộng -->
@@ -224,19 +307,19 @@
 
                 <!-- Expanded Detail Column -->
                 <ng-container matColumnDef="expandedDetail">
-                    <td mat-cell *matCellDef="let item" [attr.colspan]="poParentColumns.length">
+                    <td mat-cell *matCellDef="let item" [attr.colspan]="poParentColumnKeys.length">
                         <div class="child-detail" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
                             <div class="child-table-container" *ngIf="item.expanded">
                                 <h4 class="child-title">Chi tiết sản phẩm trong {{ item.po }}</h4>
                                 <table class="child-table">
                                     <thead>
                                         <tr>
-                                            <th *ngFor="let childCol of poChildColumns">{{ childCol.label }}</th>
+                                            <th *ngFor="let childCol of viewColumns.poChild">{{ childCol.label }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr *ngFor="let child of item.children">
-                                            <td *ngFor="let childCol of poChildColumns">
+                                            <td *ngFor="let childCol of viewColumns.poChild">
                                                 <ng-container [ngSwitch]="childCol.key">
                                                     <ng-container *ngSwitchCase="'identifier'">
                                                         <strong>{{ child[childCol.key] }}</strong>
@@ -275,7 +358,7 @@
                 multiTemplateDataRows *ngIf="currentViewMode === 'product'">
 
                 <!-- Cột cha: dùng vòng lặp -->
-                <ng-container *ngFor="let col of productParentColumns" [matColumnDef]="col.key">
+                <ng-container *ngFor="let col of viewColumns.productParent" [matColumnDef]="col.key">
                     <th mat-header-cell *matHeaderCellDef>
                         <ng-container [ngSwitch]="col.key">
                             <!-- Cột mở rộng -->
@@ -330,19 +413,19 @@
 
                 <!-- Cột mở rộng chi tiết -->
                 <ng-container matColumnDef="expandedDetail">
-                    <td mat-cell *matCellDef="let item" [attr.colspan]="productParentColumns.length">
+                    <td mat-cell *matCellDef="let item" [attr.colspan]="productParentColumnKeys.length">
                         <div class="child-detail" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
                             <div class="child-table-container" *ngIf="item.expanded">
                                 <h4 class="child-title">Chi tiết theo từng PO/KH - {{ item.identifier }}</h4>
                                 <table class="child-table">
                                     <thead>
                                         <tr>
-                                            <th *ngFor="let childCol of productChildColumns">{{ childCol.label }}</th>
+                                            <th *ngFor="let childCol of viewColumns.productChild">{{ childCol.label }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr *ngFor="let child of item.children">
-                                            <td *ngFor="let childCol of productChildColumns">
+                                            <td *ngFor="let childCol of viewColumns.productChild">
                                                 <ng-container [ngSwitch]="childCol.key">
                                                     <ng-container *ngSwitchCase="'calculatedStatus'">
                                                         <span class="status-badge"
@@ -378,7 +461,7 @@
                 multiTemplateDataRows *ngIf="currentViewMode === 'area'">
 
                 <!-- Cột cha: dùng vòng lặp -->
-                <ng-container *ngFor="let col of areaParentColumns" [matColumnDef]="col.key">
+                <ng-container *ngFor="let col of viewColumns.areaParent" [matColumnDef]="col.key">
                     <th mat-header-cell *matHeaderCellDef>
                         <ng-container [ngSwitch]="col.key">
                             <!-- Cột mở rộng -->
@@ -433,27 +516,30 @@
 
                 <!-- Cột mở rộng chi tiết -->
                 <ng-container matColumnDef="expandedDetail">
-                    <td mat-cell *matCellDef="let item" [attr.colspan]="areaParentColumns.length">
+                    <td mat-cell *matCellDef="let item" [attr.colspan]="areaParentColumnKeys.length">
                         <div class="child-detail" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
                             <div class="child-table-container" *ngIf="item.expanded">
                                 <h4 class="child-title">Chi tiết sản phẩm trong khu vực {{ item.locationId }}</h4>
                                 <table class="child-table">
                                     <thead>
-                                        <tr>
-                                            <th *ngFor="let childCol of areaChildColumns">{{ childCol.label }}</th>
+                                        <tr> <!-- header dùng viewColumns.areaChild để phản ánh visibility -->
+                                            <th *ngFor="let childCol of viewColumns.areaChild"
+                                                [hidden]="childCol.visible === false"> {{ childCol.label }} </th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr *ngFor="let child of item.children">
-                                            <td *ngFor="let childCol of areaChildColumns">
+                                            <!-- body dùng cùng viewColumns.areaChild -->
+                                            <td *ngFor="let childCol of viewColumns.areaChild"
+                                                [hidden]="childCol.visible === false">
                                                 <ng-container [ngSwitch]="childCol.key">
                                                     <ng-container *ngSwitchCase="'identifier'">
                                                         <strong>{{ child[childCol.key] }}</strong>
                                                     </ng-container>
                                                     <ng-container *ngSwitchCase="'calculatedStatus'">
                                                         <span class="status-badge"
-                                                            [ngClass]="getStatusClass(child.calculatedStatus)">
-                                                            {{ child.calculatedStatus }}
+                                                            [ngClass]="getStatusClass(child.calculatedStatus)"> {{
+                                                            child.calculatedStatus }}
                                                         </span>
                                                     </ng-container>
                                                     <ng-container *ngSwitchDefault>
@@ -484,7 +570,7 @@
                 multiTemplateDataRows *ngIf="currentViewMode === 'customer'">
 
                 <!-- Cột cha: dùng vòng lặp -->
-                <ng-container *ngFor="let col of customerParentColumns" [matColumnDef]="col.key">
+                <ng-container *ngFor="let col of viewColumns.customerParent" [matColumnDef]="col.key">
                     <th mat-header-cell *matHeaderCellDef>
                         <ng-container [ngSwitch]="col.key">
                             <!-- Cột mở rộng -->
@@ -539,19 +625,19 @@
 
                 <!-- Cột mở rộng chi tiết -->
                 <ng-container matColumnDef="expandedDetail">
-                    <td mat-cell *matCellDef="let item" [attr.colspan]="customerParentColumns.length">
+                    <td mat-cell *matCellDef="let item" [attr.colspan]="customerParentColumnKeys.length">
                         <div class="child-detail" [@detailExpand]="item.expanded ? 'expanded' : 'collapsed'">
                             <div class="child-table-container" *ngIf="item.expanded">
                                 <h4 class="child-title">Chi tiết sản phẩm của khách hàng {{ item.vendor }}</h4>
                                 <table class="child-table">
                                     <thead>
                                         <tr>
-                                            <th *ngFor="let childCol of customerChildColumns">{{ childCol.label }}</th>
+                                            <th *ngFor="let childCol of viewColumns.customerChild">{{ childCol.label }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr *ngFor="let child of item.children">
-                                            <td *ngFor="let childCol of customerChildColumns">
+                                            <td *ngFor="let childCol of viewColumns.customerChild">
                                                 <ng-container [ngSwitch]="childCol.key">
                                                     <ng-container *ngSwitchCase="'identifier'">
                                                         <strong>{{ child[childCol.key] }}</strong>
@@ -629,7 +715,7 @@
                     <div class="expandable-card" *ngFor="let item of customerDataSource"
                         [class.expanded]="item.expanded">
 
-                        <!-- Parent Card -->
+                        <!-- Cha Card -->
                         <div class="parent-card" (click)="toggleRow(item)">
                             <!-- Card Header -->
                             <div class="card-header">

@@ -202,7 +202,7 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
   allLocations: { id: number; code: string }[] = [];
   currentView = 'default';
 
-  
+
   // Columns cho các ViewMode
   poParentColumns = [
     { key: 'expand', label: '' },
@@ -352,7 +352,17 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
     { key: 'receivedDate', label: 'Ngày nhập', visible: true, filterable: false },
     { key: 'updatedDate', label: 'Ngày cập nhật', visible: true, filterable: false },
   ];
-
+  viewColumns: any = {
+    default: this.allColumns.map(c => ({ ...c })),
+    poParent: this.poParentColumns.map(c => ({ ...c, visible: true })),
+    poChild: this.poChildColumns.map(c => ({ ...c, visible: true })),
+    productParent: this.productParentColumns.map(c => ({ ...c, visible: true })),
+    productChild: this.productChildColumns.map(c => ({ ...c, visible: true })),
+    areaParent: this.areaParentColumns.map(c => ({ ...c, visible: true })),
+    areaChild: this.areaChildColumns.map(c => ({ ...c, visible: true })),
+    customerParent: this.customerParentColumns.map(c => ({ ...c, visible: true })),
+    customerChild: this.customerChildColumns.map(c => ({ ...c, visible: true })),
+  };
 
   // Data sources
   warehouseList: WarehouseItem[] = [];
@@ -363,7 +373,7 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
   filteredList: WarehouseItem[] | undefined;
 
   private statusMap: Record<string, string> = { available: 'Có sẵn', reserved: 'Đã giữ', pending: 'Chờ xử lý', damaged: 'Hỏng', unavailable: 'Hết hàng', };
-
+  private prefsKeyPrefix = 'qlk_cols_';
   constructor(
     private dialog: MatDialog,
     private inventoryService: InventoryGraphqlService,
@@ -384,6 +394,7 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
         },
         error: (err) => console.error('[getLocations] Error:', err)
       });
+    this.loadColumnPrefsForCurrentView();
     this.updateDisplayedColumns();
     this.loadData();
   }
@@ -391,6 +402,32 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+  getCurrentColumnSetName(): string {
+    switch (this.currentViewMode) {
+      case 'po': return 'poParent';
+      case 'product': return 'productParent';
+      case 'area': return 'areaParent';
+      case 'customer': return 'customerParent';
+      default: return 'default';
+    }
+  }
+  getCurrentColumns(viewPart: 'parent' | 'child' = 'parent'): any[] {
+    if (this.currentViewMode === 'default') {
+      return this.viewColumns.default;
+    }
+    switch (this.currentViewMode) {
+      case 'po':
+        return viewPart === 'parent' ? this.viewColumns.poParent : this.viewColumns.poChild;
+      case 'product':
+        return viewPart === 'parent' ? this.viewColumns.productParent : this.viewColumns.productChild;
+      case 'area':
+        return viewPart === 'parent' ? this.viewColumns.areaParent : this.viewColumns.areaChild;
+      case 'customer':
+        return viewPart === 'parent' ? this.viewColumns.customerParent : this.viewColumns.customerChild;
+      default:
+        return this.viewColumns.default;
+    }
   }
 
   /**
@@ -532,22 +569,10 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
   /**
    * Load view nhóm (area, po, customer, product)
    */
-  get poParentColumnKeys(): string[] {
-    return this.poParentColumns.map(c => c.key);
-  }
-
-  get productParentColumnKeys(): string[] {
-    return this.productParentColumns.map(c => c.key);
-  }
-
-  get areaParentColumnKeys(): string[] {
-    return this.areaParentColumns.map(c => c.key);
-  }
-
-  get customerParentColumnKeys(): string[] {
-    return this.customerParentColumns.map(c => c.key);
-  }
-
+  get poParentColumnKeys(): string[] { return (this.viewColumns.poParent || []).filter((c: any) => c.visible !== false).map((c: any) => c.key); }
+  get productParentColumnKeys(): string[] { return (this.viewColumns.productParent || []).filter((c: any) => c.visible !== false).map((c: any) => c.key); }
+  get areaParentColumnKeys(): string[] { return (this.viewColumns.areaParent || []).filter((c: any) => c.visible !== false).map((c: any) => c.key); }
+  get customerParentColumnKeys(): string[] { return (this.viewColumns.customerParent || []).filter((c: any) => c.visible !== false).map((c: any) => c.key); }
 
   /**
  * Load view nhóm (area, po, customer, product)
@@ -849,18 +874,35 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
     });
   }
 
-  private getAreaIdByCode(areaCode: string): number | null {
-    // TODO: Implement mapping từ area code sang area ID
-    // Có thể cache mapping này hoặc call API riêng
-    return null;
+  saveColumnPrefsForCurrentView(): void {
+    const view = this.currentViewMode || 'default';
+    const payload: any = {}; if (view === 'default') {
+      payload.default = this.viewColumns.default.map((c: any) => ({ key: c.key, visible: !!c.visible }));
+    }
+    else if (view === 'po') {
+      payload.poParent = this.viewColumns.poParent.map((c: any) => ({ key: c.key, visible: !!c.visible }));
+      payload.poChild = this.viewColumns.poChild.map((c: any) => ({ key: c.key, visible: !!c.visible }));
+    }
+    else if (view === 'product') {
+      payload.productParent = this.viewColumns.productParent.map((c: any) => ({ key: c.key, visible: !!c.visible }));
+      payload.productChild = this.viewColumns.productChild.map((c: any) => ({ key: c.key, visible: !!c.visible }));
+    } else if (view === 'area') {
+      payload.areaParent = this.viewColumns.areaParent.map((c: any) => ({ key: c.key, visible: !!c.visible }));
+      payload.areaChild = this.viewColumns.areaChild.map((c: any) => ({ key: c.key, visible: !!c.visible }));
+    } else if (view === 'customer') {
+      payload.customerParent = this.viewColumns.customerParent.map((c: any) => ({ key: c.key, visible: !!c.visible }));
+      payload.customerChild = this.viewColumns.customerChild.map((c: any) => ({ key: c.key, visible: !!c.visible }));
+    }
+    localStorage.setItem(this.prefsKeyPrefix + (this.currentViewMode || 'default'), JSON.stringify(payload));
   }
-
   /**
    * View mode handling
    */
   onSelectView(viewMode: 'area' | 'po' | 'customer' | 'product'): void {
     this.currentViewMode = viewMode;
     this.currentPage = 1;
+    this.loadColumnPrefsForCurrentView();
+    this.updateDisplayedColumns();
     this.loadData();
     console.log('Selected view mode:', viewMode);
   }
@@ -874,11 +916,53 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
   };
 
   updateDisplayedColumns(): void {
-    this.displayedColumns = this.allColumns
-      .filter((col) => col.visible)
-      .map((col) => col.key);
+    if (this.currentViewMode === 'default') {
+      this.displayedColumns = this.viewColumns.default.filter((col: any) =>
+        col.visible !== false)
+        .map((col: any) => col.key);
+    } else {
+
+      const setName = this.getCurrentColumnSetName(); const cols = this.viewColumns[setName] || [];
+      this.displayedColumns = cols.filter((c: any) => c.visible !== false).map((c: any) => c.key);
+    } try { this.cdr.detectChanges(); } catch (e) { /* ignore */ }
+  }
+  onColumnVisibilityChange(groupName: string): void {
+
+    if (groupName === 'default' && this.currentViewMode === 'default') {
+      this.updateDisplayedColumns();
+    } else if (
+      this.currentViewMode === 'po' && (groupName === 'poParent' || groupName === 'poChild')
+    ) {
+      this.updateDisplayedColumns();
+    } else {
+      this.updateDisplayedColumns();
+
+    }
+  }
+  loadColumnPrefsForCurrentView(): void {
+    const view = this.currentViewMode || 'default'; const raw = localStorage.getItem(this.prefsKeyPrefix + view); if (!raw) {
+      this.updateDisplayedColumns(); return;
+    } try {
+      const payload = JSON.parse(raw);
+      if (payload.default && this.viewColumns.default) { payload.default.forEach((p: any) => { const c = this.viewColumns.default.find((x: any) => x.key === p.key); if (c) c.visible = !!p.visible; }); }
+      if (payload.poParent && this.viewColumns.poParent) { payload.poParent.forEach((p: any) => { const c = this.viewColumns.poParent.find((x: any) => x.key === p.key); if (c) c.visible = !!p.visible; }); }
+      if (payload.poChild && this.viewColumns.poChild) { payload.poChild.forEach((p: any) => { const c = this.viewColumns.poChild.find((x: any) => x.key === p.key); if (c) c.visible = !!p.visible; }); }
+      if (payload.productParent && this.viewColumns.productParent) { payload.productParent.forEach((p: any) => { const c = this.viewColumns.productParent.find((x: any) => x.key === p.key); if (c) c.visible = !!p.visible; }); }
+      if (payload.productChild && this.viewColumns.productChild) { payload.productChild.forEach((p: any) => { const c = this.viewColumns.productChild.find((x: any) => x.key === p.key); if (c) c.visible = !!p.visible; }); }
+      if (payload.areaParent && this.viewColumns.areaParent) { payload.areaParent.forEach((p: any) => { const c = this.viewColumns.areaParent.find((x: any) => x.key === p.key); if (c) c.visible = !!p.visible; }); }
+      if (payload.areaChild && this.viewColumns.areaChild) { payload.areaChild.forEach((p: any) => { const c = this.viewColumns.areaChild.find((x: any) => x.key === p.key); if (c) c.visible = !!p.visible; }); }
+      if (payload.customerParent && this.viewColumns.customerParent) { payload.customerParent.forEach((p: any) => { const c = this.viewColumns.customerParent.find((x: any) => x.key === p.key); if (c) c.visible = !!p.visible; }); }
+      if (payload.customerChild && this.viewColumns.customerChild) { payload.customerChild.forEach((p: any) => { const c = this.viewColumns.customerChild.find((x: any) => x.key === p.key); if (c) c.visible = !!p.visible; }); }
+
+      this.updateDisplayedColumns();
+    } catch (e) { console.warn('[loadColumnPrefsForCurrentView] parse error', e); this.updateDisplayedColumns(); }
   }
 
+  resetColumnsForCurrentView(): void {
+    const view = this.currentViewMode || 'default';
+    localStorage.removeItem(this.prefsKeyPrefix + view);
+    if (view === 'default') { this.viewColumns.default = this.allColumns.map(c => ({ ...c })); } else if (view === 'po') { this.viewColumns.poParent = this.poParentColumns.map(c => ({ ...c, visible: true })); this.viewColumns.poChild = this.poChildColumns.map(c => ({ ...c, visible: true })); } else if (view === 'product') { this.viewColumns.productParent = this.productParentColumns.map(c => ({ ...c, visible: true })); this.viewColumns.productChild = this.productChildColumns.map(c => ({ ...c, visible: true })); } else if (view === 'area') { this.viewColumns.areaParent = this.areaParentColumns.map(c => ({ ...c, visible: true })); this.viewColumns.areaChild = this.areaChildColumns.map(c => ({ ...c, visible: true })); } else if (view === 'customer') { this.viewColumns.customerParent = this.customerParentColumns.map(c => ({ ...c, visible: true })); this.viewColumns.customerChild = this.customerChildColumns.map(c => ({ ...c, visible: true })); } this.updateDisplayedColumns();
+  }
   /**
    * Mobile filter handling
    */

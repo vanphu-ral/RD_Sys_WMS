@@ -53,6 +53,7 @@ import { BoxListDialogComponent } from './nhap-kho/dialog/box-list-dialog.compon
 import { MatDialogContent } from '@angular/material/dialog';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatDividerModule } from '@angular/material/divider';
 
 @NgModule({
   declarations: [
@@ -78,6 +79,7 @@ import { MatTabsModule } from '@angular/material/tabs';
     RouterLinkWithHref,
     MatSelectModule,
     MatProgressBarModule,
+    MatDividerModule,
     // ApolloModule,
     FormsModule,
     MatTabsModule,
