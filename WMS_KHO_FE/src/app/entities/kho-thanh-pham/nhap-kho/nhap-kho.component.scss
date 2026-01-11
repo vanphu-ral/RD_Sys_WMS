@@ -289,7 +289,15 @@
   background-color: #fed7aa !important;
   color: #ea580c !important;
 }
-
+.status-partial-label {
+  background-color: #fff3e0;
+  color: #f57c00;
+  border: 1px solid #ffb74d;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
 .multi-icon {
   display: inline-flex;
   align-items: center;

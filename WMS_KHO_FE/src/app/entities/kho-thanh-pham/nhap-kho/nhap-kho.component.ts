@@ -168,8 +168,13 @@ export class NhapKhoComponent {
     });
   }
 
-  getStatusClass(status: boolean): string {
-    return status ? 'status-active-label' : 'status-warn-label';
+  getStatusClass(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'Chờ nhập': 'status-warn-label',
+      'Đã nhập': 'status-active-label',
+      'Đã nhập lẻ': 'status-partial-label'  // Thêm class mới
+    };
+    return statusMap[status] || 'status-warn-label';
   }
 
   computeProgressPercent(item: NhapKhoItem): number {
@@ -552,11 +557,33 @@ export class NhapKhoComponent {
       this.debugLogs = this.debugLogs.slice(0, 50);
     }
   }
+  getDisplayStatus(item: NhapKhoItem): string {
+    const total = Number(item.number_of_box ?? 0);
+    const scanned = Number(item.box_scan_progress ?? 0);
+
+    // Nếu chưa scan gì
+    if (scanned === 0) {
+      return 'Chờ nhập';
+    }
+
+    // Nếu đã scan hết
+    if (scanned >= total && total > 0) {
+      return 'Đã nhập';
+    }
+
+    // Nếu đã scan 1 phần (1/3, 2/3, ...)
+    if (scanned > 0 && scanned < total) {
+      return 'Đã nhập lẻ';
+    }
+
+    // Fallback
+    return 'Chờ nhập';
+  }
   applyFilter(): void {
     const filtered = this.originalList.filter((item) => {
-      const statusText = item.status ? 'Đã nhập' : 'Chờ nhập';
+      // Tính trạng thái động
+      const displayStatus = this.getDisplayStatus(item);
 
-      // Kiểm tra từng trường - chỉ filter khi có giá trị
       const matchInventoryName = !this.filterValues.inventory_name ||
         item.inventory_name?.toLowerCase().includes(this.filterValues.inventory_name.toLowerCase());
 
@@ -575,22 +602,18 @@ export class NhapKhoComponent {
       const updatedBy = !this.filterValues.updated_by ||
         item.updated_by?.toLowerCase().includes(this.filterValues.updated_by.toLowerCase());
 
+      // Sử dụng displayStatus thay vì statusText cũ
       const matchStatus = !this.filterValues.status ||
-        statusText.toLowerCase().includes(this.filterValues.status.toLowerCase());
+        displayStatus === this.filterValues.status;
 
       return matchInventoryName && matchLotNumber && matchWoCode &&
         matchPoNumber && matchClientId && matchStatus && updatedBy;
     });
 
-    // Cập nhật filteredList
     this.filteredList = filtered;
-
-    // Cập nhật pagination
     this.totalItems = this.filteredList.length;
     this.totalPages = Math.ceil(this.totalItems / this.pageSize);
     this.currentPage = 1;
-
-    // Slice để hiển thị
     this.slicePage();
   }
 

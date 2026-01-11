@@ -61,6 +61,8 @@ export class AppComponent implements OnInit, OnDestroy {
     baocao: false
   };
 
+  isCheckingAuth = true;
+
   private routerSubscription: Subscription | undefined;
   private authSubscription?: Subscription;
   private usernameSubscription?: Subscription;
@@ -82,7 +84,85 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.sidebarservice.getSidebarState();
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    console.log('[AppComponent] Initializing app...');
+
+    // Bỏ qua nếu đang ở callback route
+    const isCallback = window.location.pathname.includes('/auth/callback');
+    if (isCallback) {
+      console.log('[AppComponent] In callback flow, skip auto login');
+      this.isCheckingAuth = false;
+      this.initializeApp();
+      return;
+    }
+
+    // Kiểm tra đã có token hợp lệ chưa
+    const isAuthenticated = this.authService.isAuthenticated();
+
+    if (!isAuthenticated) {
+      console.log('[AppComponent] No valid token, attempting silent login...');
+
+      try {
+        const silentSuccess = await this.authService.trySilentLogin();
+
+        if (silentSuccess) {
+          console.log('[AppComponent] Silent login successful - User auto-logged in from SSO');
+
+          // Delay nhỏ để token được lưu vào localStorage
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          // Reload route để AuthGuard nhận token mới
+          const currentUrl = this.router.url;
+          if (currentUrl && currentUrl !== '/' && currentUrl !== '/home') {
+            console.log('[AppComponent] Reloading protected route:', currentUrl);
+            this.router.navigateByUrl('/', { skipLocationChange: true })
+              .then(() => this.router.navigateByUrl(currentUrl));
+          }
+        } else {
+          console.log('[AppComponent] Silent login failed - User needs manual login');
+        }
+      } catch (error) {
+        console.error('[AppComponent] Silent login error:', error);
+      }
+    } else {
+      console.log('[AppComponent] Already authenticated');
+    }
+
+    this.isCheckingAuth = false;
+    this.initializeApp();
+  }
+  ngOnDestroy(): void {
+    // Cleanup subscriptions
+    if (this.routerSubscription) {
+      this.routerSubscription.unsubscribe();
+    }
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+    }
+    if (this.usernameSubscription) {
+      this.usernameSubscription.unsubscribe();
+    }
+  }
+  //login
+  checkLoginStatus(): void {
+    this.isLoggedIn = !!localStorage.getItem('access_token');
+    if (this.isLoggedIn) {
+      this.username = localStorage.getItem('username') || 'User';
+    }
+  }
+  //logout
+  login() {
+    this.authService.initiateLogin();
+  }
+
+  logout() {
+    this.authService.logout().subscribe(() => {
+      this.router.navigate(['/home']);
+    });
+  }
+
+  private initializeApp(): void {
+    // Subscribe auth state
     this.authSubscription = this.authService.isLoggedIn$.subscribe(
       (isLoggedIn) => {
         console.log('[AppComponent] Login state changed:', isLoggedIn);
@@ -97,7 +177,7 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     );
 
-    // Router subscription (giữ nguyên code cũ)
+    // Router subscription
     this.routerSubscription = this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
@@ -145,35 +225,6 @@ export class AppComponent implements OnInit, OnDestroy {
           });
         }
       });
-  }
-  ngOnDestroy(): void {
-    // Cleanup subscriptions
-    if (this.routerSubscription) {
-      this.routerSubscription.unsubscribe();
-    }
-    if (this.authSubscription) {
-      this.authSubscription.unsubscribe();
-    }
-    if (this.usernameSubscription) {
-      this.usernameSubscription.unsubscribe();
-    }
-  }
-  //login
-  checkLoginStatus(): void {
-    this.isLoggedIn = !!localStorage.getItem('access_token');
-    if (this.isLoggedIn) {
-      this.username = localStorage.getItem('username') || 'User';
-    }
-  }
-  //logout
-  login() {
-    this.authService.initiateLogin();
-  }
-
-  logout() {
-    this.authService.logout().subscribe(() => {
-      this.router.navigate(['/home']);
-    });
   }
 
   private generateLabelFromPath(path: string): string {

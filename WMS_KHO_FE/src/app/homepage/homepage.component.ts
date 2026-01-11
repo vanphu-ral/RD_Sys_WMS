@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
+import { take } from 'rxjs';
 
 interface MenuItem {
   title: string;
@@ -26,7 +27,9 @@ export class HomepageComponent implements OnInit {
   isLoggedIn = false;
   isLoggedIn$ = this.authService.isLoggedIn$;
   username$ = this.authService.username$;
+  private hasTriedSilentLogin = false;
   private isProcessingToken = false;
+  isCheckingAuth = true;
 
   menuItems: MenuItem[] = [
     {
@@ -102,31 +105,61 @@ export class HomepageComponent implements OnInit {
     private authService: AuthService
   ) { }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    console.log('[HomePage] Initializing...');
+
+    // Kiểm tra callback parameters trước
+    const queryParams = await this.route.queryParams.pipe(take(1)).toPromise();
+    const code = queryParams?.['code'];
+    const error = queryParams?.['error'];
+
+    if (error) {
+      console.error('Keycloak error:', queryParams['error_description']);
+      alert('Lỗi đăng nhập: ' + queryParams['error_description']);
+      this.isCheckingAuth = false;
+      return;
+    }
+
+    if (code && !this.isProcessingToken) {
+      console.log('[HomePage] Processing authorization code...');
+      this.isProcessingToken = true;
+      this.exchangeCodeForToken(code);
+      return;
+    }
+
+    // Kiểm tra đã authenticated chưa
     this.isLoggedIn = this.authService.isAuthenticated();
 
-    this.route.queryParams.subscribe((params) => {
-      const code = params['code'];
-      const error = params['error'];
+    // Nếu chưa login, thử silent login NGAY
+    if (!this.isLoggedIn && !this.hasTriedSilentLogin) {
+      console.log('[HomePage] Not authenticated, trying silent login...');
+      this.hasTriedSilentLogin = true;
 
-      if (error) {
-        console.error('Keycloak error:', params['error_description']);
-        alert('Lỗi đăng nhập: ' + params['error_description']);
-        return;
-      }
+      try {
+        const silentSuccess = await this.authService.trySilentLogin();
 
-      if (code && !this.isProcessingToken) {
-        console.log('[HomePage] Processing authorization code...');
-        this.isProcessingToken = true;
-        this.exchangeCodeForToken(code);
-        return;
-      }
+        if (silentSuccess) {
+          console.log('[HomePage] Silent login successful - Auto logged in from SSO');
 
-      if (this.isLoggedIn && !code) {
-        console.log('[HomePage] Already logged in, redirecting to areas...');
-        // Không tự động redirect nữa, để user chọn từ menu
+          // Delay để token được lưu
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          // CẬP NHẬT STATE quan trọng
+          this.isLoggedIn = this.authService.isAuthenticated();
+
+          console.log('[HomePage] User auto-authenticated, isLoggedIn:', this.isLoggedIn);
+        } else {
+          console.log('[HomePage] Silent login failed - User needs to click login button');
+        }
+      } catch (error) {
+        console.error('[HomePage] Silent login error:', error);
       }
-    });
+    } else if (this.isLoggedIn) {
+      console.log('[HomePage] Already logged in');
+    }
+
+    // Kết thúc checking
+    this.isCheckingAuth = false;
   }
 
   exchangeCodeForToken(code: string): void {

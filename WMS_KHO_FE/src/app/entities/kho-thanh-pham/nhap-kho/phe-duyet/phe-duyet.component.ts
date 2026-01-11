@@ -375,13 +375,13 @@ export class PheDuyetComponent implements OnInit {
 
     const boxNotScanned = (this.pagedBoxList || []).some((b: any) => !this.isBoxScanned(b));
 
-    if (palletNotScanned || boxNotScanned) {
-      this.snackBar.open('Vui lòng scan tất cả pallet/thùng trước khi phê duyệt', 'Đóng', {
-        duration: 4000,
-        panelClass: ['snackbar-error'],
-      });
-      return;
-    }
+    // if (palletNotScanned || boxNotScanned) {
+    //   this.snackBar.open('Vui lòng scan tất cả pallet/thùng trước khi phê duyệt', 'Đóng', {
+    //     duration: 4000,
+    //     panelClass: ['snackbar-error'],
+    //   });
+    //   return;
+    // }
 
     // Kiểm tra nếu tất cả đã confirmed rồi -> thông báo và dừng
     const allPalletsConfirmed = (this.detailList || []).every((p: any) => p.confirmed === true);
@@ -394,13 +394,13 @@ export class PheDuyetComponent implements OnInit {
       return listBox.every((b: any) => b.confirmed === true);
     });
 
-    if (allPalletsConfirmed && allBoxesConfirmed && nestedBoxesConfirmed) {
-      this.snackBar.open('Yêu cầu này đã được phê duyệt trước đó.', 'Đóng', {
-        duration: 4000,
-        panelClass: ['snackbar-success'],
-      });
-      return;
-    }
+    // if (nestedBoxesConfirmed) {
+    //   this.snackBar.open('Yêu cầu này đã được phê duyệt trước đó.', 'Đóng', {
+    //     duration: 3000,
+    //     panelClass: ['snackbar-success'],
+    //   });
+    //   return;
+    // }
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '420px',
@@ -438,7 +438,6 @@ export class PheDuyetComponent implements OnInit {
   private computeBoxScanProgress(): number {
     let count = 0;
 
-    // Kiểm tra pallet đã scan (dựa trên scan_status hoặc scanStatus text)
     const isPalletScanned = (p: any): boolean => {
       if (!p) return false;
       if (p.scan_status === true) return true;
@@ -446,51 +445,29 @@ export class PheDuyetComponent implements OnInit {
       return false;
     };
 
-    // Kiểm tra box đã scan (hỗ trợ cả snake_case từ API và camelCase bạn map)
-    const isBoxScannedFromApi = (b: any): boolean => {
+    const isBoxTimeChecked = (b: any): boolean => {
       if (!b) return false;
-      // time_checked (API) hoặc timeChecked (map)
-      const hasTimeChecked = !!(b.time_checked ?? b.timeChecked);
-      const scanBy = !!(b.scan_by ?? b.scanBy);
-      const scanStatus = b.scan_status === true || b.scanStatus === true;
-      const confirmed = b.confirmed === true || b.confirm === true;
-      return hasTimeChecked || scanBy || scanStatus || confirmed;
+      return !!(b.time_checked ?? b.timeChecked);
     };
 
-    // 1) Đếm từ detailList (những pallet có palletCode)
+    // 1) Mỗi pallet có 1 box đi kèm → chỉ cộng nếu pallet đã scan
     for (const p of this.detailList || []) {
-      const listBox = Array.isArray(p.listBox) ? p.listBox : [];
-
-      if (listBox.length > 0) {
-        for (const b of listBox) {
-          // listBox có thể chứa object từ API (snake_case) hoặc đã map; dùng isBoxScannedFromApi
-          if (isBoxScannedFromApi(b) || isPalletScanned(p)) {
-            count++;
-          }
-        }
-      } else {
-        // pallet có boxesInPallet nhưng không có listBox: nếu pallet được đánh scan thì cộng boxesInPallet
-        const boxesFromNum = Number(p.boxesInPallet ?? 0);
-        if (boxesFromNum > 0 && isPalletScanned(p)) {
-          count += boxesFromNum;
-        }
+      if (isPalletScanned(p)) {
+        count += 1;
       }
     }
 
-    // 2) Đếm các box độc lập trong pagedBoxList (những pallet không có serial được map thành box riêng)
+    // 2) Box độc lập (không thuộc pallet) → chỉ cộng nếu có time_checked
     for (const b of this.pagedBoxList || []) {
-      // pagedBoxList dùng interface BoxItem: timeChecked, scanBy, confirm
-      const hasTimeChecked = !!(b.timeChecked ?? '');
-      const hasScanBy = !!(b.scanBy ?? '');
-      const confirmed = b.confirm === true;
-      if (hasTimeChecked || hasScanBy || confirmed) {
-        count++;
+      const belongsToPallet =
+        !!( b.importPalletId);
+      if (!belongsToPallet && isBoxTimeChecked(b)) {
+        count += 1;
       }
     }
 
     return count;
   }
-
 
 
   private executeApprove(): void {
@@ -503,38 +480,41 @@ export class PheDuyetComponent implements OnInit {
     const username = this.authService.getUsername();
 
     // --- Chuẩn bị danh sách chỉ gồm những pallet/box CHƯA confirmed ---
+    // Pallet
     const palletsToConfirm = (this.detailList || [])
-      .filter((p: any) => p.confirmed !== true)
+      .filter((p: any) => {
+        const palletScanned =
+          p.scan_status === true ||
+          ((p.scanStatus ?? '').toString().toLowerCase().includes('đã'));
+        return palletScanned && p.confirmed !== true;
+      })
       .map((p: any) => ({
         id: p.id,
         serial_pallet: p.serial_pallet ?? p.palletCode ?? p.pallet_code,
         confirmed: true
       }));
 
-    // Lấy box từ pagedBoxList (các box độc lập trên trang)
+    // Box độc lập
     const boxesToConfirmFromPaged = (this.pagedBoxList || [])
-      .filter((b: any) => b.confirmed !== true)
+      .filter((b: any) => this.isBoxScanned(b) && b.confirmed !== true)
       .map((b: any) => ({
         id: b.id,
         box_code: b.box_code ?? b.boxCode,
         confirmed: true
       }));
 
-    // Lấy box từ nested list trong detailList (nếu có)
-    const boxesToConfirmFromPallets: any[] = [];
-    (this.detailList || []).forEach((p: any) => {
-      const listBox = Array.isArray(p.listBox) ? p.listBox : (Array.isArray(p.list_box) ? p.list_box : []);
-      listBox.forEach((b: any) => {
-        if (b.confirmed !== true) {
-          boxesToConfirmFromPallets.push({
-            id: b.id,
-            box_code: b.box_code ?? b.boxCode ?? b.boxCode,
-            import_pallet_id: b.import_pallet_id ?? b.importPalletId ?? p.id,
-            confirmed: true
-          });
-        }
-      });
+    // Box trong pallet
+    const boxesToConfirmFromPallets: any[] = []; (this.detailList || []).forEach((p: any) => {
+      const palletScanned = p.scan_status === true || ((p.scanStatus ?? '').toString().toLowerCase().includes('đã'));
+      if (palletScanned) {
+        const listBox = Array.isArray(p.listBox) ? p.listBox : (Array.isArray(p.list_box) ? p.list_box : []); listBox.forEach((b: any) => {
+          if (this.isBoxScanned(b) && b.confirmed !== true) {
+            boxesToConfirmFromPallets.push({ id: b.id, box_code: b.box_code ?? b.boxCode, import_pallet_id: b.import_pallet_id ?? b.importPalletId ?? p.id, confirmed: true });
+          }
+        });
+      }
     });
+
 
     // Nếu không có gì để confirm (đã được kiểm tra trước nhưng double-check)
     if (palletsToConfirm.length === 0 && boxesToConfirmFromPaged.length === 0 && boxesToConfirmFromPallets.length === 0) {

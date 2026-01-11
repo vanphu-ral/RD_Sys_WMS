@@ -4,8 +4,14 @@
     <h1>Hệ thống quản lý kho</h1>
   </div>
 
-  <!-- Login Section -->
-  <div *ngIf="!isLoggedIn" class="login-section">
+  <!-- Loading Section khi đang check auth -->
+  <div *ngIf="isCheckingAuth" class="checking-section">
+    <mat-icon class="spinner-icon">hourglass_empty</mat-icon>
+    <p>Đang kiểm tra đăng nhập...</p>
+  </div>
+
+  <!-- Login Section chỉ hiện khi ĐÃ CHECK XONG và CHƯA LOGIN -->
+  <div *ngIf="!isCheckingAuth && !isLoggedIn" class="login-section">
     <p>Vui lòng đăng nhập để sử dụng các chức năng của hệ thống.</p>
     <button mat-raised-button color="primary" (click)="login()">
       <mat-icon>login</mat-icon>
@@ -13,8 +19,8 @@
     </button>
   </div>
 
-  <!-- Menu Section -->
-  <div *ngIf="isLoggedIn" class="menu-section">
+  <!-- Menu Section chỉ hiện khi ĐÃ LOGIN -->
+  <div *ngIf="!isCheckingAuth && isLoggedIn" class="menu-section">
     <div class="user-greeting">
       <p>Xin chào, <b>{{ username$ | async }}</b></p>
       <button mat-icon-button color="accent" (click)="logout()" class="logout-btn">
