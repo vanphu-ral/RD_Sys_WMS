@@ -15,7 +15,7 @@
     <mat-dialog-content>
         <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
         
-        <!-- Scan Mode Selection -->
+        <!-- Scan Mode Selection - Ẩn button Pallet khi mode = check -->
         <div class="mode-section">
             <div class="section-title">
                 <mat-icon>qr_code_2</mat-icon>
@@ -23,13 +23,18 @@
             </div>
 
             <div class="mode-buttons">
-                <button *ngIf="mode !== 'update'" mat-raised-button class="mode-btn"
-                    [class.active]="selectedScanMode === 'pallet'" (click)="toggleScanMode('pallet')">
+                <button *ngIf="mode !== 'update' && mode !== 'check'" 
+                    mat-raised-button 
+                    class="mode-btn"
+                    [class.active]="selectedScanMode === 'pallet'" 
+                    (click)="toggleScanMode('pallet')">
                     <mat-icon>inventory_2</mat-icon>
                     Pallet
                 </button>
 
-                <button mat-raised-button class="mode-btn" [class.active]="selectedScanMode === 'box'"
+                <button mat-raised-button 
+                    class="mode-btn" 
+                    [class.active]="selectedScanMode === 'box'"
                     (click)="toggleScanMode('box')">
                     <mat-icon>widgets</mat-icon>
                     Thùng
@@ -37,17 +42,21 @@
             </div>
         </div>
 
-        <!-- ✅ SCAN INPUTS - LUÔN HIỂN THỊ SAU KHI CHỌN MODE -->
+        <!-- SCAN INPUTS - LUÔN HIỂN THỊ SAU KHI CHỌN MODE -->
         <div class="scan-inputs" *ngIf="selectedScanMode">
             <div class="input-with-camera">
                 <mat-form-field class="scan-field" appearance="outline">
                     <mat-label>{{ selectedScanMode === 'pallet' ? 'Pallet scan...' : 'Box scan...' }}</mat-label>
-                    <input matInput [(ngModel)]="palletScan" #palletInput
+                    <input matInput 
+                        [(ngModel)]="palletScan" 
+                        #palletInput
                         (keydown.enter)="mode === 'transfer' ? focusLocationInput() : onScanComplete()"
                         inputmode="none" />
                 </mat-form-field>
 
-                <button mat-icon-button class="camera-btn" (click)="openCameraScanner('pallet')"
+                <button mat-icon-button 
+                    class="camera-btn" 
+                    (click)="openCameraScanner('pallet')"
                     matTooltip="Quét bằng camera">
                     <mat-icon>photo_camera</mat-icon>
                 </button>
@@ -56,11 +65,16 @@
             <div class="input-with-camera" *ngIf="mode === 'transfer'">
                 <mat-form-field class="scan-field" appearance="outline">
                     <mat-label>Tên kho chuyển đến...</mat-label>
-                    <input matInput [(ngModel)]="locationScan" #locationInput (keydown.enter)="onScanComplete()"
+                    <input matInput 
+                        [(ngModel)]="locationScan" 
+                        #locationInput 
+                        (keydown.enter)="onScanComplete()"
                         inputmode="none" />
                 </mat-form-field>
 
-                <button mat-icon-button class="camera-btn" (click)="openCameraScanner('location')"
+                <button mat-icon-button 
+                    class="camera-btn" 
+                    (click)="openCameraScanner('location')"
                     matTooltip="Quét location">
                     <mat-icon>photo_camera</mat-icon>
                 </button>
@@ -76,7 +90,7 @@
             </mat-form-field>
         </div>
 
-        <!-- ✅ INFORMATION SECTION - TỐI ƯU CHO MOBILE -->
+        <!-- INFORMATION SECTION - TỐI ƯU CHO MOBILE -->
         <div class="info-section" *ngIf="isInfoVisible && mode !== 'transfer'">
             <div class="section-title">
                 <mat-icon>info</mat-icon>
@@ -137,7 +151,7 @@
                     </div>
                     <div class="info-item">
                         <span class="info-label">Trạng thái:</span>
-                        <span class="info-value status-badge">{{ productInfo.trangThai }}</span>
+                        <span class="info-value status-badge" [ngClass]="getStatusClass(productInfo.trangThai)">{{ productInfo.trangThai }}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Số lượng hiện tại:</span>
@@ -188,7 +202,7 @@
                 </div>
             </div>
 
-            <!-- ✅ MOBILE VIEW - COMPACT CARD LAYOUT -->
+            <!-- MOBILE VIEW - COMPACT CARD LAYOUT -->
             <div class="info-mobile mobile-only">
                 <div class="info-card">
                     <div class="info-item-mobile">
@@ -222,7 +236,7 @@
                 <div class="info-card">
                     <div class="info-item-mobile">
                         <span class="label">Trạng thái</span>
-                        <span class="value status-badge">{{ productInfo.trangThai }}</span>
+                        <span class="value status-badge" [ngClass]="getStatusClass(productInfo.trangThai)">{{ productInfo.trangThai }}</span>
                     </div>
                     <div class="info-item-mobile">
                         <span class="label">SL hiện tại</span>
@@ -254,7 +268,7 @@
             </div>
         </div>
 
-        <!-- ✅ TRANSFER TABLE - DESKTOP VIEW -->
+        <!-- TRANSFER TABLE - DESKTOP VIEW -->
         <div class="transfer-table desktop-only" *ngIf="mode === 'transfer' && scannedItems.length > 0">
             <div class="section-title">
                 <mat-icon>list</mat-icon>
@@ -287,7 +301,7 @@
             </table>
         </div>
 
-        <!-- ✅ TRANSFER CARDS - MOBILE VIEW -->
+        <!-- TRANSFER CARDS - MOBILE VIEW -->
         <div class="transfer-cards mobile-only" *ngIf="mode === 'transfer' && scannedItems.length > 0">
             <div class="section-title">
                 <mat-icon>list</mat-icon>
@@ -326,8 +340,8 @@
 
     </mat-dialog-content>
 
-    <!-- ✅ ACTIONS - LUÔN HIỂN THỊ KHI CÓ DATA -->
-    <mat-dialog-actions align="end" *ngIf="isInfoVisible && (mode === 'update' || (mode === 'transfer' && scannedItems.length > 0))">
+    <!-- ACTIONS - Hiển thị cho cả desktop và mobile -->
+    <mat-dialog-actions align="end">
         <button mat-button (click)="onCancel()">Huỷ</button>
         <button mat-raised-button color="primary" class="save-btn" (click)="onSave()">
             <mat-icon>save</mat-icon>
@@ -341,7 +355,7 @@
 <div class="qr-scanner-overlay" *ngIf="isScanning" (click)="stopScanning()">
     <div class="qr-scanner-modal" (click)="$event.stopPropagation()">
         <div class="scanner-header">
-            <h3>Quét mã</h3>
+            <h3>{{ scanStep === 'pallet' ? 'Quét Pallet/Thùng' : 'Quét Location' }}</h3>
             <div class="scanner-actions">
                 <button mat-icon-button *ngIf="availableCameras.length > 1" (click)="switchCamera()"
                     matTooltip="Chuyển camera" class="switch-camera-btn">
@@ -353,6 +367,11 @@
             </div>
         </div>
         <div id="qr-reader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
-        <p class="scanner-hint">Đưa mã vào khung hình để quét</p>
+        <p class="scanner-hint">
+            {{ scanStep === 'pallet' ? 'Đưa mã pallet/thùng vào khung hình' : 'Đưa mã location vào khung hình' }}
+        </p>
+        <p class="scanner-step" *ngIf="mode === 'transfer' && isAutoScanMode">
+            Bước {{ scanStep === 'pallet' ? '1' : '2' }}/2
+        </p>
     </div>
 </div>

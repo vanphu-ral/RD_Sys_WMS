@@ -181,7 +181,6 @@
                             <mat-select [(ngModel)]="filterValues.status" (selectionChange)="applyFilter()"
                                 placeholder="Chọn trạng thái">
                                 <mat-option value="">Tất cả</mat-option>
-                                <mat-option value="Mới tạo">Mới tạo</mat-option>
                                 <mat-option value="Chờ nhập">Chờ nhập</mat-option>
                                 <mat-option value="Đã nhập">Đã nhập</mat-option>
                             </mat-select>
@@ -254,7 +253,7 @@
         <!-- Mobile Filters Panel -->
         <div class="mobile-filters" [class.show]="showMobileFilters">
             <mat-form-field class="filter-field" appearance="outline">
-                <mat-label>Tên kho</mat-label>
+                <mat-label>Tên sản phẩm</mat-label>
                 <input matInput [(ngModel)]="filterValues.inventory_name" (keyup.enter)="applyFilter()" />
                 <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
@@ -280,7 +279,6 @@
                 <mat-label>Trạng thái</mat-label>
                 <mat-select [(ngModel)]="filterValues.status" (selectionChange)="applyFilter()">
                     <mat-option value="">Tất cả</mat-option>
-                    <mat-option value="Mới tạo">Mới tạo</mat-option>
                     <mat-option value="Chờ nhập">Chờ nhập</mat-option>
                     <mat-option value="Đã nhập">Đã nhập</mat-option>
                 </mat-select>

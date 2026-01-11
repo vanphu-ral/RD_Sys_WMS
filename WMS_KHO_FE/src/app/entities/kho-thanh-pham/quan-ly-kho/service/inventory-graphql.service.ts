@@ -6,88 +6,88 @@ import { map, catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 
 export interface InventoryItem {
-    id: string;
-    identifier: string | null;
-    serialPallet: string | null;
-    locationId: number | null;
-    parentLocationId: number | null;
-    lastLocationId: number | null;
-    parentInventoryId: number | null;
-    expirationDate: string | null;
-    receivedDate: string | null;
-    updatedDate: string | null;
-    updatedBy: string | null;
-    calculatedStatus: string | null;
-    manufacturingDate: string | null;
-    initialQuantity: number | null;
-    availableQuantity: number | null;
-    quantity: number | null;
-    name: string | null;
-    sapCode: string | null;
-    po: string | null;
-    lot: string | null;
-    vendor: string | null;
-    msdLevel: string | null;
-    comments: string | null;
+  id: string;
+  identifier: string | null;
+  serialPallet: string | null;
+  locationId: number | null;
+  parentLocationId: number | null;
+  lastLocationId: number | null;
+  parentInventoryId: number | null;
+  expirationDate: string | null;
+  receivedDate: string | null;
+  updatedDate: string | null;
+  updatedBy: string | null;
+  calculatedStatus: string | null;
+  manufacturingDate: string | null;
+  initialQuantity: number | null;
+  availableQuantity: number | null;
+  quantity: number | null;
+  name: string | null;
+  sapCode: string | null;
+  po: string | null;
+  lot: string | null;
+  vendor: string | null;
+  msdLevel: string | null;
+  comments: string | null;
 }
 
 export interface PaginationMeta {
-    totalItems: number;
-    totalPages: number;
-    page: number;
-    size: number;
+  totalItems: number;
+  totalPages: number;
+  page: number;
+  size: number;
 }
 
 export interface AllInventoriesResponse {
-    data: InventoryItem[];
-    meta: PaginationMeta;
+  data: InventoryItem[];
+  meta: PaginationMeta;
 }
 
 export interface InventoryGroupedAreaItem {
-    groupKey: string;
-    groupValue: string;
-    totalAvailableQuantity: number;
-    itemCount: number;
-    totalUniqueProducts: number;
-    totalClients: number;
-    totalPos: number;
-    totalPallets: number;
-    totalContainers: number;
-    totalLocations: number;
+  groupKey: string;
+  groupValue: string;
+  totalAvailableQuantity: number;
+  itemCount: number;
+  totalUniqueProducts: number;
+  totalClients: number;
+  totalPos: number;
+  totalPallets: number;
+  totalContainers: number;
+  totalLocations: number;
 }
 export interface InventoryGroupedSapCodeItem {
-    groupKey: string;
-    groupValue: string;
-    totalAvailableQuantity: number;
-    totalInitialQuantity: number;
-    itemCount: number;
-    totalClients: number;
-    totalPos: number;
-    totalPallets: number;
-    totalContainers: number;
-    totalLocations: number;
-    lastUpdated: string;
-    lastReceived: string;
+  groupKey: string;
+  groupValue: string;
+  totalAvailableQuantity: number;
+  totalInitialQuantity: number;
+  itemCount: number;
+  totalClients: number;
+  totalPos: number;
+  totalPallets: number;
+  totalContainers: number;
+  totalLocations: number;
+  lastUpdated: string;
+  lastReceived: string;
 }
 export interface InventoryGroupedPoItem {
-    groupKey: string;
-    groupValue: string;
-    totalAvailableQuantity: number;
-    itemCount: number;
-    totalPos: number;
-    totalPallets: number;
+  groupKey: string;
+  groupValue: string;
+  totalAvailableQuantity: number;
+  itemCount: number;
+  totalPos: number;
+  totalPallets: number;
 }
 
 export interface InventoryGroupedClientItem {
-    groupKey: string;
-    groupValue: string;
-    totalAvailableQuantity: number;
-    itemCount: number;
-    totalClients: number;
+  groupKey: string;
+  groupValue: string;
+  totalAvailableQuantity: number;
+  itemCount: number;
+  totalClients: number;
 }
 
 export interface InventoryGroupedMeta {
-    totalItems: number;
+  totalItems: number;
 }
 
 
@@ -98,12 +98,22 @@ const ALL_INVENTORIES_QUERY = gql`
     $size: Int
     $identifier: String
     $po: String
+    $name: String
+    $vendor: String
+    $sapCode: String
+    $locationId: Int
+    
   ) {
     allInventories(
       page: $page
       size: $size
       identifier: $identifier
       po: $po
+      name: $name
+      vendor: $vendor
+      sapCode: $sapCode
+      locationId: $locationId
+      
     ) {
        data {
         id
@@ -226,51 +236,78 @@ const INVENTORY_GROUPED_SAPCODE_QUERY = gql`
 }`;
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class InventoryGraphqlService {
-    constructor(private apollo: Apollo) {
-        console.log('[InventoryGraphqlService] Initialized');
-    }
+  constructor(private apollo: Apollo) {
+    console.log('[InventoryGraphqlService] Initialized');
+  }
 
-    getAllInventories(args: {
-        page?: number;
-        size?: number;
-        identifier?: string;
-        po?: string;
-    }) {
-        return this.apollo.query<{ allInventories: AllInventoriesResponse }>({
-            query: ALL_INVENTORIES_QUERY,
-            variables: args,
-            fetchPolicy: 'network-only'
-        });
-    }
+  getAllInventories(args: {
+    page?: number;
+    size?: number;
+    identifier?: string;
+    po?: string;
+    name?: string;
+    vendor?: string;
+    // serialPallet?: string;
+    sapCode?: string;
+    locationId?: number;
+    // calculatedStatus?: string;
+    // updatedBy?: string;
+    // availableQuantity?: number;
+    // initialQuantity?: number;
+  }) {
+    const variables: any = {};
 
-    getGroupedSapCode() {
-        return this.apollo.query<{ inventoryDashboardGrouped: { data: InventoryGroupedSapCodeItem[]; meta: InventoryGroupedMeta } }>({
-            query: INVENTORY_GROUPED_SAPCODE_QUERY,
-            fetchPolicy: 'network-only'
-        });
-    }
-    getGroupedArea() {
-        return this.apollo.query<{ inventoryDashboardGrouped: { data: InventoryGroupedAreaItem[]; meta: InventoryGroupedMeta } }>({
-            query: INVENTORY_GROUPED_AREA_QUERY,
-            fetchPolicy: 'network-only'
-        });
-    }
+    if (args.page !== undefined) variables.page = args.page;
+    if (args.size !== undefined) variables.size = args.size;
+    if (args.identifier) variables.identifier = args.identifier;
+    if (args.po) variables.po = args.po;
+    if (args.name) variables.name = args.name;
+    if (args.vendor) variables.vendor = args.vendor;
+    // if (args.serialPallet) variables.serialPallet = args.serialPallet;
+    if (args.sapCode) variables.sapCode = args.sapCode;
+    if (args.locationId !== undefined && args.locationId !== null) variables.locationId = args.locationId;
+    // if (args.calculatedStatus) variables.calculatedStatus = args.calculatedStatus;
+    // if (args.updatedBy) variables.updatedBy = args.updatedBy;
+    // if (args.availableQuantity !== undefined && args.availableQuantity !== null) variables.availableQuantity = args.availableQuantity;
+    // if (args.initialQuantity !== undefined && args.initialQuantity !== null) variables.initialQuantity = args.initialQuantity;
 
-    getGroupedPo() {
-        return this.apollo.query<{ inventoryDashboardGrouped: { data: InventoryGroupedPoItem[]; meta: InventoryGroupedMeta } }>({
-            query: INVENTORY_GROUPED_PO_QUERY,
-            fetchPolicy: 'network-only'
-        });
-    }
+    console.log('[getAllInventories] Variables:', variables);
 
-    getGroupedClient() {
-        return this.apollo.query<{ inventoryDashboardGrouped: { data: InventoryGroupedClientItem[]; meta: InventoryGroupedMeta } }>({
-            query: INVENTORY_GROUPED_CLIENT_QUERY,
-            fetchPolicy: 'network-only'
-        });
-    }
+    return this.apollo.query<{ allInventories: AllInventoriesResponse }>({
+      query: ALL_INVENTORIES_QUERY,
+      variables: variables,
+      fetchPolicy: 'network-only'
+    });
+  }
+
+  getGroupedSapCode() {
+    return this.apollo.query<{ inventoryDashboardGrouped: { data: InventoryGroupedSapCodeItem[]; meta: InventoryGroupedMeta } }>({
+      query: INVENTORY_GROUPED_SAPCODE_QUERY,
+      fetchPolicy: 'network-only'
+    });
+  }
+  getGroupedArea() {
+    return this.apollo.query<{ inventoryDashboardGrouped: { data: InventoryGroupedAreaItem[]; meta: InventoryGroupedMeta } }>({
+      query: INVENTORY_GROUPED_AREA_QUERY,
+      fetchPolicy: 'network-only'
+    });
+  }
+
+  getGroupedPo() {
+    return this.apollo.query<{ inventoryDashboardGrouped: { data: InventoryGroupedPoItem[]; meta: InventoryGroupedMeta } }>({
+      query: INVENTORY_GROUPED_PO_QUERY,
+      fetchPolicy: 'network-only'
+    });
+  }
+
+  getGroupedClient() {
+    return this.apollo.query<{ inventoryDashboardGrouped: { data: InventoryGroupedClientItem[]; meta: InventoryGroupedMeta } }>({
+      query: INVENTORY_GROUPED_CLIENT_QUERY,
+      fetchPolicy: 'network-only'
+    });
+  }
 
 }

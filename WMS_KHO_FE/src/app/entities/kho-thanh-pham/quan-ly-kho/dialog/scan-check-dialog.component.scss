@@ -295,6 +295,16 @@ mat-dialog-content {
       background-color: #dbeafe;
       color: #2563eb;
       width: fit-content;
+
+      &.status-available {
+        background-color: #d3f6e4;
+        color: #14ae5c;
+      }
+
+      &.status-unavailable {
+        background-color: #fee2e2;
+        color: #dc2626;
+      }
     }
   }
 }
@@ -521,7 +531,13 @@ mat-dialog-actions {
     }
   }
 }
-
+.scanner-step {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
 // ============================================
 // SNACKBAR
 // ============================================

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ScanCheckDialogComponent } from './dialog/scan-check-dialog.component';
 import {
@@ -198,7 +198,11 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
   //view mode:
   selectedViewMode: 'area' | 'po' | 'customer' | 'product' | null = null;
   currentViewMode: 'default' | 'po' | 'product' | 'area' | 'customer' = 'default';
+  filteredLocations: { id: number; code: string }[] = [];
+  allLocations: { id: number; code: string }[] = [];
+  currentView = 'default';
 
+  
   // Columns cho các ViewMode
   poParentColumns = [
     { key: 'expand', label: '' },
@@ -328,24 +332,25 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
     { key: 'vendor', label: 'Khách hàng' },
     { key: 'availableQuantity', label: 'SL Tồn' },
     { key: 'locationCode', label: 'Khu vực' },
-    { key: 'calculatedStatus', label: 'Status', badge: true },
+    { key: 'calculatedStatus', label: 'Trạng thái', badge: true },
   ];
 
 
   allColumns = [
-    { key: 'stt', label: 'STT', visible: true },
-    { key: 'identifier', label: 'Identifier', visible: true },
-    { key: 'name', label: 'Tên SP', visible: true },
-    { key: 'vendor', label: 'Khách hàng', visible: true },
-    { key: 'serialPallet', label: 'Mã pallet', visible: true },
-    { key: 'po', label: 'PO', visible: true },
-    { key: 'availableQuantity', label: 'Số lượng tồn', visible: true },
-    { key: 'initialQuantity', label: 'Số lượng gốc', visible: true },
-    { key: 'locationCode', label: 'Kho', visible: true },
-    { key: 'calculatedStatus', label: 'Status', visible: true },
-    { key: 'updatedBy', label: 'Cập nhật bởi', visible: true },
-    { key: 'receivedDate', label: 'Ngày nhập', visible: true },
-    { key: 'updatedDate', label: 'Ngày cập nhật', visible: true },
+    { key: 'stt', label: 'STT', visible: true, filterable: false },
+    { key: 'identifier', label: 'Mã Identifier', visible: true, filterable: true },
+    { key: 'name', label: 'Tên SP', visible: true, filterable: true },
+    { key: 'vendor', label: 'Khách hàng', visible: true, filterable: true },
+    { key: 'serialPallet', label: 'Mã pallet', visible: true, filterable: false },
+    { key: 'sapCode', label: 'Mã SAP', visible: true, filterable: true },
+    { key: 'po', label: 'PO', visible: true, filterable: true },
+    { key: 'availableQuantity', label: 'Số lượng tồn', visible: true, filterable: false },
+    { key: 'initialQuantity', label: 'Số lượng gốc', visible: true, filterable: false },
+    { key: 'locationCode', label: 'Kho', visible: true, filterable: true },
+    { key: 'calculatedStatus', label: 'Trạng thái', visible: true, filterable: false },
+    { key: 'updatedBy', label: 'Cập nhật bởi', visible: true, filterable: false },
+    { key: 'receivedDate', label: 'Ngày nhập', visible: true, filterable: false },
+    { key: 'updatedDate', label: 'Ngày cập nhật', visible: true, filterable: false },
   ];
 
 
@@ -357,12 +362,15 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
   customerDataSource: CustomerParent[] = [];
   filteredList: WarehouseItem[] | undefined;
 
+  private statusMap: Record<string, string> = { available: 'Có sẵn', reserved: 'Đã giữ', pending: 'Chờ xử lý', damaged: 'Hỏng', unavailable: 'Hết hàng', };
+
   constructor(
     private dialog: MatDialog,
     private inventoryService: InventoryGraphqlService,
     private errorHandler: ErrorHandlerService,
     private loadingService: LoadingService,
-    private quanLyKhoService: QuanLyKhoService
+    private quanLyKhoService: QuanLyKhoService,
+    private cdr: ChangeDetectorRef,
   ) { }
 
   ngOnInit(): void {
@@ -371,6 +379,8 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (locations) => {
           this.locationsMap = new Map(locations.map(l => [l.id, l.code]));
+          this.allLocations = locations;
+          this.filteredLocations = locations;
         },
         error: (err) => console.error('[getLocations] Error:', err)
       });
@@ -396,27 +406,71 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Hàm filter locations khi user gõ
+  onLocationFilterChange(value: string): void {
+    if (!value) {
+      this.filteredLocations = this.allLocations;
+      this.filterValues['locationCode'] = '';
+      return;
+    }
+
+    const searchValue = value.toLowerCase().trim();
+    this.filteredLocations = this.allLocations.filter(loc =>
+      loc.code.toLowerCase().includes(searchValue)
+    );
+  }
+
+
+  // Khi user chọn location từ dropdown
+  onLocationSelected(locationCode: string): void {
+    this.filterValues['locationCode'] = locationCode;
+    this.applyFilter();
+  }
   /**
  * Load view mặc định (chi tiết từng inventory)
  */
+  // chỉ truyền các field BE hỗ trợ lọc
   private loadDefaultView(): void {
-    const params = {
+    const params: any = {
       page: this.currentPage,
-      size: this.pageSize,
-      identifier: this.filterValues['identifier'] || undefined,
-      po: this.filterValues['po'] || undefined
+      size: this.pageSize
     };
+
+    if (this.filterValues['identifier']) {
+      params.identifier = this.filterValues['identifier'];
+    }
+    if (this.filterValues['name']) {
+      params.name = this.filterValues['name'];
+    }
+    if (this.filterValues['vendor']) {
+      params.vendor = this.filterValues['vendor'];
+    }
+    if (this.filterValues['sapCode']) {
+      params.sapCode = this.filterValues['sapCode'];
+    }
+    if (this.filterValues['po']) {
+      params.po = this.filterValues['po'];
+    }
+    if (this.filterValues['locationCode']) {
+      const locationId = this.getLocationIdByCode(this.filterValues['locationCode']);
+      if (locationId) {
+        params.locationId = locationId;
+      }
+    }
+
+    console.log('[loadDefaultView] Params:', params);
 
     this.inventoryService
       .getAllInventories(params)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          //  FIX: response.data.allInventories thay vì response.data
           const inventories = response.data.allInventories;
 
           this.warehouseList = inventories.data.map(item => {
             const locId = item.locationId ?? 0;
+            const rawStatus = (item.calculatedStatus ?? '').toString();
+            const translatedStatus = this.statusMap[rawStatus] ?? this.translateUnknownStatus(rawStatus);
             return {
               id: item.id,
               identifier: item.identifier || '',
@@ -429,7 +483,7 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
               initialQuantity: item.initialQuantity || 0,
               locationId: locId,
               locationCode: this.locationsMap.get(locId) || 'N/A',
-              calculatedStatus: item.calculatedStatus || '',
+              calculatedStatus: translatedStatus,
               updatedBy: item.updatedBy || '',
               receivedDate: this.formatDate(item.receivedDate),
               updatedDate: this.formatDate(item.updatedDate)
@@ -448,8 +502,33 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
         }
       });
   }
+  // Sửa lại hàm getLocationIdByCode - tìm chính xác
+  private getLocationIdByCode(locationCode: string): number | null {
+    if (!locationCode) return null;
 
+    const trimmedCode = locationCode.trim();
 
+    for (let [id, code] of this.locationsMap.entries()) {
+      if (code.toLowerCase() === trimmedCode.toLowerCase()) {
+        return id;
+      }
+    }
+
+    console.warn('[getLocationIdByCode] Not found:', locationCode);
+    return null;
+  }
+  private translateUnknownStatus(raw: string): string {
+    if (!raw) { return '' };
+    const normalized = raw.toLowerCase();
+    if (normalized === 'available') { return 'Còn hàng' };
+    return raw;
+  }
+
+  onFilterKeyPress(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      this.applyFilter();
+    }
+  }
   /**
    * Load view nhóm (area, po, customer, product)
    */
@@ -750,18 +829,12 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
     return filters;
   }
 
-  private mapStatus(status: string | null): string {
+  mapStatus(status: string | null | undefined): string {
     if (!status) return 'Không xác định';
-
-    const statusMap: { [key: string]: string } = {
-      'available': 'Có sẵn',
-      'reserved': 'Đã đặt',
-      'expired': 'Hết hạn',
-      'damaged': 'Hư hỏng'
-    };
-
-    return statusMap[status.toLowerCase()] || status;
+    const key = status.toString().trim().toLowerCase();
+    return this.statusMap[key] ?? status;
   }
+
 
   private formatDate(dateString: string | null): string {
     if (!dateString) return '';
@@ -866,6 +939,7 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
 
   applyFilter(): void {
     this.currentPage = 1;
+    console.log('[ApplyFilter] Filters:', this.filterValues);
     this.loadData();
   }
 
@@ -929,19 +1003,116 @@ export class QuanLyKhoComponent implements OnInit, OnDestroy {
   /**
    * Status styling
    */
-  getStatusClass(status: string): string {
-    const statusLower = status.toLowerCase();
-    if (statusLower.includes('có sẵn') || statusLower === 'available') {
-      return 'status-available';
-    }
+  getStatusClass(status: string | null | undefined): string {
+    const s = (status ?? '').toString().trim().toLowerCase();
+
+    const availableKeys = ['available', 'có sẵn', 'còn hàng', 'con hang'];
+    const unavailableKeys = ['unavailable', 'hết hàng', 'het hang'];
+
+    if (availableKeys.some(k => s.includes(k))) return 'status-available';
+    if (unavailableKeys.some(k => s.includes(k))) return 'status-unavailable';
+
+    // fallback: nếu không rõ, trả class trung tính (chọn unavailable hoặc thêm status-unknown)
     return 'status-unavailable';
+  }
+
+  refresh(): void {
+    this.clearFilters();
+    this.cdr.detectChanges();
   }
 
   /**
    * Export functionality
    */
   exportData(): void {
-    // TODO: Implement export với dữ liệu từ API
-    console.log('Exporting data...');
+    this.isLoading = true;
+
+    const params: any = {
+      page: 1,
+      size: 10000
+    };
+
+    Object.keys(this.filterValues).forEach(key => {
+      const value = this.filterValues[key];
+      if (value !== null && value !== undefined && value !== '') {
+        params[key] = value;
+      }
+    });
+
+    this.inventoryService
+      .getAllInventories(params)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          const inventories = response.data.allInventories;
+          const data = inventories.data.map((item, index) => {
+            const locId = item.locationId ?? 0;
+            return {
+              'STT': index + 1,
+              'Identifier': item.identifier || '',
+              'Tên SP': item.name || '',
+              'Khách hàng': item.vendor || '',
+              'Mã pallet': item.serialPallet || '',
+              'PO': item.po || '',
+              'Số lượng tồn': item.availableQuantity || 0,
+              'Số lượng gốc': item.initialQuantity || 0,
+              'Kho': this.locationsMap.get(locId) || 'N/A',
+              'Status': this.mapStatus(item.calculatedStatus),
+              'Cập nhật bởi': item.updatedBy || '',
+              'Ngày nhập': this.formatDate(item.receivedDate),
+              'Ngày cập nhật': this.formatDate(item.updatedDate)
+            };
+          });
+
+          this.exportToExcel(data, 'Quan_Ly_Kho');
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('[ExportData] Error:', error);
+          this.isLoading = false;
+        }
+      });
+  }
+
+  private exportToExcel(data: any[], filename: string): void {
+    import('xlsx').then(xlsx => {
+      const worksheet = xlsx.utils.json_to_sheet(data);
+
+      const colWidths = [
+        { wch: 5 },   // STT
+        { wch: 25 },  // Identifier
+        { wch: 40 },  // Tên SP
+        { wch: 20 },  // Khách hàng
+        { wch: 20 },  // Mã pallet
+        { wch: 15 },  // PO
+        { wch: 15 },  // Số lượng tồn
+        { wch: 15 },  // Số lượng gốc
+        { wch: 15 },  // Kho
+        { wch: 15 },  // Status
+        { wch: 20 },  // Cập nhật bởi
+        { wch: 20 },  // Ngày nhập
+        { wch: 20 }   // Ngày cập nhật
+      ];
+      worksheet['!cols'] = colWidths;
+
+      const workbook = { Sheets: { 'Data': worksheet }, SheetNames: ['Data'] };
+      const excelBuffer: any = xlsx.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+      this.saveAsExcelFile(excelBuffer, filename);
+    });
+  }
+
+  private saveAsExcelFile(buffer: any, fileName: string): void {
+    const data: Blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(data);
+
+    link.href = url;
+    link.download = `${fileName}_${new Date().getTime()}.xlsx`;
+    link.click();
+
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 100);
   }
 }

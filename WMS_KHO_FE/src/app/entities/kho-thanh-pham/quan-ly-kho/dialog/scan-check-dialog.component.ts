@@ -40,7 +40,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatSelectModule,
     MatSlideToggleModule,
     MatProgressBarModule,
-    MatTooltipModule, // ✅ Thêm import này
+    MatTooltipModule, // Thêm import này
   ],
 })
 export class ScanCheckDialogComponent implements OnInit, OnDestroy {
@@ -65,7 +65,6 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
     scannedAt: string;
     scannedBy: string;
   }[] = [];
-
   productInfo = {
     maSanPham: '',
     maThung: '',
@@ -92,7 +91,7 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
   locations: { id: number; code: string }[] = [];
 
   // ============================================
-  // ✅ CAMERA SCAN VARIABLES
+  // CAMERA SCAN VARIABLES
   // ============================================
   isMobile: boolean = false;
   isScanning: boolean = false;
@@ -103,8 +102,13 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
   lastScannedCode: string | null = null;
   debugLogs: string[] = [];
 
+  scanStep: 'pallet' | 'location' = 'pallet';
+  isAutoScanMode = false;
+  isPausedForTransition = false;
+
   @ViewChild('palletInput') palletInput!: ElementRef;
   @ViewChild('locationInput') locationInput!: ElementRef;
+  private statusMap: Record<string, string> = { available: 'Có sẵn', reserved: 'Đã giữ', pending: 'Chờ xử lý', damaged: 'Hỏng', unavailable: 'Hết hàng', };
 
   constructor(
     public dialogRef: MatDialogRef<ScanCheckDialogComponent>,
@@ -112,7 +116,7 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private http: HttpClient,
     private quanLyKhoService: QuanLyKhoService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.checkIfMobile();
@@ -140,7 +144,7 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
   }
 
   // ============================================
-  // ✅ CAMERA FUNCTIONS
+  // CAMERA FUNCTIONS
   // ============================================
   checkIfMobile(): void {
     this.isMobile =
@@ -151,7 +155,10 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
 
   async openCameraScanner(field: 'pallet' | 'location') {
     this.scannerActive = field;
+    this.scanStep = field;
     this.isScanning = true;
+    this.isAutoScanMode = false;
+    this.isPausedForTransition = false;
     this.logDebug('=== Open Scanner ===');
 
     try {
@@ -308,45 +315,59 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
   handleHtml5Scan(code: string) {
     code = code.trim();
 
-    // Chống scan trùng
+    // Bỏ qua nếu đang pause
+    if (this.isPausedForTransition) {
+      this.logDebug('Scanner paused, ignoring scan');
+      return;
+    }
+
     if (code === this.lastScannedCode) return;
     this.lastScannedCode = code;
 
     this.logDebug('Processing: ' + code);
 
-    // Phân loại mã dựa trên scannerActive
     if (this.scannerActive === 'pallet') {
-      // Scan pallet hoặc box
       if (code.startsWith('P') || code.startsWith('B')) {
         this.palletScan = code;
         this.playAudio('assets/audio/successed-295058.mp3');
         const type = code.startsWith('P') ? 'pallet' : 'thùng';
-        this.snackBar.open(`✓ Đã quét ${type}!`, '', { duration: 1000 });
+        this.snackBar.open(`✓ Đã quét ${type}! Vui lòng quét location...`, '', { duration: 2000 });
 
-        // Nếu mode transfer, chuyển sang scan location
         if (this.mode === 'transfer') {
-          this.stopScanning();
-          setTimeout(() => this.focusLocationInput(), 100);
+          // Tạm dừng scan 1.5 giây để user chuyển sang mã kho
+          this.isPausedForTransition = true;
+          this.scanStep = 'location';
+
+          setTimeout(() => {
+            this.scannerActive = 'location';
+            this.isAutoScanMode = true;
+            this.lastScannedCode = null;
+            this.isPausedForTransition = false;
+            this.logDebug('Scanner resumed for location scan');
+          }, 2000);
         } else {
-          // Nếu mode check/update, xử lý ngay
           this.stopScanning();
           setTimeout(() => this.onScanComplete(), 50);
         }
       } else {
         this.playAudio('assets/audio/beep_warning.mp3');
-        this.snackBar.open('❌ Mã không hợp lệ! Chỉ scan mã P hoặc B.', '', {
-          duration: 2000,
-        });
+        this.snackBar.open('Mã không hợp lệ!', '', { duration: 2000 });
       }
     } else if (this.scannerActive === 'location') {
-      // Scan location
       this.locationScan = code;
       this.playAudio('assets/audio/successed-295058.mp3');
       this.snackBar.open('✓ Đã quét location!', '', { duration: 1000 });
 
-      // Đóng camera và xử lý
-      this.stopScanning();
-      setTimeout(() => this.onScanComplete(), 50);
+      // Tạm dừng để tránh scan nhầm
+      this.isPausedForTransition = true;
+
+      setTimeout(() => {
+        this.stopScanning();
+        this.onScanComplete();
+        this.scanStep = 'pallet';
+        this.isAutoScanMode = false;
+        this.isPausedForTransition = false;
+      }, 500);
     }
   }
 
@@ -356,6 +377,7 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
     this.isScanning = false;
     this.scannerActive = null;
     this.lastScannedCode = null;
+    this.isPausedForTransition = false; // Reset pause state
 
     if (this.qrScanner) {
       try {
@@ -399,6 +421,8 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
   fetchProductInfo(identifier: string): void {
     this.quanLyKhoService.getInventoryByIdentifier(identifier).subscribe({
       next: (res) => {
+        const rawStatus = (res.calculated_status ?? '').toString();
+        const translatedStatus = this.statusMap[rawStatus] ?? this.translateUnknownStatus(rawStatus);
         this.productInfo = {
           maSanPham: res.identifier,
           maThung: res.serial_pallet,
@@ -410,7 +434,7 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
           area: '',
           soLuongGoc: res.initial_quantity?.toString(),
           maKhachHang: res.vendor,
-          trangThai: res.calculated_status,
+          trangThai: translatedStatus,
           soLuongHienTai: res.available_quantity?.toString(),
           maPallet: res.serial_pallet,
           ngayCapNhat: new Date(res.updated_date).toLocaleDateString(),
@@ -435,7 +459,24 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
       },
     });
   }
+  private translateUnknownStatus(raw: string): string {
+    if (!raw) { return '' };
+    const normalized = raw.toLowerCase();
+    if (normalized === 'available') { return 'Có sẵn' };
+    return raw;
+  }
+  getStatusClass(status: string | null | undefined): string {
+    const s = (status ?? '').toString().trim().toLowerCase();
 
+    const availableKeys = ['available', 'có sẵn', 'còn hàng', 'con hang'];
+    const unavailableKeys = ['unavailable', 'hết hàng', 'het hang'];
+
+    if (availableKeys.some(k => s.includes(k))) return 'status-available';
+    if (unavailableKeys.some(k => s.includes(k))) return 'status-unavailable';
+
+    // fallback: nếu không rõ, trả class trung tính (chọn unavailable hoặc thêm status-unknown)
+    return 'status-unavailable';
+  }
   onUpdateQuantity(): void {
     if (!this.palletScan || !this.updatedQuantity || this.updatedQuantity <= 0) {
       this.snackBar.open('Vui lòng nhập mã và số lượng tồn hợp lệ!', 'Đóng', {
@@ -520,11 +561,11 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
 
   toggleScanMode(mode: 'pallet' | 'box') {
     this.selectedScanMode = this.selectedScanMode === mode ? null : mode;
+    this.scanStep = 'pallet';
     if (this.selectedScanMode) {
       setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
     }
   }
-
   focusLocationInput() {
     setTimeout(() => this.locationInput?.nativeElement?.focus(), 100);
   }
@@ -538,6 +579,12 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
     }
 
     if (this.mode === 'transfer') {
+      if (!this.locationScan) {
+        this.isLoading = false;
+        this.snackBar.open('Vui lòng quét location!', 'Đóng', { duration: 2000 });
+        return;
+      }
+
       const newItem = {
         code: this.palletScan,
         name: this.productInfo.tenSanPham || '',
@@ -550,12 +597,23 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
       this.scannedItems.push(newItem);
       this.palletScan = '';
       this.locationScan = '';
-      setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
+      this.scanStep = 'pallet';
       this.selectedScanMode = 'pallet';
+      setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
       this.isLoading = false;
+      this.snackBar.open('✓ Đã thêm vào danh sách!', '', { duration: 1500 });
     }
 
     this.isInfoVisible = true;
+  }
+  canSave(): boolean {
+    if (this.mode === 'update') {
+      return !!this.palletScan && !!this.updatedQuantity && this.updatedQuantity > 0;
+    }
+    if (this.mode === 'transfer') {
+      return this.scannedItems.length > 0;
+    }
+    return false;
   }
 
   removeScannedItem(index: number): void {

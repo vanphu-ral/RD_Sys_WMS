@@ -68,11 +68,11 @@
                         </div>
                     </mat-menu>
                 </div>
-                <button mat-raised-button class="refresh-btn" matTooltip="Xuất dữ liệu">
+                <button mat-raised-button class="refresh-btn" matTooltip="Xuất dữ liệu" (click)="exportData()">
                     <mat-icon color="primary">ios_share</mat-icon>
                 </button>
 
-                <button mat-raised-button class="refresh-btn" matTooltip="Đồng bộ dữ liệu">
+                <button mat-raised-button class="refresh-btn" matTooltip="Đồng bộ dữ liệu" (click)="refresh()">
                     <mat-icon color="primary">sync</mat-icon>
                 </button>
             </div>
@@ -80,51 +80,84 @@
 
         <!-- Table -->
         <div class="table-container">
-            <table mat-table [dataSource]="warehouseList" class="warehouse-table" *ngIf="currentViewMode === 'default'">
-                <!-- Loop through all columns -->
-                <ng-container *ngFor="let col of allColumns" [matColumnDef]="col.key">
-                    <ng-container *ngIf="col.visible">
+            <div class="table-container">
+                <table mat-table [dataSource]="warehouseList" class="warehouse-table"
+                    *ngIf="currentViewMode === 'default'">
+                    <ng-container *ngFor="let col of allColumns" [matColumnDef]="col.key">
+                        <ng-container *ngIf="col.visible">
 
-                        <!-- Header -->
-                        <th mat-header-cell *matHeaderCellDef>
-                            <div class="header-content">{{ col.label }}</div>
+                            <!-- Header -->
+                            <th mat-header-cell *matHeaderCellDef>
+                                <div class="header-content">{{ col.label }}</div>
 
-                            <!-- Search box except STT -->
-                            <ng-container *ngIf="col.key !== 'stt'">
-                                <mat-form-field class="search-field" appearance="outline">
-                                    <input matInput [(ngModel)]="filterValues[col.key]" (keyup.enter)="applyFilter()"
-                                        [matMenuTriggerFor]="filterModeMenu" />
-                                    <button mat-icon-button matSuffix [matMenuTriggerFor]="filterModeMenu">
-                                        <mat-icon>keyboard_arrow_down</mat-icon>
-                                    </button>
-                                </mat-form-field>
-                            </ng-container>
-                        </th>
+                                <!-- Search box chỉ hiển thị cho các cột filterable -->
+                                <ng-container *ngIf="col.filterable">
+                                    <mat-form-field class="search-field" appearance="outline">
 
-                        <!-- Cell -->
-                        <td mat-cell *matCellDef="let item; let i = index">
-                            <ng-container [ngSwitch]="col.key">
-                                <span *ngSwitchCase="'stt'">{{ i + 1 }}</span>
-                                <span *ngSwitchDefault>{{ item[col.key] }}</span>
-                            </ng-container>
-                        </td>
+                                        <!-- Autocomplete cho locationCode -->
+                                        <input *ngIf="col.key === 'locationCode'" matInput
+                                            [(ngModel)]="filterValues['locationCode']"
+                                            (ngModelChange)="onLocationFilterChange($event)"
+                                            (keypress)="onFilterKeyPress($event)" [matAutocomplete]="autoLocation" />
+
+                                        <mat-autocomplete #autoLocation="matAutocomplete"
+                                            (optionSelected)="onLocationSelected($event.option.value)">
+                                            <mat-option *ngFor="let loc of filteredLocations" [value]="loc.code">
+                                                {{ loc.code }}
+                                            </mat-option>
+                                        </mat-autocomplete>
+
+                                        <!-- Các trường khác -->
+                                        <input *ngIf="col.key !== 'locationCode'" matInput
+                                            [(ngModel)]="filterValues[col.key]" (keypress)="onFilterKeyPress($event)" />
+
+                                        <button mat-icon-button matSuffix [matMenuTriggerFor]="filterModeMenu"
+                                            *ngIf="col.key !== 'locationCode'">
+                                            <mat-icon>keyboard_arrow_down</mat-icon>
+                                        </button>
+
+                                        <!-- Clear button cho location -->
+                                        <button mat-icon-button matSuffix
+                                            *ngIf="col.key === 'locationCode' && filterValues['locationCode']"
+                                            (click)="filterValues['locationCode'] = ''; onLocationFilterChange(''); $event.stopPropagation()">
+                                            <mat-icon>clear</mat-icon>
+                                        </button>
+                                    </mat-form-field>
+                                </ng-container>
+                            </th>
+
+                            <!-- Cell -->
+                            <td mat-cell *matCellDef="let item; let i = index">
+                                <ng-container [ngSwitch]="col.key">
+                                    <span *ngSwitchCase="'stt'">{{ i + 1 + (currentPage - 1) * pageSize }}</span>
+
+                                    <ng-container *ngSwitchCase="'calculatedStatus'">
+                                        <span class="status-badge" [ngClass]="getStatusClass(item.calculatedStatus)">
+                                            {{ item.calculatedStatus }}
+                                        </span>
+                                    </ng-container>
+
+                                    <span *ngSwitchDefault>{{ item[col.key] }}</span>
+                                </ng-container>
+                            </td>
+                        </ng-container>
                     </ng-container>
-                </ng-container>
 
-                <!-- Filter mode menu -->
-                <mat-menu #filterModeMenu="matMenu">
-                    <button mat-menu-item (click)="setFilterMode('constraint')">
-                        <span>Constraint</span>
-                    </button>
-                    <button mat-menu-item (click)="setFilterMode('not_constraint')">
-                        <span>Not Constraint</span>
-                    </button>
-                </mat-menu>
+                    <!-- Filter mode menu -->
+                    <mat-menu #filterModeMenu="matMenu">
+                        <button mat-menu-item (click)="setFilterMode('constraint')">
+                            <span>Constraint</span>
+                        </button>
+                        <button mat-menu-item (click)="setFilterMode('not_constraint')">
+                            <span>Not Constraint</span>
+                        </button>
+                    </mat-menu>
 
-                <!-- Header & Row -->
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
-            </table>
+                    <!-- Header & Row -->
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+                </table>
+            </div>
 
 
             <!-- PO View -->

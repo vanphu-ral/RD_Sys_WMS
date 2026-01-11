@@ -303,11 +303,23 @@ export class NhapKhoComponent {
         }
       },
       error: (err) => {
-        console.error('Lỗi khi tìm nhanh:', err);
+        console.error('Lỗi khi tìm nhanh:', err); // Nếu backend trả 400 hoặc 404, coi như "không tìm thấy" 
+        if (err?.status === 400 || err?.status === 404) {
+          this.snackBar.open('Mã này chưa được tạo đơn nhập kho.', 'Đóng',
+            { duration: 4000 });
+          this.resetSearchInput();
+          return;
+        } // Nếu là lỗi xác thực/permission 
+        if (err?.status === 401 || err?.status === 403) {
+          this.snackBar.open('Bạn chưa đăng nhập hoặc không có quyền truy cập.', 'Đóng',
+            { duration: 4000 });
+          this.resetSearchInput();
+          return;
+        } // Mặc định: lỗi server 
         const serverMsg = err?.error?.detail || err?.error?.message;
         const userMsg = serverMsg ? `Lỗi server: ${serverMsg}` : 'Lỗi khi tìm. Vui lòng thử lại sau.';
         this.snackBar.open(userMsg, 'Đóng', { duration: 4000 });
-        this.resetSearchInput();  // Reset
+        this.resetSearchInput();
       }
     });
   }
