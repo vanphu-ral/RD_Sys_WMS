@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 
+from app.core.cache import close_cache, init_cache
 from app.core.config import settings
 from app.core.database import create_tables
 from app.api.graphql import schema
@@ -51,12 +52,21 @@ app.include_router(osr_router, prefix="/api/osr", tags=["OSR"])
 app.include_router(external_apps_router, prefix="/api/external-apps", tags=["External Apps"])
 app.include_router(warehouse_import_router, prefix="/api/warehouse-import", tags=["Warehouse Import"])
 
-graphql_app = GraphQLRouter(schema)
-app.include_router(graphql_app, prefix="/graphql")
-
 @app.on_event("startup")
 async def startup_event():
     await create_tables()
+    await init_cache()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await close_cache()
+
+graphql_app = GraphQLRouter(schema)
+app.include_router(graphql_app, prefix="/graphql")
+
+# @app.on_event("startup")
+# async def startup_event():
+#     await create_tables()
 
 @app.get("/")
 async def root():

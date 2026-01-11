@@ -10,11 +10,14 @@ from app.modules.inventory.service import LocationService
 from app.modules.inventory.schemas import LocationListResponse, LocationResponse
 from app.modules.locations.schemas import SubLocationCreate, LocationWithSubLocationsResponse, LocationUpdate, LocationCreate, LocationUpdateWithFullData
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi_cache.decorator import cache
+from app.core.config import settings
 
 router = APIRouter()
 
 
 @router.get("/", response_model=LocationListResponse)
+@cache(expire=settings.CACHE_EXPIRE_SECONDS)
 async def get_locations(
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
@@ -91,6 +94,7 @@ async def create_location(
 
 
 @router.get("/minimal", response_model=List[dict])
+@cache(expire=settings.CACHE_EXPIRE_SECONDS)
 async def get_minimal_locations(
     db: AsyncSession = Depends(get_db),
     # #current_user: str = Depends(get_current_user)
