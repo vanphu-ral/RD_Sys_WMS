@@ -65,14 +65,42 @@
             <div class="input-with-camera" *ngIf="mode === 'transfer'">
                 <mat-form-field class="scan-field" appearance="outline">
                     <mat-label>Tên kho chuyển đến...</mat-label>
-                    <input matInput 
-                        [(ngModel)]="locationScan" 
-                        #locationInput 
+                    <input 
+                        matInput 
+                        [formControl]="locationControl"
+                        [matAutocomplete]="autoLocation"
+                        (input)="locationScan = $any($event.target).value"
                         (keydown.enter)="onScanComplete()"
-                        inputmode="none" />
+                        #locationInput
+                        placeholder="Nhập hoặc chọn kho..." />
+                    
+                    <mat-autocomplete 
+                        #autoLocation="matAutocomplete"
+                        (optionSelected)="onLocationSelected($event)"
+                        [displayWith]="displayLocation">
+                        <mat-option 
+                            *ngFor="let location of filteredLocations | async" 
+                            [value]="location">
+                            <div class="location-option">
+                                <!-- <span class="location-icon">📍</span> -->
+                                <span class="location-code">{{ location.code }}</span>
+                            </div>
+                        </mat-option>
+                    </mat-autocomplete>
+                    
+                    <button 
+                        mat-icon-button 
+                        matSuffix 
+                        *ngIf="locationControl.value"
+                        (click)="locationControl.setValue(''); locationScan = ''"
+                        type="button"
+                        class="clear-btn">
+                        <mat-icon>close</mat-icon>
+                    </button>
                 </mat-form-field>
 
-                <button mat-icon-button 
+                <button 
+                    mat-icon-button 
                     class="camera-btn" 
                     (click)="openCameraScanner('location')"
                     matTooltip="Quét location">

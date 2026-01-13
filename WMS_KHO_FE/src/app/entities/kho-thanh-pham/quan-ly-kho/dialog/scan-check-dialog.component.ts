@@ -23,6 +23,10 @@ import { QuanLyKhoService } from '../service/quan-ly-kho.service.component';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { CameraDevice, Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { map, Observable, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-scan-check-dialog',
@@ -38,9 +42,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatInputModule,
     MatDialogModule,
     MatSelectModule,
+    ReactiveFormsModule,
     MatSlideToggleModule,
     MatProgressBarModule,
-    MatTooltipModule, // Thêm import này
+    MatTooltipModule,
+    MatAutocompleteModule,
   ],
 })
 export class ScanCheckDialogComponent implements OnInit, OnDestroy {
@@ -90,6 +96,9 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
 
   locations: { id: number; code: string }[] = [];
 
+  locationControl = new FormControl('');
+  filteredLocations!: Observable<{ id: number; code: string }[]>;
+
   // ============================================
   // CAMERA SCAN VARIABLES
   // ============================================
@@ -127,6 +136,12 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
       this.quanLyKhoService.getLocations().subscribe({
         next: (data) => {
           this.locations = data;
+
+          // Thêm đoạn này
+          this.filteredLocations = this.locationControl.valueChanges.pipe(
+            startWith(''),
+            map(value => this._filterLocations(value || ''))
+          );
         },
         error: (err) => {
           console.error('Lỗi khi lấy danh sách kho:', err);
@@ -355,6 +370,7 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
       }
     } else if (this.scannerActive === 'location') {
       this.locationScan = code;
+      this.locationControl.setValue(code, { emitEvent: false });
       this.playAudio('assets/audio/successed-295058.mp3');
       this.snackBar.open('✓ Đã quét location!', '', { duration: 1000 });
 
@@ -414,7 +430,27 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
       this.debugLogs = this.debugLogs.slice(0, 50);
     }
   }
+  private _filterLocations(value: string): { id: number; code: string }[] {
+    const filterValue = value.toLowerCase().trim();
 
+    if (!filterValue) {
+      return this.locations;
+    }
+
+    return this.locations.filter(location =>
+      location.code.toLowerCase().includes(filterValue)
+    );
+  }
+
+  onLocationSelected(event: MatAutocompleteSelectedEvent): void {
+    const selectedLocation = event.option.value;
+    this.locationScan = selectedLocation.code;
+    this.locationControl.setValue(selectedLocation.code, { emitEvent: false });
+  }
+
+  displayLocation(location: any): string {
+    return location && location.code ? location.code : location || '';
+  }
   // ============================================
   // ORIGINAL FUNCTIONS
   // ============================================
@@ -598,6 +634,7 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
       this.palletScan = '';
       this.locationScan = '';
       this.scanStep = 'pallet';
+      this.locationControl.setValue('', { emitEvent: false });
       this.selectedScanMode = 'pallet';
       setTimeout(() => this.palletInput?.nativeElement?.focus(), 100);
       this.isLoading = false;
