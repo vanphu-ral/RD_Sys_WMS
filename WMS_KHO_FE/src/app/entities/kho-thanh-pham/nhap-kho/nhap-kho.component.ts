@@ -172,7 +172,7 @@ export class NhapKhoComponent {
     const statusMap: { [key: string]: string } = {
       'Chờ nhập': 'status-warn-label',
       'Đã nhập': 'status-active-label',
-      'Đã nhập lẻ': 'status-partial-label'  // Thêm class mới
+      'Đang nhập': 'status-partial-label'  // Thêm class mới
     };
     return statusMap[status] || 'status-warn-label';
   }
@@ -573,7 +573,7 @@ export class NhapKhoComponent {
 
     // Nếu đã scan 1 phần (1/3, 2/3, ...)
     if (scanned > 0 && scanned < total) {
-      return 'Đã nhập lẻ';
+      return 'Đang nhập';
     }
 
     // Fallback
