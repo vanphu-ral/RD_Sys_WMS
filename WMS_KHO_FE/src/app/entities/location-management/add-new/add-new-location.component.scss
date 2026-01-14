@@ -1,297 +1,495 @@
 @use "@angular/material" as mat;
 
-
 .location-container {
-    padding: 10px;
-    background-color: #f8fafc;
-    min-height: 100vh;
+  padding: 10px;
+  background-color: #f8fafc;
+  min-height: 100vh;
 }
 
 .shadow-card {
-    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-success .mdc-snackbar__surface {
-    background-color: #14AE5C !important;
-    color: white !important;
+  background-color: #14ae5c !important;
+  color: white !important;
 }
-
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-position {
-    margin-bottom: 75vh;
+  margin-bottom: 75vh;
 }
 
-
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-warn .mdc-snackbar__surface {
-    background-color: #f59e0b;
-    color: #1e293b;
+  background-color: #f59e0b;
+  color: #1e293b;
 }
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-error .mdc-snackbar__surface {
-    background-color: #dc2626 !important;
-    color: white !important;
+  background-color: #dc2626 !important;
+  color: white !important;
 }
 
 .location-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+
+  .header-title {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
-    padding: 20px 24px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    gap: 12px;
 
-    .header-title {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .title-icon {
-            font-size: 32px;
-            width: 32px;
-            height: 32px;
-            color: #1e293b;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        .subtitle {
-            margin: 4px 0 0 0;
-            font-size: 14px;
-            color: #64748b;
-        }
+    .title-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: #1e293b;
     }
 
-    .add-btn {
-        height: 40px;
-        padding: 0 20px;
-        font-weight: 500;
-
-        mat-icon {
-            margin-right: 4px;
-        }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: #1e293b;
     }
+
+    .subtitle {
+      margin: 4px 0 0 0;
+      font-size: 14px;
+      color: #64748b;
+    }
+  }
+
+  .add-btn {
+    height: 40px;
+    padding: 0 20px;
+    font-weight: 500;
+
+    mat-icon {
+      margin-right: 4px;
+    }
+  }
 }
 
 .location-card {
-    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
-    border-radius: 8px;
-    margin-bottom: 10px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
 }
 
-::ng-deep .mat-mdc-raised-button>.mat-icon {
-    margin: 0 !important;
+::ng-deep .mat-mdc-raised-button > .mat-icon {
+  margin: 0 !important;
 }
 
 ::ng-deep .icon-only {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    padding: 0 !important;
-    line-height: 1;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid #0D6EFD !important;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0 !important;
+  line-height: 1;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #0d6efd !important;
 
-    mat-icon {
-        font-size: 24px;
-        line-height: 1;
-        margin: 0;
-    }
+  mat-icon {
+    font-size: 24px;
+    line-height: 1;
+    margin: 0;
+  }
 }
 
 ::ng-deep .input-field {
-    width: 120px;
-    margin-bottom: -1.75rem;
-    @include mat.form-field-density(-5);
-    @include mat.icon-button-density(-5);
-    @include mat.datepicker-density(-5);
+  width: 120px;
+  margin-bottom: -1.75rem;
+  @include mat.form-field-density(-5);
+  @include mat.icon-button-density(-5);
+  @include mat.datepicker-density(-5);
 }
 
 .search-field-none {
-    display: none;
+  display: none;
 }
 
 .location-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 1rem;
 }
 
 .info-configuration {
-    font-size: 12px;
-    color: #64748b;
-    font-style: italic;
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
 }
 
 .toggle-slide {
-    height: 30px;
-    padding: 15px;
+  height: 30px;
+  padding: 15px;
 }
 
 .form-row {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    padding: 8px 16px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 8px 16px;
 }
 
 .sub-location-config {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+  margin-bottom: 10px;
+
+  .config-card {
+    padding: 16px;
+  }
+
+  .form-row {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 16px;
-    margin-top: 24px;
-    margin-bottom: 10px;
+  }
 
-    .config-card {
-        padding: 16px;
-    }
+  .form-field {
+    flex: 1;
+    min-width: 180px;
+  }
 
-    .form-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-    }
+  .preview {
+    margin-top: 12px;
+    font-size: 14px;
+    color: #334155;
+  }
 
-    .form-field {
-        flex: 1;
-        min-width: 180px;
-    }
-
-    .preview {
-        margin-top: 12px;
-        font-size: 14px;
-        color: #334155;
-    }
-
-    .info-card {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 12px;
-        background-color: #e0f2fe;
-        color: #2563eb;
-    }
-
-    .generate-placeholder {
-        text-align: center;
-        color: #64748b;
-
-        mat-icon {
-            font-size: 25px;
-            color: #94a3b8;
-        }
-    }
-
-    .action-buttons {
-        display: flex;
-        justify-content: flex-end;
-        gap: 12px;
-        padding: 8px 16px;
-    }
-}
-.d-flex {
+  .info-card {
     display: flex;
-}
-.action-buttons {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    background-color: #e0f2fe;
+    color: #2563eb;
+  }
+
+  .generate-placeholder {
+    text-align: center;
+    color: #64748b;
+
+    mat-icon {
+      font-size: 25px;
+      color: #94a3b8;
+    }
+  }
+
+  .action-buttons {
     display: flex;
     justify-content: flex-end;
     gap: 12px;
     padding: 8px 16px;
+  }
+}
+.d-flex {
+  display: flex;
+}
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 8px 16px;
 }
 
-
-.form-field {
-    flex: 1;
-    min-width: 250px;
+.mobile-only {
+  display: none !important;
 }
 
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 24px;
-    border-bottom: 1px solid #ccc;
+.desktop-only {
+  display: block !important;
+}
 
-    .table-title {
+.sub-location-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+
+  .sub-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .sub-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      color: white;
+
+      .card-stt {
         display: flex;
         align-items: center;
-        gap: 8px;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        font-size: 13px;
         font-weight: 600;
-        color: #1e293b;
+      }
 
-        mat-icon {
+      .card-location {
+        flex: 1;
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .card-actions {
+        display: flex;
+        gap: 4px;
+
+        button {
+          width: 32px;
+          height: 32px;
+
+          mat-icon {
             font-size: 20px;
             width: 20px;
             height: 20px;
+            color: white;
+          }
         }
+      }
     }
 
-    .table-actions {
-        display: flex;
-        align-items: center;
-        gap: 12px;
+    .sub-card-body {
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
 
-
-        .refresh-btn {
-            width: 40px;
-            height: 40px;
-        }
-    }
-}
-
-.location-count {
-    background-color: #e0f2fe;
-    color: #2563eb;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 13px;
-}
-
-.sub-location-table-card {
-    margin-top: 24px;
-    padding: 16px;
-
-    .table-header {
+      .card-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-weight: 600;
-        font-size: 16px;
-        margin-bottom: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f1f5f9;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .card-label {
+          font-size: 12px;
+          color: #64748b;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .card-value {
+          font-size: 14px;
+          color: #1e293b;
+          font-weight: 600;
+
+          &.code-text {
+            font-family: monospace;
+            font-size: 13px;
+            color: #2563eb;
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+          }
+        }
+
+        .card-input {
+          border: 1px solid #cbd5e1;
+          border-radius: 4px;
+          padding: 6px 10px;
+          font-size: 14px;
+          outline: none;
+          transition: all 0.2s;
+
+          &:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+          }
+        }
+      }
+    }
+  }
+}
+.form-field {
+  flex: 1;
+  min-width: 250px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #ccc;
+
+  .table-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #1e293b;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .table-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .refresh-btn {
+      width: 40px;
+      height: 40px;
+    }
+  }
+}
+
+.location-count {
+  background-color: #e0f2fe;
+  color: #2563eb;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.sub-location-table-card {
+  margin-top: 24px;
+  padding: 16px;
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .sub-location-table {
+    width: 100%;
+    table-layout: fixed;
+
+    th.mat-header-cell {
+      font-weight: 600;
     }
 
-    .sub-location-table {
+    td.mat-cell,
+    th.mat-header-cell {
+      padding: 8px 12px;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    ::ng-deep .mat-mdc-column-actions,
+    ::ng-deep .cdk-column-actions {
+      width: 10rem !important;
+      max-width: 10rem !important;
+      min-width: 10rem !important;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block !important;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
+  .location-header {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+
+    .header-title {
+      width: 100%;
+
+      h1 {
+        font-size: 20px;
+      }
+    }
+
+    .add-btn {
+      width: 100%;
+    }
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+    padding: 8px;
+
+    .form-field {
+      min-width: 100%;
+    }
+
+    .preview {
+      min-width: 100%;
+    }
+  }
+
+  .sub-location-config {
+    .config-card {
+      padding: 12px;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+
+      button {
         width: 100%;
-        table-layout: fixed;
-
-        th.mat-header-cell {
-            font-weight: 600;
-        }
-
-        td.mat-cell,
-        th.mat-header-cell {
-            padding: 8px 12px;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        ::ng-deep .mat-mdc-column-actions,
-        ::ng-deep .cdk-column-actions {
-            width: 10rem !important;
-            max-width: 10rem !important;
-            min-width: 10rem !important;
-        }
+      }
     }
+  }
+
+  .card-header {
+    padding: 12px 16px;
+
+    .table-title {
+      font-size: 14px;
+
+      .location-count {
+        font-size: 11px;
+        padding: 2px 6px;
+      }
+    }
+  }
+
+  .action-buttons {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
+  }
 }

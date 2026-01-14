@@ -219,7 +219,7 @@
             </div>
             <div class="sub-location-list" *ngIf="subLocations.length > 0">
 
-                <table mat-table [dataSource]="pagedSubLocations" class="sub-location-table">
+                <table mat-table [dataSource]="pagedSubLocations" class="sub-location-table desktop-only">
 
                     <!-- STT Column -->
                     <ng-container matColumnDef="stt">
@@ -272,6 +272,46 @@
                     <tr mat-header-row *matHeaderRowDef="subLocationColumns"></tr>
                     <tr mat-row *matRowDef="let row; columns: subLocationColumns;"></tr>
                 </table>
+
+                <div class="sub-location-cards mobile-only" *ngIf="subLocations.length > 0">
+                    <div class="sub-card" *ngFor="let element of pagedSubLocations; let i = index">
+                        <div class="sub-card-header">
+                            <span class="card-stt">{{ i + 1 + (pageIndex * pageSize) }}</span>
+                            <span class="card-location">{{ element.locationCode }}</span>
+                            <div class="card-actions">
+                                <button mat-icon-button color="accent" *ngIf="!element.isEditing"
+                                    (click)="onEditSubLocation(i + (pageIndex * pageSize))" matTooltip="Chỉnh sửa">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                                <button mat-icon-button color="primary" *ngIf="element.isEditing"
+                                    (click)="onConfirmEdit(i + (pageIndex * pageSize))" matTooltip="Hoàn thành">
+                                    <mat-icon>check</mat-icon>
+                                </button>
+                                <button mat-icon-button color="warn" 
+                                    (click)="onDeleteSubLocation(i + (pageIndex * pageSize))" matTooltip="Xoá">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="sub-card-body">
+                            <div class="card-row">
+                                <span class="card-label">Tên vị trí phụ</span>
+                                <span class="card-value" *ngIf="!element.isEditing">{{ element.subCode }}</span>
+                                <input matInput [(ngModel)]="element.subCode" *ngIf="element.isEditing" 
+                                    class="card-input" />
+                            </div>
+                            
+                            <div class="card-row">
+                                <span class="card-label">Code</span>
+                                <span class="card-value code-text">
+                                    {{ element.areaCode }}-{{ element.locationCode }}-{{ element.subCode }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <mat-paginator [length]="subLocations.length" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 20]"
                     (page)="onPageChangeSubs($event)">
                 </mat-paginator>
