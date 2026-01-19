@@ -1,6 +1,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from strawberry.fastapi import GraphQLRouter
 
 from app.core.cache import close_cache, init_cache
@@ -24,6 +25,9 @@ app = FastAPI(
     debug=settings.DEBUG
 )
 
+# Mount static files
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -42,7 +46,8 @@ async def auth_callback(code: str = None, state: str = None):
         # This would typically redirect to frontend with the code
         return {"message": "Authentication successful", "code": code, "state": state}
     return {"error": "No authorization code provided"}
-app.include_router(misc_router, prefix="/api", tags=["Miscellaneous"])
+# app.include_router(misc_router, prefix="/api", tags=["Miscellaneous"])
+app.include_router(misc_router, prefix="/api/v1", tags=["Miscellaneous v1"])
 app.include_router(areas_router, prefix="/api/areas", tags=["Areas"])
 app.include_router(locations_router, prefix="/api/locations", tags=["Locations"])
 app.include_router(import_req_router, prefix="/api/import-requirements", tags=["Import Requirements"])

@@ -16,7 +16,7 @@ router = APIRouter()
 
 
 @router.get("/", response_model=AreaListResponse)
-@cache(expire=settings.CACHE_EXPIRE_SECONDS)
+# @cache(expire=settings.CACHE_EXPIRE_SECONDS)
 async def get_areas(
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
