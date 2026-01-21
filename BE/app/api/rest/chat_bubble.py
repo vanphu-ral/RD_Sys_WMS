@@ -135,7 +135,7 @@ async def get_embed_script():
     backend_port = 9030
 
     # api_base_url = os.environ.get("NEXT_PUBLIC_API_BASE") or f"http://localhost:{backend_port}"
-    api_base_url = os.environ.get("NEXT_PUBLIC_API_BASE") or f"http://192.168.10.99:9030"
+    api_base_url = os.environ.get("NEXT_PUBLIC_API_BASE") or f"https://ral-wms-logistic.rangdong.com.vn:9004"
 
 
     # Create the embed HTML with proper script tag

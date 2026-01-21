@@ -516,7 +516,7 @@ async function handleSendMessage() {
   messageInput.value = "";
   showTypingIndicator();
 
-  const url = "http://192.168.10.99:3001/api/v1/workspace/nw/chat";
+  const url = "https://ral-wms-logistic.rangdong.com.vn:9004/api/v1/workspace/nw/chat";
   let actualMessage = text;
   if (text === "Tóm tắt nội dung trang") {
     const currentUrl = getCurrentPath();
