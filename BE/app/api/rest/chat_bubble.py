@@ -32,7 +32,7 @@ sys.path.insert(0, str(_project_root))
 
 router = APIRouter()
 
-LLM_URL = "http://localhost:3001/api/v1/workspace/nw/chat"
+LLM_URL = "http://192.168.10.99:3001/api/v1/workspace/nw/chat"
 
 class ChatRequest(BaseModel):
     message: str
