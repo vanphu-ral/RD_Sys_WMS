@@ -9,7 +9,9 @@ Provides streaming chat responses for external website integration.
 from pathlib import Path
 import sys
 from urllib.parse import urlparse
+from wsgiref import headers
 
+import httpx
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -29,6 +31,8 @@ sys.path.insert(0, str(_project_root))
 # logger = get_logger("ChatBubbleAPI", level="INFO", log_dir=log_dir)
 
 router = APIRouter()
+
+LLM_URL = "http://localhost:3001/api/v1/workspace/nw/chat"
 
 class ChatRequest(BaseModel):
     message: str
@@ -87,29 +91,32 @@ class ChatRequest(BaseModel):
 
 
 
-# @router.post("/chat")
-# async def chat_stream(request: ChatRequest):
-#     """
-#     Streaming chat endpoint for chat bubble.
+@router.post("/chat")
+async def chat_stream(request: ChatRequest):
+    """
+    Streaming chat endpoint for chat bubble.
 
-#     Accepts a simple message and returns streaming response
-#     compatible with the chat bubble JavaScript client.
-#     """
-#     if not request.message or not request.message.strip():
-#         raise HTTPException(status_code=400, detail="Message is required")
+    Accepts a simple message and proxies to the local LLM model.
+    """
+    if not request.message or not request.message.strip():
+        raise HTTPException(status_code=400, detail="Message is required")
 
-#     message = request.message.strip()
-#     logger.info(f"Chat bubble request: {message[:50]}...")
-
-#     async def response_generator():
-#         stream = await generate_streaming_response(message)
-#         async for chunk in stream:
-#             yield chunk
-
-#     return StreamingResponse(
-#         response_generator(),
-#         media_type="application/json"
-#     )
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        try:
+            response = await client.post(LLM_URL, json=request.dict(), 
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer 44MEZFA-SQHM1HY-K231HMZ-H9Y3ZKA",
+                    "Accept": "application/json"
+          })
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail=response.text)
+            return StreamingResponse(
+                response.aiter_bytes(),
+                media_type=response.headers.get('content-type', 'application/json')
+            )
+        except httpx.RequestError as e:
+            raise HTTPException(status_code=500, detail=f"Error connecting to LLM: {str(e)}")
 
 @router.get("/embed")
 async def get_embed_script():
@@ -143,8 +150,7 @@ async def get_embed_script():
     <script>
         // Configuration
         window.DeepTutorConfig = {{
-            # apiUrl: "{api_base_url}/api/v1/chat-bubble/chat",
-            apiUrl: "http://192.168.10.99:9030/api/v1/workspace/nw/chat",
+            apiUrl: "{api_base_url}/api/v1/workspace/nw/chat",
             logoUrl: "{api_base_url}/static/chat-bubble/IconRangDong.png",
             styleUrl: "{api_base_url}/static/chat-bubble/style.css"
         }};

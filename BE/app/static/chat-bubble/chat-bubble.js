@@ -50,8 +50,8 @@ const styles = `
     position: fixed;
     bottom: 100px; /* Increased bottom to not overlap bubble */
     right: 20px;
-    width: 25%;
-    height: 70%;
+    width: 400px;
+    height: 60%;
     background: #f4f7f9;
     border-radius: 16px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
@@ -371,12 +371,11 @@ p code {
 // Get configuration from window object or use defaults
 const config = window.DeepTutorConfig || {
     // apiUrl: "http://localhost:8000/api/v1/chat-bubble/chat",
-    apiUrl: "http://localhost:3001/api/v1/workspace/nw/chat",
+    apiUrl: "https://ral-wms-logistic.rangdong.com.vn:9004/api/v1/workspace/nw/chat",
     logoUrl: "http://localhost:8000/static/chat-bubble/IconRangDong.png",
     styleUrl: "http://localhost:8000/static/chat-bubble/style.css"
 };
 
-const serverBaseUrl = config.apiUrl.replace('/api/v1/chat-bubble/chat', '');
 const apiUrl = config.apiUrl;
 const logoUrl = config.logoUrl;
 
@@ -532,11 +531,11 @@ async function handleSendMessage() {
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer 44MEZFA-SQHM1HY-K231HMZ-H9Y3ZKA",
-            "Accept": "application/json"
-          },
+      // headers: {
+      //       "Content-Type": "application/json",
+      //       "Authorization": "Bearer 44MEZFA-SQHM1HY-K231HMZ-H9Y3ZKA",
+      //       "Accept": "application/json"
+      //     },
       body: JSON.stringify(payload)
     });
     console.log("Response status:", response.status);
