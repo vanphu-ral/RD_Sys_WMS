@@ -67,6 +67,9 @@ const styles = `
     display: flex;
     opacity: 1;
     transform: translateY(0);
+    // margin-top: 10px;
+    padding-top: 27px;
+    margin-bottom: 10px;
 }
 
 /* Header */
@@ -372,6 +375,8 @@ p code {
 const config = window.DeepTutorConfig || {
     // apiUrl: "http://localhost:8000/api/v1/chat-bubble/chat",
     apiUrl: "https://ral-wms-logistic.rangdong.com.vn:9004/api/v1/workspace/nw/chat",
+    // apiUrl: "http://localhost:9030/api/v1/workspace/nw/chat",
+
     logoUrl: "http://localhost:8000/static/chat-bubble/IconRangDong.png",
     styleUrl: "http://localhost:8000/static/chat-bubble/style.css"
 };
@@ -517,6 +522,8 @@ async function handleSendMessage() {
   showTypingIndicator();
 
   const url = "https://ral-wms-logistic.rangdong.com.vn:9004/api/v1/workspace/nw/chat";
+  // const url = "http://localhost:9030/api/v1/workspace/nw/chat";
+
   let actualMessage = text;
   if (text === "Tóm tắt nội dung trang") {
     const currentUrl = getCurrentPath();
@@ -531,11 +538,11 @@ async function handleSendMessage() {
   try {
     const response = await fetch(url, {
       method: "POST",
-      // headers: {
-      //       "Content-Type": "application/json",
-      //       "Authorization": "Bearer 44MEZFA-SQHM1HY-K231HMZ-H9Y3ZKA",
-      //       "Accept": "application/json"
-      //     },
+      headers: {
+            "Content-Type": "application/json",
+            // "Authorization": "Bearer 44MEZFA-SQHM1HY-K231HMZ-H9Y3ZKA",
+            "Accept": "application/json"
+          },
       body: JSON.stringify(payload)
     });
     console.log("Response status:", response.status);

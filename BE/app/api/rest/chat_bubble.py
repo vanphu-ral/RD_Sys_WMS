@@ -6,8 +6,10 @@ REST endpoints for embeddable chat bubble functionality.
 Provides streaming chat responses for external website integration.
 """
 
+from logging import log
 from pathlib import Path
 import sys
+import logging
 from urllib.parse import urlparse
 from wsgiref import headers
 
@@ -15,6 +17,7 @@ import httpx
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from sympy import content
 
 _project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(_project_root))
@@ -32,10 +35,13 @@ sys.path.insert(0, str(_project_root))
 
 router = APIRouter()
 
+logger = logging.getLogger(__name__)
+
 LLM_URL = "http://192.168.10.99:3001/api/v1/workspace/nw/chat"
 
 class ChatRequest(BaseModel):
     message: str
+    mode: str = "chat"
 
 # async def generate_streaming_response(message: str):
 #     """Generate streaming response using DeepTutor's ChatAgent"""
@@ -98,17 +104,19 @@ async def chat_stream(request: ChatRequest):
 
     Accepts a simple message and proxies to the local LLM model.
     """
+    print("Received chat request:", request.dict())
+    logger.info(f"Received chat request: {request.dict()}")
     if not request.message or not request.message.strip():
         raise HTTPException(status_code=400, detail="Message is required")
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         try:
-            response = await client.post(LLM_URL, json=request.dict(), 
+            response = await client.post(LLM_URL, json=request.dict(),
                 headers={
-                    "Content-Type": "application/json",
                     "Authorization": "Bearer 44MEZFA-SQHM1HY-K231HMZ-H9Y3ZKA",
-                    "Accept": "application/json"
-          })
+                    "Accept": "application/json",
+                }
+          )
             if response.status_code != 200:
                 raise HTTPException(status_code=response.status_code, detail=response.text)
             return StreamingResponse(

@@ -54,6 +54,7 @@ class Settings(BaseSettings):
                                     "http://192.168.10.99:9000",
                                     "http://localhost:9041",
                                     "http://localhost:9000",
+                                    "http://localhost:9030",
                                     "https://192.168.18.105:4200",
                                     "https://192.168.18.101:4200",
                                     "https://192.168.18.105:4200" ]
