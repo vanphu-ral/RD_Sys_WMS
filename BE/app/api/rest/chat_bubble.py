@@ -126,6 +126,35 @@ async def chat_stream(request: ChatRequest):
         except httpx.RequestError as e:
             raise HTTPException(status_code=500, detail=f"Error connecting to LLM: {str(e)}")
 
+@router.post("/chatRequest")
+async def chat_request_stream(request: ChatRequest):
+    """
+    Streaming chat endpoint for chat bubble.
+
+    Accepts a simple message and proxies to the local LLM model.
+    """
+    print("Received chat request:", request.dict())
+    logger.info(f"Received chat request: {request.dict()}")
+    if not request.message or not request.message.strip():
+        raise HTTPException(status_code=400, detail="Message is required")
+
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        try:
+            response = await client.post(LLM_URL, json=request.dict(),
+                headers={
+                    "Authorization": "Bearer 44MEZFA-SQHM1HY-K231HMZ-H9Y3ZKA",
+                    "Accept": "application/json",
+                }
+          )
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail=response.text)
+            return StreamingResponse(
+                response.aiter_bytes(),
+                media_type=response.headers.get('content-type', 'application/json')
+            )
+        except httpx.RequestError as e:
+            raise HTTPException(status_code=500, detail=f"Error connecting to LLM: {str(e)}")
+
 @router.get("/embed")
 async def get_embed_script():
     """
@@ -158,7 +187,7 @@ async def get_embed_script():
     <script>
         // Configuration
         window.DeepTutorConfig = {{
-            apiUrl: "{api_base_url}/api/v1/workspace/nw/chat",
+            apiUrl: "{api_base_url}/api/v1/workspace/nw/chatRequest",
             logoUrl: "{api_base_url}/static/chat-bubble/IconRangDong.png",
             styleUrl: "{api_base_url}/static/chat-bubble/style.css"
         }};

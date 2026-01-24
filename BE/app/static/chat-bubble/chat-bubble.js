@@ -374,8 +374,8 @@ p code {
 // Get configuration from window object or use defaults
 const config = window.DeepTutorConfig || {
     // apiUrl: "http://localhost:8000/api/v1/chat-bubble/chat",
-    apiUrl: "https://ral-wms-logistic.rangdong.com.vn:9004/api/v1/workspace/nw/chat",
-    // apiUrl: "http://localhost:9030/api/v1/workspace/nw/chat",
+    // apiUrl: "https://ral-wms-logistic.rangdong.com.vn:9004/api/v1/workspace/nw/chatRequest",
+    apiUrl: "http://localhost:9030/api/v1/workspace/nw/chat",
 
     logoUrl: "http://localhost:8000/static/chat-bubble/IconRangDong.png",
     styleUrl: "http://localhost:8000/static/chat-bubble/style.css"
@@ -521,13 +521,14 @@ async function handleSendMessage() {
   messageInput.value = "";
   showTypingIndicator();
 
-  const url = "https://ral-wms-logistic.rangdong.com.vn:9004/api/v1/workspace/nw/chat";
+  // url gọi api chat
+  const url = "https://ral-wms-logistic.rangdong.com.vn:9004/api/v1/workspace/nw/chatRequest";
   // const url = "http://localhost:9030/api/v1/workspace/nw/chat";
 
-  let actualMessage = text;
+  let actualMessage = '@agent ' + text;
   if (text === "Tóm tắt nội dung trang") {
     const currentUrl = getCurrentPath();
-    actualMessage = `Hãy tóm tắt nội dung chính của trang web tại địa chỉ: ${currentUrl}. Nếu trong trang có đường dẫn tới google drive hãy liệt kê lại.`;
+    actualMessage = `@agent Hãy tóm tắt nội dung chính của trang web tại địa chỉ: ${currentUrl}. Nếu trong trang có đường dẫn tới google drive hãy liệt kê lại.`;
   }
 
   const payload = {
