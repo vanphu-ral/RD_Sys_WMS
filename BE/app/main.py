@@ -35,6 +35,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
+    allow_origin_regex=r"https://.*\.googleusercontent\.com",
     allow_methods=["*"],
     allow_headers=["*"],
 )
