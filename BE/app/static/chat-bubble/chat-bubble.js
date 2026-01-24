@@ -610,7 +610,7 @@ function escapeHtml(unsafe) {
 }
 
 function getCurrentPath() {
-  return window.location.href;
+  return document.referrer;
 }
 
 function quickSummarizeCurrentPage(){
