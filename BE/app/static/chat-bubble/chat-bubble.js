@@ -517,6 +517,8 @@ async function handleSendMessage() {
   const text = messageInput.value.trim();
   if (!text) return;
   
+  const webBaseUrl = window.DeepTutorConfig.baseWebUrl || "Không lấy được địa chỉ trang hiện tại";
+
   addMessage(text, true);
   messageInput.value = "";
   showTypingIndicator();
@@ -527,8 +529,7 @@ async function handleSendMessage() {
 
   let actualMessage = '@agent ' + text;
   if (text === "Tóm tắt nội dung trang") {
-    const currentUrl = getCurrentPath();
-    actualMessage = `@agent Hãy tóm tắt nội dung chính của trang web tại địa chỉ: ${currentUrl}. Nếu trong trang có đường dẫn tới google drive hãy liệt kê lại.`;
+    actualMessage = `@agent Hãy tóm tắt nội dung chính của trang web tại địa chỉ: ${webBaseUrl}. Nếu trong trang có đường dẫn tới google drive hãy liệt kê lại.`;
   }
 
   const payload = {
