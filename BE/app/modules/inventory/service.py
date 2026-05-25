@@ -489,7 +489,8 @@ class InventoryService:
                 "lot": inv.lot,
                 "vendor": inv.vendor,
                 "msd_level": inv.msd_level,
-                "comments": inv.comments
+                "comments": inv.comments,
+                "workshop_code": inv.workshop_code
             })
 
         total_pages = (total_items + size - 1) // size if total_items > 0 else 1
@@ -542,6 +543,7 @@ class InventoryService:
                 "vendor": inv.vendor,
                 "msd_level": inv.msd_level,
                 "comments": inv.comments,
+                "workshop_code": inv.workshop_code,
             }
             for inv in inventories
         ]

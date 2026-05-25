@@ -108,7 +108,8 @@ class InventoryQuery:
                     lot=item["lot"],
                     vendor=item["vendor"],
                     msd_level=item["msd_level"],
-                    comments=item["comments"]
+                    comments=item["comments"],
+                    workshop_code=item["workshop_code"]
                 ))
 
             meta = PaginationMeta(
