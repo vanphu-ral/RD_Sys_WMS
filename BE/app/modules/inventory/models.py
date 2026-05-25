@@ -72,6 +72,7 @@ class Inventory(Base):
     vendor = Column(String(50), nullable=True)
     msd_level = Column(String(50), nullable=True)
     comments = Column(String(255), nullable=True)
+    workshop_code = Column(String(15), nullable=True)
 
 
 class WarehouseImportRequirement(Base):

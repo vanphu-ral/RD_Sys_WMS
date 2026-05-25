@@ -21,6 +21,7 @@ from app.api.rest.osr import router as osr_router
 from app.api.rest.external_apps import router as external_apps_router
 from app.api.rest.warehouse_import import router as warehouse_import_router
 from app.api.rest.chat_bubble import router as chat_bubble_router
+from app.api.rest.workshops import router as workshops_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -60,7 +61,8 @@ app.include_router(iwtr_router, prefix="/api/iwtr", tags=["IWTR"])
 app.include_router(osr_router, prefix="/api/osr", tags=["OSR"])
 app.include_router(external_apps_router, prefix="/api/external-apps", tags=["External Apps"])
 app.include_router(warehouse_import_router, prefix="/api/warehouse-import", tags=["Warehouse Import"])
-app.include_router(chat_bubble_router, prefix="/api/v1/workspace/nw", tags=["Chat"])
+app.include_router(chat_bubble_router, prefix="/api/v1/workspace/qltl", tags=["Chat"])
+app.include_router(workshops_router, prefix="/api/workshops", tags=["Workshops"])
 
 @app.on_event("startup")
 async def startup_event():

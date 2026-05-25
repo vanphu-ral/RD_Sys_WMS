@@ -72,6 +72,7 @@ type Inventory {
   vendor: String
   msd_level: String
   comments: String
+  workshop_code: String
 
   location: Location # Quan hệ n-1
   parent_location: Location # Quan hệ n-1

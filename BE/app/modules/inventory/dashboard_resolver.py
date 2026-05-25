@@ -118,6 +118,7 @@ class FullInventoryItem:
     vendor: Optional[str]
     msd_level: Optional[str]
     comments: Optional[str]
+    workshop_code: Optional[str]
 
 
 @strawberry.type
