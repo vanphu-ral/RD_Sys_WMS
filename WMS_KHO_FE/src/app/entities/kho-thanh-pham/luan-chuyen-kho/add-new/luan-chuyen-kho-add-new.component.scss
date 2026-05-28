@@ -1,0 +1,372 @@
+// ─── Variables ───────────────────────────────────────────────────────────────
+$primary: #7c3aed;
+$green: #16a34a;
+$green-dark: #15803d;
+$blue: #2563eb;
+$blue-dark: #1d4ed8;
+$text-dark: #1e1b2e;
+$text-muted: #6b7280;
+$text-sub: #9ca3af;
+$border-color: #e5e7eb;
+$card-bg: #ffffff;
+$page-bg: #f3f4f6;
+$input-bg: #ffffff;
+$row-hover: #f9fafb;
+
+// ─── Page Wrapper ─────────────────────────────────────────────────────────────
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: $page-bg;
+  font-family: 'Segoe UI', 'Be Vietnam Pro', sans-serif;
+}
+
+// ─── Header ──────────────────────────────────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: $card-bg;
+  padding: 14px 24px;
+  border-bottom: 1px solid $border-color;
+
+  .page-title-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .btn-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: $text-dark;
+    border-radius: 6px;
+    transition: background 0.15s;
+
+    .material-icons {
+      font-size: 22px;
+      font-family: 'Material Icons';
+    }
+
+    &:hover {
+      background: $page-bg;
+    }
+  }
+
+  .page-title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: $text-dark;
+  }
+}
+
+// ─── Submit Button ────────────────────────────────────────────────────────────
+.btn-submit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  background: $blue;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+
+  .material-icons {
+    font-size: 17px;
+    font-family: 'Material Icons';
+    transform: rotate(-30deg);
+  }
+
+  &:hover {
+    background: $blue-dark;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+}
+
+// ─── Page Content ─────────────────────────────────────────────────────────────
+.page-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
+.card {
+  background: $card-bg;
+  border: 1px solid $border-color;
+  border-radius: 10px;
+  padding: 20px 24px;
+}
+
+// ─── Form Grid ────────────────────────────────────────────────────────────────
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px 20px;
+  margin-bottom: 16px;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: $text-muted;
+}
+
+.field-input {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid $border-color;
+  border-radius: 7px;
+  font-size: 13.5px;
+  color: $text-dark;
+  background: $input-bg;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: $text-sub;
+  }
+
+  &:focus {
+    border-color: #a78bfa;
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
+  }
+}
+
+.field-textarea {
+  padding: 10px 12px;
+  border: 1px solid $border-color;
+  border-radius: 7px;
+  font-size: 13.5px;
+  color: $text-dark;
+  background: $input-bg;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: $text-sub;
+  }
+
+  &:focus {
+    border-color: #a78bfa;
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
+  }
+}
+
+// ─── Section Header ───────────────────────────────────────────────────────────
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  .section-icon {
+    font-size: 20px;
+    color: $text-dark;
+    font-family: 'Material Icons';
+  }
+
+  .section-title {
+    margin: 0;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: $text-dark;
+  }
+}
+
+.section-divider {
+  height: 1px;
+  background: $border-color;
+  margin-bottom: 20px;
+}
+
+// ─── Scan Mode Buttons ────────────────────────────────────────────────────────
+.scan-mode-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.btn-scan-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 7px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #d1fae5;
+  color: $green;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+
+  .material-icons {
+    font-size: 17px;
+    font-family: 'Material Icons';
+  }
+
+  &.active,
+  &:hover {
+    background: $green;
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(22, 163, 74, 0.3);
+  }
+}
+
+// ─── Scan Input ───────────────────────────────────────────────────────────────
+.scan-input {
+  width: 100%;
+  max-width: 430px;
+  box-sizing: border-box;
+}
+
+// ─── Table ────────────────────────────────────────────────────────────────────
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+
+  th {
+    padding: 10px 14px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: $text-dark;
+    border-bottom: 2px solid $border-color;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    transition: background 0.15s;
+
+    &:hover {
+      background: $row-hover;
+    }
+  }
+
+  td {
+    padding: 11px 14px;
+    text-align: center;
+    color: $text-muted;
+    border-bottom: 1px solid lighten($border-color, 3%);
+    white-space: nowrap;
+
+    &.col-bold {
+      font-weight: 600;
+      color: $text-dark;
+    }
+  }
+}
+
+// ─── Empty State ─────────────────────────────────────────────────────────────
+.empty-row {
+  text-align: center;
+  color: $text-sub;
+  padding: 32px 0;
+  font-style: italic;
+}
+// ─── Pagination ───────────────────────────────────────────────────────────────
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding-top: 8px;
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid $border-color;
+  border-radius: 7px;
+  background: $card-bg;
+  color: $text-muted;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+  .material-icons {
+    font-size: 16px;
+    font-family: 'Material Icons';
+  }
+
+  &:hover:not(:disabled):not(.active) {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+  }
+
+  &.active {
+    background: $blue;
+    color: #fff;
+    border-color: $blue;
+    font-weight: 700;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &.nav-btn {
+    padding: 0 12px;
+    color: $text-muted;
+    font-size: 13px;
+  }
+}
+
+.page-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  color: $text-sub;
+  font-size: 13px;
+  letter-spacing: 1px;
+}

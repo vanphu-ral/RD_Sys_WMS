@@ -467,10 +467,11 @@
             <mat-icon>close</mat-icon>
             Huỷ
         </button>
-
-        <button mat-raised-button color="primary" class="confirm-btn" (click)="onConfirm()" *ngIf="showApproveButton">
+        <button mat-raised-button color="primary" class="confirm-btn" (click)="onConfirm()"
+            *ngIf="showApproveButton && canApprove()">
             <mat-icon>check</mat-icon>
             Phê duyệt
         </button>
+
     </div>
 </div>

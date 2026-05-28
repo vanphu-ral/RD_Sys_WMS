@@ -19,6 +19,8 @@ interface TokenPayload {
       roles: string[];
     };
   };
+  factory?: string;
+  branch?: string;
 }
 
 @Injectable({
@@ -53,6 +55,32 @@ export class AuthService {
     private ngZone: NgZone
   ) {
     this.initSessionManagement();
+  }
+
+  private getFactoryFromToken(token: string | null): string | null {
+    if (!token) return null;
+    try {
+      const decoded = jwtDecode<TokenPayload>(token);
+      // Ưu tiên factory, fallback sang branch nếu factory không có
+      return decoded.factory?.trim() || decoded.branch?.trim() || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Ưu tiên lấy factory từ id_token (factory/branch).
+   * Nếu id_token thiếu thì fallback sang access_token (factory/branch).
+   */
+  getFactory(): string | null {
+    const fromIdToken = this.getFactoryFromToken(this.getIdToken());
+    if (fromIdToken) return fromIdToken;
+    return this.getFactoryFromToken(this.getAccessToken());
+  }
+  hasFactory(...allowed: string[]): boolean {
+    const f = this.getFactory()?.toLowerCase();
+    if (!f) return false;
+    return allowed.some(a => a.toLowerCase() === f);
   }
 
   // ============= PKCE HELPERS =============
@@ -606,5 +634,9 @@ export class AuthService {
 
   getAccessToken(): string | null {
     return localStorage.getItem('access_token');
+  }
+
+  getIdToken(): string | null {
+    return localStorage.getItem('id_token');
   }
 }

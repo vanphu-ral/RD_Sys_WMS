@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { provideRouter, RouterOutlet } from '@angular/router';
 import {
@@ -14,6 +14,8 @@ import { CommonModule } from '@angular/common';
 import { Output, EventEmitter } from '@angular/core';
 import { UrlEncoderService } from '../entities/encoded-redirect/services/url-encoder.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { Subscription } from 'rxjs';
 
 // import {AutoSizeInputDirective} from "ngx-autosize-input";
 
@@ -31,22 +33,35 @@ import { Router } from '@angular/router';
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
   menus: any[] = [];
   public isSidebarCollapsed: boolean = true;
+  private authSub?: Subscription;
   @Input() isCollapsed: boolean = true; // Nhận trạng thái từ AppComponent
 
   @Output() collapseSidebar = new EventEmitter<void>();
   constructor(
     public sidebarservice: SidebarService,
     private encoder: UrlEncoderService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {
-    this.menus = sidebarservice.getMenuList();
+    this.refreshMenus();
   }
 
   ngOnInit(): void {
+    this.authSub = this.authService.isLoggedIn$.subscribe(() => {
+      this.refreshMenus();
+    });
     this.sidebarservice.setSidebarState(true);
+  }
+
+  ngOnDestroy(): void {
+    this.authSub?.unsubscribe();
+  }
+
+  private refreshMenus(): void {
+    this.menus = this.sidebarservice.getMenuList();
   }
   getSideBarState() {
     return this.sidebarservice.getSidebarState();

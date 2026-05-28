@@ -24,6 +24,13 @@ import { ThongKeTonKhoComponent } from './entities/bao-cao-thong-ke/thong-ke-ton
 import { EncodedRedirectComponent } from './entities/encoded-redirect/encoded-redirect.component';
 import { UserInfoComponent } from './user/user-info.component';
 import { UnauthorizedComponent } from './entities/unauthorized/unauthorized.component';
+import { QuanLyMaVachComponent } from './entities/kho-thanh-pham/quan-ly-ma-vach/quan-ly-ma-vach.component';
+import { SplitManagementComponent } from './entities/kho-thanh-pham/quan-ly-ma-vach/split-main-component/split-management.component';
+import { CreatePalletSlipComponent } from './entities/create-pallet-slip/create-pallet-slip.component';
+import { LuanChuyenKhoComponent } from './entities/kho-thanh-pham/luan-chuyen-kho/luan-chuyen-kho.component';
+import { LuanChuyenKhoListComponent } from './entities/kho-thanh-pham/luan-chuyen-kho/list/luan-chuyen-kho-list.component';
+import { LuanChuyenKhoAddNewComponent } from './entities/kho-thanh-pham/luan-chuyen-kho/add-new/luan-chuyen-kho-add-new.component';
+import { LuanChuyenKhoScanApproveComponent } from './entities/kho-thanh-pham/luan-chuyen-kho/scan-approve/luan-chuyen-kho-scan-approve.component';
 
 export const routes: Routes = [
   {
@@ -36,6 +43,11 @@ export const routes: Routes = [
     component: HomepageComponent,
     data: { tabLabel: 'Home', isClosable: false },
   },
+  // {
+  //   path: 'create-pallet-slip',
+  //   component: CreatePalletSlipComponent,
+  //   data: { tabLabel: 'Create pallet slip', isClosable: false },
+  // },
   {
     path: 'auth/callback',
     component: AuthCallbackComponent,
@@ -54,6 +66,7 @@ export const routes: Routes = [
       tabLabel: 'Quản lý Kho',
       isClosable: false,
       roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+      // roles: [],
     }
   },
   {
@@ -64,6 +77,7 @@ export const routes: Routes = [
       tabLabel: 'Thêm mới Areas',
       isClosable: false,
       roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN']
+      // roles: [],
     }
   },
   {
@@ -74,6 +88,7 @@ export const routes: Routes = [
       tabLabel: 'Chỉnh sửa Area',
       isClosable: true,
       roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN']
+      // roles: [],
     }
   },
   {
@@ -84,6 +99,7 @@ export const routes: Routes = [
       tabLabel: 'Quản lý Locations',
       isClosable: false,
       roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+      // roles: [],
     }
   },
   {
@@ -94,6 +110,7 @@ export const routes: Routes = [
       tabLabel: 'Thêm mới Locations',
       isClosable: false,
       roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN']
+      // roles: [],
     }
   },
   {
@@ -104,6 +121,7 @@ export const routes: Routes = [
       tabLabel: 'Chỉnh sửa Locations',
       isClosable: false,
       roles: ['WMS_RD_AREALOC', 'WMS_RD_ADMIN']
+      // roles: [],
     }
   },
   {
@@ -112,7 +130,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Chuyển kho nội bộ',
-      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      factories: ['RANGDONG']
     }
   },
   {
@@ -121,7 +140,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Thêm mới yêu cầu chuyển kho',
-      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN']
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN'],
+      factories: ['RANGDONG']
     }
   },
   {
@@ -130,7 +150,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Chi tiết yêu cầu chuyển kho',
-      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      factories: ['RANGDONG']
     }
   },
   {
@@ -139,7 +160,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Scan chuyển kho',
-      roles: ['WMS_RD_STOCKOPS', 'WMS_RD_ADMIN']
+      roles: ['WMS_RD_STOCKOPS', 'WMS_RD_ADMIN'],
+      factories: ['RANGDONG']
     }
   },
   {
@@ -187,12 +209,31 @@ export const routes: Routes = [
       roles: ['WMS_RD_PUTAWAY', 'WMS_RD_ADMIN']
     }
   },
+  // {
+  //   path: 'kho-thanh-pham/quan-ly-ma-vach',
+  //   component: QuanLyMaVachComponent,
+  //   canActivate: [AuthGuard],
+  //   data: {
+  //     tabLabel: 'Quản lý mã vạch',
+  //     roles: ['WMS_RD_APPROVEIO','WMS_RD_PUTAWAY', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+  //   }
+  // },
+  // {
+  //   path: 'kho-thanh-pham/quan-ly-ma-vach/tach-ma',
+  //   component: SplitManagementComponent,
+  //   canActivate: [AuthGuard],
+  //   data: {
+  //     tabLabel: 'Tách và đóng gói mã vạch',
+  //     roles: ['WMS_RD_APPROVEIO','WMS_RD_PUTAWAY', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+  //   }
+  // },
   {
     path: 'kho-thanh-pham/quan-ly-kho',
     component: QuanLyKhoComponent,
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Quản lý kho',
+      // roles: []
       roles: ['WMS_RD_STOCKOPS', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
     }
   },
@@ -202,7 +243,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Xuất đơn bán hàng',
-      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      factories: ['RANGDONG']
     }
   },
   {
@@ -211,7 +253,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Thêm mới yêu cầu xuất kho',
-      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN']
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN'],
+      factories: ['RANGDONG']
     }
   },
   {
@@ -220,7 +263,52 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Chi tiết yêu cầu xuất kho',
-      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      factories: ['RANGDONG']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/luan-chuyen-kho',
+    component: LuanChuyenKhoComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Luân chuyển kho',
+      // roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      roles: [],
+      factories: ['vcoil gia công']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/luan-chuyen-kho/list',
+    component: LuanChuyenKhoListComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Luân chuyển kho - Danh sách',
+      // roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      roles: [],
+      factories: ['vcoil gia công']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/luan-chuyen-kho/add-new',
+    component: LuanChuyenKhoAddNewComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Luân chuyển kho - Tạo mới',
+      // roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      roles: [],
+      factories: ['vcoil gia công']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/luan-chuyen-kho/scan-approve/:id',
+    component: LuanChuyenKhoScanApproveComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Luân chuyển kho - Phê duyệt',
+      // roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      roles: [],
+      factories: ['vcoil gia công']
     }
   },
   {
@@ -229,7 +317,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Scan xuất kho',
-      roles: ['WMS_RD_STOCKOPS', 'WMS_RD_ADMIN']
+      roles: ['WMS_RD_STOCKOPS', 'WMS_RD_ADMIN'],
+      factories: ['RANGDONG']
     }
   },
   {

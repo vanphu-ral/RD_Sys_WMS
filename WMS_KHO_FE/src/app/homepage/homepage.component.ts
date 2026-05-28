@@ -15,6 +15,8 @@ interface MenuItem {
   description: string;
   roles: string[];
   color: string;
+  /** Giống sidebar: chỉ hiện khi id_token.factory khớp một trong các giá trị (so sánh không phân biệt hoa thường). */
+  factories?: string[];
 }
 
 @Component({
@@ -31,7 +33,9 @@ export class HomepageComponent implements OnInit {
   private isProcessingToken = false;
   isCheckingAuth = true;
 
-  menuItems: MenuItem[] = [
+  menuItems: MenuItem[] = [];
+
+  private readonly allMenuItems: MenuItem[] = [
     {
       title: 'Quản lý Kho',
       icon: 'map',
@@ -62,6 +66,7 @@ export class HomepageComponent implements OnInit {
       route: '/kho-thanh-pham/chuyen-kho-noi-bo',
       description: 'Chuyển kho nội bộ',
       roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      factories: ['RANGDONG'],
       color: '#9C27B0'
     },
     {
@@ -78,7 +83,17 @@ export class HomepageComponent implements OnInit {
       route: '/kho-thanh-pham/xuat-don-ban-hang',
       description: 'Xuất hàng theo đơn bán',
       roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      factories: ['RANGDONG'],
       color: '#00BCD4'
+    },
+    {
+      title: 'Luân chuyển kho gia công',
+      icon: 'sync_alt',
+      route: '/kho-thanh-pham/luan-chuyen-kho',
+      description: 'Luân chuyển kho gia công',
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      factories: ['vcoil gia công'],
+      color: '#3F51B5'
     },
     {
       title: 'XNT',
@@ -105,8 +120,30 @@ export class HomepageComponent implements OnInit {
     private authService: AuthService
   ) { }
 
+  /** Lọc menu theo factory (cùng rule với sidebar.service.ts). */
+  private refreshMenuItems(): void {
+    const factory = this.authService.getFactory()?.toLowerCase();
+    this.menuItems = this.allMenuItems.filter(item => {
+      if (!item.factories?.length) {
+        return true;
+      }
+      if (!factory) {
+        return false;
+      }
+      return item.factories.some(f => f.toLowerCase() === factory);
+    });
+  }
+
   async ngOnInit(): Promise<void> {
     console.log('[HomePage] Initializing...');
+
+    this.authService.isLoggedIn$.subscribe(isLoggedIn => {
+      if (isLoggedIn) {
+        this.refreshMenuItems();
+      } else {
+        this.menuItems = [];
+      }
+    });
 
     // Kiểm tra callback parameters trước
     const queryParams = await this.route.queryParams.pipe(take(1)).toPromise();
@@ -158,6 +195,10 @@ export class HomepageComponent implements OnInit {
       console.log('[HomePage] Already logged in');
     }
 
+    if (this.isLoggedIn) {
+      this.refreshMenuItems();
+    }
+
     // Kết thúc checking
     this.isCheckingAuth = false;
   }
@@ -189,6 +230,7 @@ export class HomepageComponent implements OnInit {
             response.id_token
           );
           this.isLoggedIn = true;
+          this.refreshMenuItems();
           this.getUserInfo(response.access_token);
 
           const returnUrl = localStorage.getItem('returnUrl') || '/home';

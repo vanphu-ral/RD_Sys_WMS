@@ -1,0 +1,138 @@
+<div class="page-wrapper">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-title-group">
+            <button class="btn-back" (click)="goBack()">
+                <span class="material-icons">chevron_left</span>
+            </button>
+            <h1 class="page-title">Tạo mới chuyển kho</h1>
+        </div>
+        <button class="btn-submit" (click)="confirmAndSubmit()">
+            <span class="material-icons">send</span>
+            Gửi
+        </button>
+    </div>
+
+    <!-- Content -->
+    <div class="page-content">
+
+        <!-- Section: Thông tin -->
+        <div class="card">
+            <div class="form-grid">
+                <div class="form-field">
+                    <label class="field-label">Nhà máy nhận</label>
+                    <input class="field-input" type="text" [(ngModel)]="form.khoGui"
+                        placeholder="Tìm và chọn mã kho" list="warehouse-options" />
+                </div>
+                <div class="form-field">
+                    <label class="field-label">Kho nhận</label>
+                    <input class="field-input" type="text" [(ngModel)]="form.khoNhan"
+                        placeholder="Tìm và chọn mã kho" list="warehouse-options" />
+                </div>
+                <datalist id="warehouse-options">
+                    <option *ngFor="let location of locations" [value]="location.code">
+                        {{ location.code }} - {{ location.id }}
+                    </option>
+                </datalist>
+                <div class="form-field">
+                    <label class="field-label">Người tạo</label>
+                    <input class="field-input" type="text" [(ngModel)]="form.nguoiTao" readonly />
+                </div>
+                <div class="form-field">
+                    <label class="field-label">Ngày tạo</label>
+                    <input class="field-input" type="date" [(ngModel)]="form.ngayTao" />
+                    <small>Giờ tạo tự động: {{ currentTime }}</small>
+                </div>
+            </div>
+            <div class="form-field full-width">
+                <label class="field-label">Ghi chú</label>
+                <textarea class="field-textarea" [(ngModel)]="form.ghiChu" rows="2"
+                    placeholder=""></textarea>
+            </div>
+        </div>
+
+        <!-- Section: Mode scan -->
+        <div class="card">
+            <div class="section-header">
+                <span class="material-icons section-icon">grid_view</span>
+                <h2 class="section-title">Mode scan</h2>
+            </div>
+            <div class="section-divider"></div>
+
+            <div class="scan-mode-group">
+                <button class="btn-scan-mode" [class.active]="scanMode === 'pallet'" (click)="setScanMode('pallet')">
+                    <span class="material-icons">grid_view</span>
+                    Pallet
+                </button>
+                <button class="btn-scan-mode" [class.active]="scanMode === 'thung'" (click)="setScanMode('thung')">
+                    <span class="material-icons">grid_view</span>
+                    Thùng
+                </button>
+            </div>
+
+            <input class="field-input scan-input" type="text" [(ngModel)]="scanValue"
+                [placeholder]="scanMode === 'pallet' ? 'Pallet scan...' : 'Thùng scan...'" (keyup.enter)="onScan()" />
+            <small *ngIf="activeScanRequests > 0">Đang xử lý scan... ({{ activeScanRequests }})</small>
+        </div>
+
+        <!-- Section: Danh sách đã scan -->
+        <div class="card">
+            <div class="section-header">
+                <span class="material-icons section-icon">grid_view</span>
+                <h2 class="section-title">Danh sách đã scan</h2>
+            </div>
+            <div class="section-divider"></div>
+
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã hàng hoá</th>
+                            <th>Tên hàng hoá</th>
+                            <th>Serial pallet</th>
+                            <th>Serial box</th>
+                            <th>Số lượng/thùng</th>
+                            <th>Kho</th>
+                            <th>Thời điểm scan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of pagedList; let i = index">
+                            <td>{{ i + 1 }}</td>
+                            <td class="col-bold">{{ item.maHangHoa }}</td>
+                            <td class="col-bold">{{ item.tenHangHoa }}</td>
+                            <td>{{ item.serialPallet }}</td>
+                            <td>{{ item.serialThung }}</td>
+                            <td>{{ item.soLuong }}</td>
+                            <td>{{ item.kho }}</td>
+                            <td>{{ item.thoiDiemScan }}</td>
+                        </tr>
+                        <tr *ngIf="scannedList.length === 0">
+                            <td colspan="8" class="empty-row">Chưa có dữ liệu scan</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" *ngIf="totalPages > 1">
+                <button class="page-btn nav-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+                    <span class="material-icons">chevron_left</span> Previous
+                </button>
+
+                <ng-container *ngFor="let p of visiblePages">
+                    <span *ngIf="p === -1" class="page-ellipsis">...</span>
+                    <button *ngIf="p !== -1" class="page-btn" [class.active]="p === currentPage"
+                        (click)="goToPage(p)">{{ p }}</button>
+                </ng-container>
+
+                <button class="page-btn nav-btn" [disabled]="currentPage === totalPages"
+                    (click)="goToPage(currentPage + 1)">
+                    Next <span class="material-icons">chevron_right</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>

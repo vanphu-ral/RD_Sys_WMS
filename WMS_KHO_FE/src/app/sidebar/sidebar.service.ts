@@ -1,12 +1,17 @@
 import { Injectable } from '@angular/core';
-
+import { AuthService } from '../services/auth.service';
+interface SubMenu {
+  title: string;
+  link: string;
+  factories?: string[];  
+}
 @Injectable({
   providedIn: 'root'
 })
 export class SidebarService {
   toggled = false;
 
-  menus = [
+  private readonly allMenus = [
     { title: 'Trang chủ', type: 'home', link: '/home', icon: 'home' },
     { title: 'Quản Lý Kho', type: 'area', link: '/areas', icon: 'map' },
     {
@@ -29,14 +34,26 @@ export class SidebarService {
         {
           title: 'Yêu cầu chuyển kho',
           link: '/kho-thanh-pham/chuyen-kho-noi-bo',
+          factories: ['RANGDONG'],
         },
         {
           title: 'Xuất hàng theo đơn bán',
           link: '/kho-thanh-pham/xuat-don-ban-hang',
+          factories: ['RANGDONG'],
         },
         {
           title: 'Quản lý kho',
           link: '/kho-thanh-pham/quan-ly-kho',
+        },
+        // {
+        //   title: 'Quản lý mã vạch',
+        //   link: '/kho-thanh-pham/quan-ly-ma-vach',
+        // },
+
+        {
+          title: 'Luân chuyển kho gia công',
+          link: '/kho-thanh-pham/luan-chuyen-kho',
+          factories: ['vcoil gia công'],
         },
       ]
     },
@@ -57,7 +74,7 @@ export class SidebarService {
       ]
     },
   ];
-  constructor() { }
+  constructor(private auth: AuthService) {}
 
   toggle() {
     this.toggled = !this.toggled;
@@ -72,6 +89,15 @@ export class SidebarService {
   }
 
   getMenuList() {
-    return this.menus;
+    const factory = this.auth.getFactory()?.toLowerCase();
+    return this.allMenus.map(menu => {
+      if (!menu.submenus) return menu;
+      return {
+        ...menu,
+        submenus: menu.submenus.filter(
+          sm => !sm.factories || sm.factories.some(f => f.toLowerCase() === factory)
+        ),
+      };
+    });
   }
 }

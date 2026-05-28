@@ -43,6 +43,10 @@ export class AuthGuard implements CanActivate {
           }
         }
 
+        if (!this.checkFactory(route)) {
+          return false;
+        }
+
         console.log('[AuthGuard] Access granted after silent login');
         return true;
       }
@@ -64,8 +68,28 @@ export class AuthGuard implements CanActivate {
         return false;
       }
     }
+    
+    if (!this.checkFactory(route)) {
+      return false;
+    }
 
     console.log('[AuthGuard] Access granted');
+    return true;
+  }
+
+  /** route.data['factories'] = danh sách giá trị `factory` (id_token) được phép truy cập. */
+  private checkFactory(route: ActivatedRouteSnapshot): boolean {
+    const requiredFactories: string[] = route.data['factories'] || [];
+    if (requiredFactories.length === 0) {
+      return true;
+    }
+    const factory = this.authService.getFactory();
+    const ok = factory && requiredFactories.some(f => f.toLowerCase() === factory.toLowerCase());
+    if (!ok) {
+      console.warn('[AuthGuard] Factory denied:', { userFactory: factory, required: requiredFactories });
+      this.router.navigate(['/unauthorized']);
+      return false;
+    }
     return true;
   }
 }

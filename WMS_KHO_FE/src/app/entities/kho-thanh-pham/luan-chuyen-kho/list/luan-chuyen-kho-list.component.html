@@ -1,0 +1,75 @@
+<div class="page-wrapper">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-title-group">
+      <span class="material-icons title-icon">open_with</span>
+      <div class="title-text">
+        <h1 class="page-title">{{ pageTitle }}</h1>
+        <span class="page-subtitle">{{ pageSubtitle }}</span>
+      </div>
+    </div>
+    <button class="btn-add" *ngIf="isCreateMode" (click)="onAddNew()">
+      <span class="material-icons">add_circle_outline</span>
+      Thêm mới yêu cầu
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="page-content">
+    <!-- Section Header -->
+    <div class="section-header">
+      <span class="material-icons filter-icon">filter_alt</span>
+      <h2 class="section-title">{{ sectionTitle }}</h2>
+    </div>
+    <div class="section-divider"></div>
+
+    <!-- Table -->
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Mã yêu cầu</th>
+            <th>Từ kho</th>
+            <th>Từ kho</th>
+            <th>Người tạo</th>
+            <th>Ngày tạo</th>
+            <th>Ghi chú</th>
+            <th>Tổng số lượng sp</th>
+            <th>Số pallet</th>
+            <th>Số thùng</th>
+            <th>Trạng thái</th>
+            <th>Tuỳ chọn</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of dataList; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td class="col-bold">{{ item.maYeuCau }}</td>
+            <td>{{ item.tuKho }}</td>
+            <td>{{ item.denKho }}</td>
+            <td>{{ item.nguoiTao }}</td>
+            <td>{{ item.ngayTao }}</td>
+            <td>{{ item.ghiChu }}</td>
+            <td>{{ item.tongSoLuong }}</td>
+            <td>{{ item.soPallet }}</td>
+            <td>{{ item.soThung }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="item.trangThai === 'Đã duyệt' ? 'status-approved' : 'status-pending'">
+                {{ item.trangThai }}
+              </span>
+            </td>
+            <td>
+              <button class="btn-view" (click)="onViewDetail(item)" title="Xem chi tiết">
+                <span class="material-icons">visibility</span>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="dataList.length === 0">
+            <td colspan="12" class="empty-row">Không có dữ liệu</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

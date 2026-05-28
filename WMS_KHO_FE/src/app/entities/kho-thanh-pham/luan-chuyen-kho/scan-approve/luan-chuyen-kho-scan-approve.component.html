@@ -1,0 +1,140 @@
+<div class="page-wrapper">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="page-title-group">
+            <button class="btn-back" (click)="goBack()">
+                <span class="material-icons">chevron_left</span>
+            </button>
+            <h1 class="page-title">Xác nhận phê duyệt đơn</h1>
+        </div>
+        <button class="btn-submit" (click)="confirmAndApprove()">
+            <span class="material-icons">check</span>
+            Xác nhận phê duyệt
+        </button>
+    </div>
+
+    <!-- Info Banner -->
+    <div class="info-banner">
+        <div class="info-col">
+            <span class="info-label">Nhà máy xuất</span>
+            <div class="info-value-row">
+                <span class="info-value">{{ orderInfo.khoXuat }}</span>
+                <span class="material-icons arrow-icon">double_arrow</span>
+            </div>
+        </div>
+
+        <div class="info-col">
+            <span class="info-label">Kho nhập</span>
+            <span class="info-value">{{ orderInfo.khoNhap }}</span>
+        </div>
+
+        <div class="info-divider"></div>
+
+        <div class="info-col">
+            <span class="info-label">Người tạo</span>
+            <span class="info-value">{{ orderInfo.nguoiTao }}</span>
+        </div>
+
+        <div class="info-divider"></div>
+
+        <div class="info-col">
+            <span class="info-label">Ngày tạo</span>
+            <span class="info-value">{{ orderInfo.ngayTao }}</span>
+        </div>
+
+        <div class="info-divider"></div>
+
+        <div class="info-col">
+            <span class="info-label">Ghi chú</span>
+            <span class="info-value info-note">{{ orderInfo.ghiChu }}</span>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="page-content">
+
+        <!-- Section: Mode scan -->
+        <div class="card">
+            <div class="section-header">
+                <span class="material-icons section-icon">grid_view</span>
+                <h2 class="section-title">Mode scan</h2>
+            </div>
+            <div class="section-divider"></div>
+
+            <div class="scan-mode-group">
+                <button class="btn-scan-mode" [class.active]="scanMode === 'pallet'" (click)="setScanMode('pallet')">
+                    <span class="material-icons">grid_view</span>
+                    Pallet
+                </button>
+                <button class="btn-scan-mode" [class.active]="scanMode === 'thung'" (click)="setScanMode('thung')">
+                    <span class="material-icons">grid_view</span>
+                    Thùng
+                </button>
+            </div>
+
+            <input class="field-input scan-input" type="text" [(ngModel)]="scanValue"
+                [placeholder]="scanMode === 'pallet' ? 'Pallet scan...' : 'Thùng scan...'" (keyup.enter)="onScan()" />
+            <small *ngIf="activeScanRequests > 0">Đang xử lý scan... ({{ activeScanRequests }})</small>
+        </div>
+
+        <!-- Section: Danh sách đã scan -->
+        <div class="card">
+            <div class="section-header">
+                <span class="material-icons section-icon">grid_view</span>
+                <h2 class="section-title">Danh sách đã scan</h2>
+            </div>
+            <div class="section-divider"></div>
+
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã hàng hoá</th>
+                            <th>Tên hàng hoá</th>
+                            <th>Serial pallet</th>
+                            <th>Serial box</th>
+                            <th>Số lượng/thùng</th>
+                            <th>Kho</th>
+                            <th>Thời điểm scan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of pagedList; let i = index">
+                            <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+                            <td class="col-bold">{{ item.maHangHoa }}</td>
+                            <td class="col-bold">{{ item.tenHangHoa }}</td>
+                            <td>{{ item.serialPallet }}</td>
+                            <td>{{ item.serialThung }}</td>
+                            <td>{{ item.soLuong }}</td>
+                            <td>{{ item.kho }}</td>
+                            <td>{{ item.thoiDiemScan }}</td>
+                        </tr>
+                        <tr *ngIf="scannedList.length === 0">
+                            <td colspan="8" class="empty-row">Chưa có dữ liệu scan</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" *ngIf="totalPages > 1">
+                <button class="page-btn nav-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+                    <span class="material-icons">chevron_left</span> Previous
+                </button>
+
+                <ng-container *ngFor="let p of visiblePages">
+                    <span *ngIf="p === -1" class="page-ellipsis">...</span>
+                    <button *ngIf="p !== -1" class="page-btn" [class.active]="p === currentPage"
+                        (click)="goToPage(p)">{{ p }}</button>
+                </ng-container>
+
+                <button class="page-btn nav-btn" [disabled]="currentPage === totalPages"
+                    (click)="goToPage(currentPage + 1)">
+                    Next <span class="material-icons">chevron_right</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>

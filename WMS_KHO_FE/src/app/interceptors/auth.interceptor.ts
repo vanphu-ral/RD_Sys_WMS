@@ -17,6 +17,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const protectedApis = [
     'https://ral-wms-logistic.rangdong.com.vn:9004/api',
     'http://192.168.10.99:8050/api', 
+    'http://192.168.10.99:9030/api',
     'http://192.168.20.101:8050/api',
     'http://192.168.68.77:4200/api',
   ];
@@ -44,11 +45,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(clonedRequest).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
-        console.error('[AuthInterceptor] 401 - Redirecting to login');
-        authService.logout().subscribe();
+        // Tạm thời KHÔNG auto logout để tiện debug lỗi API.
+        console.error('[AuthInterceptor] 401 - Unauthorized (auto logout disabled)');
       }
       if (error.status === 403) {
-        console.error('[AuthInterceptor] 403 - Access denied');
+        console.error('[AuthInterceptor] 403 - Access denied (auto logout disabled)');
       }
       return throwError(() => error);
     })

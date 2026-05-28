@@ -9,6 +9,8 @@ import { StringLengthRule } from 'devextreme/common';
 import { ConfirmDialogComponent } from '../../chuyen-kho/dialog/confirm-dialog.component';
 import { forkJoin, Observable, of, switchMap } from 'rxjs';
 import { AuthService } from '../../../../services/auth.service';
+import { PermissionService } from '../../../../services/permission.service';
+import { HasRoleDirective } from '../../../../services/has-role.directive';
 export interface DetailItem {
   id: number;
   // nếu không có trường warehouse_import_requirement_id trong API mới, có thể để optional
@@ -138,6 +140,7 @@ export class PheDuyetComponent implements OnInit {
     private dialog: MatDialog,
     private nhapKhoService: NhapKhoService,
     private authService: AuthService,
+    private permissionService: PermissionService
   ) { }
 
   ngOnInit(): void {
@@ -147,6 +150,9 @@ export class PheDuyetComponent implements OnInit {
         this.loadData(this.importId);
       }
     });
+    console.log('User roles:', this.permissionService.getUserRoles());
+    console.log('Can approve:', this.canApprove());
+    console.log('Show approve button:', this.showApproveButton);
 
     const state = history.state;
     if (state.updatedList) {
@@ -257,7 +263,12 @@ export class PheDuyetComponent implements OnInit {
     });
   }
 
-
+  //phan quyen 
+  canApprove(): boolean {
+    const hasRole = this.permissionService.hasRole(['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN']);
+    console.log('canApprove() =', hasRole);
+    return hasRole;
+  }
 
 
   openBoxList(item: DetailItem): void {
@@ -354,6 +365,10 @@ export class PheDuyetComponent implements OnInit {
   }
 
   onConfirm(): void {
+    if (!this.canApprove()) {
+      alert('Bạn không có quyền phê duyệt!');
+      return;
+    }
     if (this.importId === undefined) {
       this.snackBar.open('Không tìm thấy ID yêu cầu nhập kho!', 'Đóng', {
         duration: 3000,
@@ -460,7 +475,7 @@ export class PheDuyetComponent implements OnInit {
     // 2) Box độc lập (không thuộc pallet) → chỉ cộng nếu có time_checked
     for (const b of this.pagedBoxList || []) {
       const belongsToPallet =
-        !!( b.importPalletId);
+        !!(b.importPalletId);
       if (!belongsToPallet && isBoxTimeChecked(b)) {
         count += 1;
       }
