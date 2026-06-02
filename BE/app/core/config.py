@@ -18,20 +18,23 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "secret-key"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+#  http://192.168.68.90:8080/auth/realms/QLSX
     # Keycloak Configuration
-    # KEYCLOAK_URL: str = "http://localhost:9000/auth"
-    # KEYCLOAK_URL: str = "https://ssosys.rangdong.com.vn:9002"
-    # KEYCLOAK_REALM: str = "rangdong"
-    # KEYCLOAK_CLIENT_ID: str = "RD_KHO"
+
+    KEYCLOAK_URL: str = "https://ssosys.rangdong.com.vn:9002"
+    KEYCLOAK_REALM: str = "rangdong"
+    KEYCLOAK_CLIENT_ID: str = "RD_KHO"
     # KEYCLOAK_CLIENT_SECRET: str = "BXq009ttkCAYqQpczs4YqtaUFod4WlmI"
-    # KEYCLOAK_REDIRECT_URI: str = "https://ssosys.rangdong.com.vn:9002"
-    KEYCLOAK_URL: str = "http://192.168.68.90:8080"
-    KEYCLOAK_REALM: str = "QLSX"
-    KEYCLOAK_CLIENT_ID: str = "WMS_KHO"
-    KEYCLOAK_REDIRECT_URI: str = "http://192.168.68.90:8080"
+    KEYCLOAK_REDIRECT_URI: str = "https://ssosys.rangdong.com.vn:9002"
+
+    # KEYCLOAK_URL: str = "http://192.168.68.90:8080/auth"
+    # KEYCLOAK_REALM: str = "QLSX"
+    # KEYCLOAK_CLIENT_ID: str = "WMS_KHO"
+    # KEYCLOAK_REDIRECT_URI: str = "http://192.168.68.90:8080"
     # Tên miền :ssosys.rangdong.com.vn:9002
     # realm: rangdong
     # clientID : RD_KHO
+
 
     REDIS_HOST: str = "127.0.0.1"
     REDIS_PORT: int = 6379

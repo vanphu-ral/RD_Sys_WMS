@@ -14,10 +14,12 @@ class Area(Base):
     thu_kho = Column(String(255))
     description = Column(String(255), nullable=True)
     address = Column(String(255), nullable=True)
+    company = Column(String(255), nullable=True)
+    factory = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)
     updated_by = Column(String(15), nullable=True)
     updated_date = Column(DateTime, default=func.now())
-
+    tenant_id = Column(String(50), nullable=True)
 
 class Location(Base):
     __tablename__ = "locations"
@@ -44,6 +46,7 @@ class Location(Base):
     is_active = Column(Boolean, default=True)
     updated_by = Column(String(15), nullable=False)
     updated_date = Column(DateTime, default=func.now())
+    tenant_id = Column(String(50), nullable=True)
 
 
 class Inventory(Base):
@@ -73,7 +76,7 @@ class Inventory(Base):
     msd_level = Column(String(50), nullable=True)
     comments = Column(String(255), nullable=True)
     workshop_code = Column(String(15), nullable=True)
-
+    
 
 class WarehouseImportRequirement(Base):
     __tablename__ = "warehouse_import_requirements"

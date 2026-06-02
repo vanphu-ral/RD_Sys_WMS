@@ -21,6 +21,7 @@ from app.modules.inventory.models import WarehouseImportRequirement, WarehouseIm
 from datetime import datetime
 from app.modules.inventory.service import InventoryService, ContainerInventoryService
 import logging
+from app.modules.users.schemas import UserCurrent
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -28,9 +29,10 @@ logger = logging.getLogger(__name__)
 @router.get("/", response_model=List[dict])
 async def get_import_requirements(
     db: AsyncSession = Depends(get_db),
-    # #current_user: str = Depends(get_current_user)
+    current_user: UserCurrent = Depends(get_current_user)
 ):
-    return await WarehouseImportService.get_import_requirements(db)
+    tenant_id = current_user.get("factory")
+    return await WarehouseImportService.get_import_requirements(db, tenant_id)
 
 
 @router.get("/{req_id}", response_model=dict)

@@ -20,11 +20,12 @@ from app.modules.inventory.external_apps_schemas import (
     InventoryInIWTRResponse,
     IWTRScanDetailRequest,
     IWTRScanDetailResponse,
+    InventoryInIWTRItem,
     IWTRInventoriesCreateRequest,
     IWTRInventoriesCreateResponse,
-    InventoryInIWTRItem,
     IWTRSimpleRequest
 )
+from app.modules.users.schemas import UserCurrent
 
 router = APIRouter()
 
@@ -141,10 +142,10 @@ async def get_open_iwtr_from_external_apps(
 @router.get("/requests", response_model=List[dict])
 async def get_iwtr_requests(
     db: AsyncSession = Depends(get_db),
-    #current_user: str = Depends(get_current_user)
+    current_user: UserCurrent = Depends(get_current_user)
 ):
-
-    return await IWTRService.get_iwtr_requests(db)
+    tenant_id = current_user.get("factory")
+    return await IWTRService.get_iwtr_requests(db, tenant_id)
 
 
 

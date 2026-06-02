@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.responses import RedirectResponse, JSONResponse
 from typing import Optional
 
+from app.modules.warehouse_transfer.repository import get_tenant
 from app.core.database import get_db
 from app.core.security import (
     authenticate_user,
@@ -40,13 +41,20 @@ async def login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+@router.get("/tenant")
+async def get_tenant_info(
+    db: AsyncSession = Depends(get_db)
+):
+    return await get_tenant(db)
+
 @router.get("/me")
 async def read_users_me(current_user: dict = Depends(get_current_user)):
     return {
         "sub": current_user["sub"],
         "username": current_user["preferred_username"],
         "name": current_user["name"],
-        "roles": current_user["roles"]
+        "roles": current_user["roles"],
+        "branch": current_user.get("branch")
     }
 
 # Keycloak OIDC endpoints

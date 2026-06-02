@@ -22,6 +22,7 @@ from app.modules.inventory.external_apps_schemas import (
     OSRScanDetailResponse
 )
 from app.modules.inventory.schemas import BulkUpdateInventoriesInOSRRequest, OSRFullDetailResponse
+from app.modules.users.schemas import UserCurrent
 
 router = APIRouter()
 
@@ -110,12 +111,13 @@ async def get_full_osr_by_doc_entry(
 @router.get("/requests", response_model=List[dict])
 async def get_osr_requests(
     db: AsyncSession = Depends(get_db),
-    #current_user: str = Depends(get_current_user)
+    current_user: UserCurrent = Depends(get_current_user)
 ):
     """
     Get all OSR requests from WMS database
     """
-    return await OSRService.get_osr_requests(db)
+    tenant_id = current_user.get("factory")
+    return await OSRService.get_osr_requests(db, tenant_id)
 
 
 @router.post("/requests", response_model=OSRResponse)

@@ -543,7 +543,7 @@ class InventoryService:
                 "vendor": inv.vendor,
                 "msd_level": inv.msd_level,
                 "comments": inv.comments,
-                "workshop_code": inv.workshop_code,
+"workshop_code": inv.workshop_code,
             }
             for inv in inventories
         ]
@@ -552,31 +552,34 @@ class AreaService:
 
     @staticmethod
     async def get_areas(db: AsyncSession) -> List[dict]:
-        result = await db.execute(select(Area.id, Area.code, Area.name, Area.thu_kho, Area.description, Area.address, Area.is_active))
+        result = await db.execute(select(Area.id, Area.code, Area.name, Area.thu_kho, Area.description, Area.address, Area.company, Area.factory, Area.is_active, Area.tenant_id))
         rows = result.all()
-        return [{"id": area.id, "code": area.code, "name": area.name, "thu_kho": area.thu_kho, "description": area.description, "address": area.address, "is_active": area.is_active} for area in rows]
+        return [{"id": area.id, "code": area.code, "name": area.name, "thu_kho": area.thu_kho, "description": area.description, "address": area.address, "company": area.company, "factory": area.factory, "is_active": area.is_active, "tenant_id": area.tenant_id} for area in rows]
 
     @staticmethod
     async def get_areas_paginated(
         db: AsyncSession,
         page: int = 1,
         size: int = 20,
+        tenant_id: Optional[str] = None,
         code: Optional[str] = None,
         name: Optional[str] = None,
         thu_kho: Optional[str] = None,
         description: Optional[str] = None,
         address: Optional[str] = None,
+        company: Optional[str] = None,
+        factory: Optional[str] = None,
         is_active: Optional[bool] = None
     ) -> dict:
         from sqlalchemy import and_
     
-
         query = select(Area)
-        
+        if tenant_id:
+            query = query.where(Area.tenant_id == tenant_id)
         # Apply filters
         filters = []
-        if is_active:
-            filters.append(Area.is_activeilike(f"%{is_active}%"))
+        if is_active is not None:
+            filters.append(Area.is_active == is_active)
         if code:
             filters.append(Area.code.ilike(f"%{code}%"))
         if name:
@@ -587,14 +590,16 @@ class AreaService:
             filters.append(Area.description.ilike(f"%{description}%"))
         if address:
             filters.append(Area.address.ilike(f"%{address}%"))
-        
+        if company:
+            filters.append(Area.company.ilike(f"%{company}%"))
+        if factory:
+            filters.append(Area.factory.ilike(f"%{factory}%"))
+
         if filters:
             query = query.where(and_(*filters))
         
         # Get total count
-        count_query = select(func.count()).select_from(Area)
-        if filters:
-            count_query = count_query.where(and_(*filters))
+        count_query = select(func.count()).select_from(query.subquery())
         count_result = await db.execute(count_query)
         total_items = count_result.scalar() or 0
         
@@ -612,18 +617,22 @@ class AreaService:
                 "name": area.name,
                 "thu_kho": area.thu_kho,
                 "description": area.description,
+                "company": area.company,
+                "factory": area.factory,
+                "tenant_id": area.tenant_id,
                 "address": area.address,
                 "is_active": area.is_active
-            }
+}
             for area in areas
         ]
-        
+
         return {
             "data": data,
             "meta": {
                 "page": page,
                 "size": size,
-                "total_items": total_items
+                "total_items": total_items,
+                "total_pages": (total_items + size - 1) // size if total_items > 0 else 1
             }
         }
 
@@ -673,7 +682,7 @@ class AreaService:
 
     @staticmethod
     async def create_areas(db: AsyncSession, areas_data: List[dict]) -> List[Area]:
-        async with db.begin(): # Giao dịch mở
+        async with db.begin():
             areas = [Area(**data) for data in areas_data]
             db.add_all(areas)
             await db.flush()
@@ -836,20 +845,22 @@ class LocationService:
         address: Optional[str] = None,
         description: Optional[str] = None,
         is_active: Optional[bool] = None,
-        parent_location_id: Optional[int] = None
+        parent_location_id: Optional[int] = None,
+        tenant_id: Optional[str] = None
     ) -> dict:
 
         from sqlalchemy import and_
 
         query = select(Location)
 
-        # Filter by parent location - if not specified, get only parent locations (parent_location_id is null)
         if parent_location_id is not None:
             query = query.where(Location.parent_location_id == parent_location_id)
         else:
             query = query.where(Location.parent_location_id == None)
+        if tenant_id:
+            query = query.where(Location.tenant_id == tenant_id)
 
-        # Apply filters
+
         filters = []
         if code:
             filters.append(Location.code.ilike(f"%{code}%"))
@@ -960,8 +971,8 @@ class WarehouseImportService:
                 'note': general_info.get('note'),
                 'destination_warehouse': general_info.get('destination_warehouse'),
                 'pallet_note_creation_session_id': general_info.get('pallet_note_creation_session_id'),
-                'created_by': str(general_info.get('create_by', '')),
-                'updated_by': str(general_info.get('create_by', ''))
+                'created_by': str(general_info.get('created_by', '')),
+                'updated_by': str(general_info.get('updated_by', ''))
             }
             
             warehouse_import = WarehouseImportRequirement(**warehouse_import_data)
@@ -978,7 +989,7 @@ class WarehouseImportService:
                     box_code=detail.get('box_code'),
                     box_quantity=detail.get('quantity'),
                     list_serial_items=detail.get('list_serial_items'),
-                    updated_by=str(general_info.get('create_by', ''))
+                    updated_by=str(general_info.get('created_by', ''))
                 )
                 db.add(container)
                 containers.append(container)
@@ -995,8 +1006,11 @@ class WarehouseImportService:
             }
 
     @staticmethod
-    async def get_import_requirements(db: AsyncSession) -> List[dict]:
-        result = await db.execute(select(WarehouseImportRequirement))
+    async def get_import_requirements(db: AsyncSession, tenant_id: Optional[str] = None) -> List[dict]:
+        query = select(WarehouseImportRequirement)
+        if tenant_id:
+            query = query.where(WarehouseImportRequirement.tenant_id == tenant_id)
+        result = await db.execute(query)
         requirements = result.scalars().all()
         return [
             {
@@ -1388,8 +1402,162 @@ class WarehouseImportService:
             }
             for ci in container_inventories_import
         ]
-    
 
+    @staticmethod
+    async def get_import_pallet_info_by_serial(
+        db: AsyncSession,
+        serial_pallet: str
+    ) -> dict:
+        """Get import pallet info with container inventories by serial_pallet"""
+        from sqlalchemy import select
+
+        # Get import_pallet_info by serial_pallet
+        pallet_result = await db.execute(
+            select(ImportPalletInfo).where(
+                ImportPalletInfo.serial_pallet == serial_pallet
+            )
+        )
+        pallet_info = pallet_result.scalar_one_or_none()
+
+        if not pallet_info:
+            raise NotFoundException("ImportPalletInfo", f"serial_pallet={serial_pallet}")
+
+        # Get container_inventories linked to this pallet
+        container_result = await db.execute(
+            select(ContainerInventory).where(
+                ContainerInventory.import_pallet_id == pallet_info.id
+            )
+        )
+        container_inventories = container_result.scalars().all()
+
+        return {
+            "pallet": {
+                "id": pallet_info.id,
+                "warehouse_import_requirement_id": pallet_info.warehouse_import_requirement_id,
+                "serial_pallet": pallet_info.serial_pallet,
+                "quantity_per_box": pallet_info.quantity_per_box,
+                "num_box_per_pallet": pallet_info.num_box_per_pallet,
+                "total_quantity": pallet_info.total_quantity,
+                "note": pallet_info.note,
+                "customer_name": pallet_info.customer_name,
+                "po_number": pallet_info.po_number,
+                "date_code": pallet_info.date_code,
+                "item_no_sku": pallet_info.item_no_sku,
+                "qdsx_no": pallet_info.qdsx_no,
+                "production_date": pallet_info.production_date,
+                "scan_status": pallet_info.scan_status,
+                "confirmed": pallet_info.confirmed,
+                "location_id": pallet_info.location_id,
+                "created_by": pallet_info.created_by,
+                "updated_date": pallet_info.updated_date.isoformat() if pallet_info.updated_date else None,
+            },
+            "container_inventories": [
+                {
+                    "id": ci.id,
+                    "import_pallet_id": ci.import_pallet_id,
+                    "manufacturing_date": ci.manufacturing_date.isoformat() if ci.manufacturing_date else None,
+                    "expiration_date": ci.expiration_date.isoformat() if ci.expiration_date else None,
+                    "sap_code": ci.sap_code,
+                    "po": ci.po,
+                    "lot": ci.lot,
+                    "vendor": ci.vendor,
+                    "msd_level": ci.msd_level,
+                    "comments": ci.comments,
+                    "name": ci.name,
+                    "inventory_identifier": ci.inventory_identifier,
+                    "location_id": ci.location_id,
+                    "serial_pallet": ci.serial_pallet,
+                    "quantity_imported": ci.quantity_imported,
+                    "scan_by": ci.scan_by,
+                    "confirmed": ci.confirmed,
+                    "list_serial_items": ci.list_serial_items,
+                }
+                for ci in container_inventories
+            ]
+        }
+
+    @staticmethod
+    async def get_pallet_with_inventories_by_serial(
+        db: AsyncSession,
+        serial_pallet: str
+    ) -> dict:
+        """Get import pallet info with inventories by serial_pallet"""
+        from sqlalchemy import select
+
+        # Get import_pallet_info by serial_pallet
+        pallet_result = await db.execute(
+            select(ImportPalletInfo).where(
+                ImportPalletInfo.serial_pallet == serial_pallet
+            )
+        )
+        pallet_info = pallet_result.scalar_one_or_none()
+
+        # Get inventories with matching serial_pallet
+        inventory_result = await db.execute(
+            select(Inventory).where(
+                Inventory.serial_pallet == serial_pallet
+            )
+        )
+        inventories = inventory_result.scalars().all()
+
+        result = {
+            "pallet": None,
+            "inventories": []
+        }
+
+        if pallet_info:
+            result["pallet"] = {
+                "id": pallet_info.id,
+                "warehouse_import_requirement_id": pallet_info.warehouse_import_requirement_id,
+                "serial_pallet": pallet_info.serial_pallet,
+                "quantity_per_box": pallet_info.quantity_per_box,
+                "num_box_per_pallet": pallet_info.num_box_per_pallet,
+                "total_quantity": pallet_info.total_quantity,
+                "note": pallet_info.note,
+                "customer_name": pallet_info.customer_name,
+                "po_number": pallet_info.po_number,
+                "date_code": pallet_info.date_code,
+                "item_no_sku": pallet_info.item_no_sku,
+                "qdsx_no": pallet_info.qdsx_no,
+                "production_date": pallet_info.production_date,
+                "scan_status": pallet_info.scan_status,
+                "confirmed": pallet_info.confirmed,
+                "location_id": pallet_info.location_id,
+                "created_by": pallet_info.created_by,
+                "updated_date": pallet_info.updated_date.isoformat() if pallet_info.updated_date else None,
+            }
+
+        result["inventories"] = [
+            {
+                "id": inv.id,
+                "identifier": inv.identifier,
+                "serial_pallet": inv.serial_pallet,
+                "location_id": inv.location_id,
+                "parent_location_id": inv.parent_location_id,
+                "last_location_id": inv.last_location_id,
+                "parent_inventory_id": inv.parent_inventory_id,
+                "expiration_date": inv.expiration_date.isoformat() if inv.expiration_date else None,
+                "received_date": inv.received_date.isoformat() if inv.received_date else None,
+                "updated_date": inv.updated_date.isoformat() if inv.updated_date else None,
+                "updated_by": inv.updated_by,
+                "calculated_status": inv.calculated_status,
+                "manufacturing_date": inv.manufacturing_date.isoformat() if inv.manufacturing_date else None,
+                "initial_quantity": inv.initial_quantity,
+                "available_quantity": inv.available_quantity,
+                "quantity": inv.quantity,
+                "name": inv.name,
+                "sap_code": inv.sap_code,
+                "po": inv.po,
+                "lot": inv.lot,
+                "vendor": inv.vendor,
+                "msd_level": inv.msd_level,
+                "comments": inv.comments,
+                "workshop_code": inv.workshop_code,
+            }
+            for inv in inventories
+        ]
+
+        return result
 
     @staticmethod
     async def update_container_inventory_by_identifier(
@@ -1702,8 +1870,11 @@ class WarehouseImportService:
 class IWTRService:
 
     @staticmethod
-    async def get_iwtr_requests(db: AsyncSession) -> List[dict]:
-        result = await db.execute(select(InternalWarehouseTransferRequest))
+    async def get_iwtr_requests(db: AsyncSession, tenant_id: Optional[str] = None) -> List[dict]:
+        query = select(InternalWarehouseTransferRequest)
+        if tenant_id:
+            query = query.where(InternalWarehouseTransferRequest.tenant_id == tenant_id)
+        result = await db.execute(query)
         requests = result.scalars().all()
         return [
             {
@@ -2221,8 +2392,11 @@ class IWTRService:
 class OSRService:
 
     @staticmethod
-    async def get_osr_requests(db: AsyncSession) -> List[dict]:
-        result = await db.execute(select(OutboundShipmentRequestOnOrder))
+    async def get_osr_requests(db: AsyncSession, tenant_id: Optional[str] = None) -> List[dict]:
+        query = select(OutboundShipmentRequestOnOrder)
+        if tenant_id:
+            query = query.where(OutboundShipmentRequestOnOrder.tenant_id == tenant_id)
+        result = await db.execute(query)
         requests = result.scalars().all()
         return [
             {

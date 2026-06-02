@@ -2,21 +2,17 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.modules.inventory.service import AreaService
-from app.modules.inventory.models import Area
-from app.modules.inventory.schemas import AreaListResponse, AreaResponse, AreaUpdate
-from fastapi_cache.decorator import cache
-from app.core.config import settings
+from app.modules.inventory.schemas import AreaListResponse, AreaResponse, AreaUpdate, AreaCreate
+from app.modules.users.schemas import UserCurrent
 
 router = APIRouter()
 
 
 @router.get("/", response_model=AreaListResponse)
-# @cache(expire=settings.CACHE_EXPIRE_SECONDS)
 async def get_areas(
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
@@ -25,9 +21,11 @@ async def get_areas(
     thu_kho: Optional[str] = Query(None),
     description: Optional[str] = Query(None),
     address: Optional[str] = Query(None),
+    company: Optional[str] = Query(None),
+    factory: Optional[str] = Query(None),
     is_active: Optional[bool] = Query(None),
     db: AsyncSession = Depends(get_db),
-    #current_user: str = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     return await AreaService.get_areas_paginated(
         db,
@@ -38,19 +36,23 @@ async def get_areas(
         thu_kho=thu_kho,
         description=description,
         address=address,
-        is_active=is_active
+        company=company,
+        factory=factory,
+        is_active=is_active,
+        tenant_id=current_user.get("factory")
     )
 
 
 @router.post("/", response_model=List[AreaResponse])
 async def create_areas(
-    areas_data: List[dict],
+    areas_data: List[AreaCreate],
     db: AsyncSession = Depends(get_db),
-    #current_user: str = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     if len(areas_data) != 1:
         raise HTTPException(status_code=400, detail="Chỉ gửi thông tin 1 kho")
-    return await AreaService.create_areas(db, areas_data)
+    areas_dict = [area.model_dump(exclude_unset=True) for area in areas_data]
+    return await AreaService.create_areas(db, areas_dict)
 
 
 @router.patch("/{area_id}/status", response_model=AreaResponse)

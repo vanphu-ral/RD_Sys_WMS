@@ -71,6 +71,37 @@ class InventoryItem(InventoryItemBase):
         from_attributes = True
 
 
+class InventoryResponse(BaseModel):
+    """Inventory response schema"""
+    id: int
+    identifier: Optional[str] = None
+    serial_pallet: Optional[str] = None
+    location_id: int
+    parent_location_id: Optional[int] = None
+    last_location_id: Optional[int] = None
+    parent_inventory_id: Optional[int] = None
+    expiration_date: Optional[datetime] = None
+    received_date: Optional[datetime] = None
+    updated_date: Optional[datetime] = None
+    updated_by: Optional[str] = None
+    calculated_status: Optional[str] = None
+    manufacturing_date: Optional[datetime] = None
+    initial_quantity: int
+    available_quantity: int
+    quantity: Optional[int] = None
+    name: Optional[str] = None
+    sap_code: Optional[str] = None
+    po: Optional[str] = None
+    lot: Optional[str] = None
+    vendor: Optional[str] = None
+    msd_level: Optional[str] = None
+    comments: Optional[str] = None
+    workshop_code: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
 class AreaResponse(BaseModel):
     """Area response schema"""
     id: int
@@ -79,6 +110,9 @@ class AreaResponse(BaseModel):
     thu_kho: Optional[str] = None
     description: Optional[str] = None
     address: Optional[str] = None
+    company: Optional[str] = None
+    factory: Optional[str] = None
+    tenant_id: Optional[str] = None
     is_active: bool
     updated_by: Optional[str] = None
     updated_date: datetime = None
@@ -94,7 +128,23 @@ class AreaUpdate(BaseModel):
     thu_kho: Optional[str] = None
     description: Optional[str] = None
     address: Optional[str] = None
+    company: Optional[str] = None
+    factory: Optional[str] = None
     is_active: Optional[bool] = None
+    tenant_id: Optional[str] = None
+
+
+class AreaCreate(BaseModel):
+    """Area creation schema"""
+    code: Optional[str] = None
+    name: Optional[str] = None
+    thu_kho: Optional[str] = None
+    description: Optional[str] = None
+    address: Optional[str] = None
+    company: Optional[str] = None
+    factory: Optional[str] = None
+    is_active: Optional[bool] = True
+    tenant_id: Optional[str] = None
 
 
 class AreaListMeta(BaseModel):
@@ -199,7 +249,7 @@ class GeneralInfo(BaseModel):
     lot_number: Optional[str] = None
     production_date: Optional[str] = None
     note: Optional[str] = None
-    create_by: Optional[str] = None
+    created_by: Optional[str] = None
     branch: Optional[str] = None
     production_team: Optional[str] = None
     production_decision_number: Optional[str] = None
@@ -332,34 +382,16 @@ class ContainerInventoryResponse(BaseModel):
         from_attributes = True
 
 
-class InventoryResponse(BaseModel):
-    """Response schema for inventories"""
-    id: int
-    identifier: str
-    serial_pallet: Optional[str] = None
-    location_id: int
-    parent_location_id: Optional[int] = None
-    last_location_id: Optional[int] = None
-    parent_inventory_id: Optional[str] = None
-    expiration_date: Optional[datetime] = None
-    received_date: Optional[datetime] = None
-    updated_date: Optional[datetime] = None
-    updated_by: Optional[str] = None
-    calculated_status: Optional[str] = None
-    manufacturing_date: Optional[datetime] = None
-    initial_quantity: int
-    available_quantity: int
-    quantity: Optional[int] = None
-    name: Optional[str] = None
-    sap_code: Optional[str] = None
-    po: Optional[str] = None
-    lot: Optional[str] = None
-    vendor: Optional[str] = None
-    msd_level: Optional[str] = None
-    comments: Optional[str] = None
+class ImportPalletInfoResponse(BaseModel):
+    """Response schema for import pallet info with container inventories"""
+    pallet: dict
+    container_inventories: List[ContainerInventoryResponse]
 
-    class Config:
-        from_attributes = True
+
+class PalletWithInventoriesResponse(BaseModel):
+    """Response schema for import pallet info with inventories by serial_pallet"""
+    pallet: Optional[dict] = None
+    inventories: List[dict]
 
 
 class IWTRResponse(BaseModel):

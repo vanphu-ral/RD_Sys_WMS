@@ -7,7 +7,7 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.modules.inventory.service import WarehouseImportService
 from app.modules.inventory.external_apps_schemas import UpdateImportStatusRequest
-from app.modules.inventory.schemas import BulkUpdateContainerInventoryByIdRequest, BulkUpdateImportPalletInfoRequest, BulkSimpleContainerInventoryUpdate
+from app.modules.inventory.schemas import BulkUpdateContainerInventoryByIdRequest, BulkUpdateImportPalletInfoRequest, BulkSimpleContainerInventoryUpdate, ImportPalletInfoResponse, PalletWithInventoriesResponse
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -228,4 +228,29 @@ async def update_import_pallet_info(
         db,
         updates
     )
+
+@router.get("/import-pallet-info/{serial_pallet}", response_model=ImportPalletInfoResponse)
+async def get_import_pallet_info(
+    serial_pallet: str,
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        result = await WarehouseImportService.get_import_pallet_info_by_serial(db, serial_pallet)
+        return result
+    except Exception as e:
+        logger.error(f"Lỗi lấy thông tin pallet {serial_pallet}: {str(e)}", exc_info=True)
+        raise
+
+
+@router.get("/pallets/{serial_pallet}", response_model=PalletWithInventoriesResponse)
+async def get_pallet_with_inventories(
+    serial_pallet: str,
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        result = await WarehouseImportService.get_pallet_with_inventories_by_serial(db, serial_pallet)
+        return result
+    except Exception as e:
+        logger.error(f"Lỗi lấy thông tin pallet {serial_pallet} với inventories: {str(e)}", exc_info=True)
+        raise
 

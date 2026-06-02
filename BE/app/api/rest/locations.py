@@ -6,12 +6,14 @@ from pydantic import ValidationError
 
 from app.core.database import get_db
 from app.core.security import get_current_user
+
 from app.modules.inventory.service import LocationService
 from app.modules.inventory.schemas import LocationListResponse, LocationResponse
 from app.modules.locations.schemas import SubLocationCreate, LocationWithSubLocationsResponse, LocationUpdate, LocationCreate, LocationUpdateWithFullData
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi_cache.decorator import cache
 from app.core.config import settings
+from app.modules.users.schemas import UserCurrent
 
 router = APIRouter()
 
@@ -29,8 +31,12 @@ async def get_locations(
     is_active: Optional[bool] = Query(None),
     parent_location_id: Optional[int] = Query(None, description="Filter by parent location ID. Leave empty to get parent locations only."),
     db: AsyncSession = Depends(get_db),
-    # #current_user: str = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
+    # print(f"DEBUG: current_user = {current_user}")
+    # tenant_id = current_user.get("factory") 
+    tenant_id = "VCOIL Gia Công"
+    print(f"DEBUG: tenant_id = {tenant_id}")
     return await LocationService.get_locations_paginated(
         db,
         page=page,
@@ -41,7 +47,8 @@ async def get_locations(
         address=address,
         description=description,
         is_active=is_active,
-        parent_location_id=parent_location_id
+        parent_location_id=parent_location_id,
+        tenant_id=tenant_id
     )
 
 

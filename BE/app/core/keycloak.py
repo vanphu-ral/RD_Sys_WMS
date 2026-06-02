@@ -8,8 +8,8 @@ def get_keycloak_openid():
         server_url=settings.KEYCLOAK_URL,
         client_id=settings.KEYCLOAK_CLIENT_ID,
         realm_name=settings.KEYCLOAK_REALM,
-        client_secret_key=settings.KEYCLOAK_CLIENT_SECRET,
-        verify=False  # Disable SSL verification for development
+        # client_secret_key=settings.KEYCLOAK_CLIENT_SECRET,
+        verify=True  # Disable SSL verification for development
     )
 
 

@@ -1,5 +1,6 @@
 
 import logging
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,6 +23,7 @@ from app.api.rest.external_apps import router as external_apps_router
 from app.api.rest.warehouse_import import router as warehouse_import_router
 from app.api.rest.chat_bubble import router as chat_bubble_router
 from app.api.rest.workshops import router as workshops_router
+from app.api.rest.warehouse_transfer import router as warehouse_transfer_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -29,8 +31,12 @@ app = FastAPI(
     debug=settings.DEBUG
 )
 
+# Get the directory where this file is located
+current_dir = os.path.dirname(os.path.abspath(__file__))
+static_dir = os.path.join(current_dir, "static")
+
 # Mount static files
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 app.add_middleware(
     CORSMiddleware,
@@ -51,6 +57,7 @@ async def auth_callback(code: str = None, state: str = None):
         # This would typically redirect to frontend with the code
         return {"message": "Authentication successful", "code": code, "state": state}
     return {"error": "No authorization code provided"}
+
 # app.include_router(misc_router, prefix="/api", tags=["Miscellaneous"])
 app.include_router(misc_router, prefix="/api/v1", tags=["Miscellaneous v1"])
 app.include_router(areas_router, prefix="/api/areas", tags=["Areas"])
@@ -63,6 +70,7 @@ app.include_router(external_apps_router, prefix="/api/external-apps", tags=["Ext
 app.include_router(warehouse_import_router, prefix="/api/warehouse-import", tags=["Warehouse Import"])
 app.include_router(chat_bubble_router, prefix="/api/v1/workspace/qltl", tags=["Chat"])
 app.include_router(workshops_router, prefix="/api/workshops", tags=["Workshops"])
+app.include_router(warehouse_transfer_router, prefix="/api/warehouse-transfer", tags=["Warehouse Transfer"])
 
 @app.on_event("startup")
 async def startup_event():

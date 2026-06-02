@@ -26,7 +26,7 @@ class LocationBase(BaseModel):
     barcode: str  # NOT NULL
     is_active: bool = True
     updated_by: str  # NOT NULL
-    
+    tenant_id: Optional[str] = None  # NULL
     # Data type conversion handled in API endpoint before reaching database
     pass
 
@@ -101,7 +101,9 @@ class AreaBase(BaseModel):
     description: Optional[str] = None
     address: Optional[str] = None
     is_active: bool = True
-
+    tenant_id: Optional[str] = None  # NULL
+    company: Optional[str] = None
+    factory: Optional[str] = None
 
 class Area(AreaBase):
     id: int

@@ -20,7 +20,7 @@ from app.core.keycloak import get_keycloak_openid
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT token scheme
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 # JWKS cache for Keycloak token verification
 _jwks_cache = None
@@ -35,6 +35,12 @@ def get_password_hash(password: str) -> str:
     """Hash a password"""
     return pwd_context.hash(password)
 
+import time
+import requests
+from typing import Dict
+from app.core.config import settings
+
+
 def get_jwks() -> Dict:
     """Fetch and cache JWKS from Keycloak"""
     global _jwks_cache, _jwks_cache_time
@@ -42,10 +48,34 @@ def get_jwks() -> Dict:
 
     if _jwks_cache is None or (current_time - _jwks_cache_time) > JWKS_CACHE_DURATION:
         print("Fetching JWKS from Keycloak...")
-        keycloak_openid = get_keycloak_openid()
-        _jwks_cache = keycloak_openid.certs()
-        print(f"JWKS fetched: {_jwks_cache}")
-        _jwks_cache_time = current_time
+        
+        base_url = settings.KEYCLOAK_URL.rstrip('/')
+        url  = f"{base_url}/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/certs"
+
+        # if base_url.endswith('/auth'):
+        #     url = f"{base_url}/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/certs"
+        # else:
+        #     url = f"{base_url}/auth/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/certs"
+            
+        print(f"--- [DEBUG] Backend gọi chính xác tới URL: {url} ---")
+        
+        try:
+            response = requests.get(url, verify=False, timeout=10)
+            
+            if response.status_code == 200:
+                _jwks_cache = response.json()
+                print(f"JWKS fetched successfully. Keys count: {len(_jwks_cache.get('keys', []))}")
+                _jwks_cache_time = current_time
+            else:
+                print(f"Failed to fetch JWKS. Status code: {response.status_code}, Response: {response.text}")
+                # Nếu lỗi, giữ cache cũ hoặc trả về dict trống để không sập app
+                if _jwks_cache is None:
+                    _jwks_cache = {"keys": []}
+                    
+        except Exception as e:
+            print(f"Error connecting to Keycloak JWKS endpoint: {e}")
+            if _jwks_cache is None:
+                _jwks_cache = {"keys": []}
 
     return _jwks_cache
 
@@ -107,6 +137,7 @@ def verify_keycloak_token(token: str) -> Optional[Dict]:
 
         # Verify token với public key
         expected_issuer = f"{settings.KEYCLOAK_URL}/realms/{settings.KEYCLOAK_REALM}"
+        print(f"Expected issuer: {expected_issuer}")
         payload = jwt.decode(
             token,
             public_key,
@@ -170,6 +201,19 @@ async def get_current_user(
         # Check for token in cookies
         token = request.cookies.get("access_token")
 
+    # For debugging: if token is "debug_token", return a fixed user
+    if token == "debug_token":
+        return {
+            "sub": "debug-user",
+            "preferred_username": "debug",
+            "name": "Debug User",
+            "email": "debug@example.com",
+            "roles": [],
+            "groups": [],
+            "branch": "debug",
+            "factory": None
+        }
+
     if not token:
         raise credentials_exception
 
@@ -178,6 +222,18 @@ async def get_current_user(
     if user_info is None:
         raise credentials_exception
 
+    # Extract branch from user_info
+    branch = user_info.get("branch")
+    if branch is None:
+        # Try to derive from groups: look for a group that starts with "branch_"
+        groups = user_info.get("groups", [])
+        for group in groups:
+            if isinstance(group, str) and group.startswith("branch_"):
+                branch = group[7:]  # remove "branch_"
+                break
+        # If still None, you might want to set a default or leave as None
+        # For now, leave as None
+
     # Return full user info from Keycloak
     return {
         "sub": user_info.get("sub"),
@@ -185,7 +241,9 @@ async def get_current_user(
         "name": user_info.get("name"),
         "email": user_info.get("email"),
         "roles": user_info.get("realm_access", {}).get("roles", []),
-        "groups": user_info.get("groups", [])
+        "groups": user_info.get("groups", []),
+        "branch": branch,
+        "factory": user_info.get("factory")
     }
 
 
