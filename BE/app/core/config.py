@@ -61,6 +61,7 @@ class Settings(BaseSettings):
                                     "https://192.168.18.105:4200",
                                     "https://192.168.18.101:4200",
                                     "https://192.168.18.105:4200",
+                                    "https://ral-imes-qms.rangdong.com.vn:59005"
                                     "null" ]
     LOG_LEVEL: str = "INFO"
 
