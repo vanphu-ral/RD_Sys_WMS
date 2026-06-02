@@ -12,8 +12,11 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLinkWithHref } from '@angular/router';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { AreaService } from '../service/area-service.component';
+import { AreaService, AreaPayload, TenantOption } from '../service/area-service.component';
 import { UserInfoComponent } from '../../../user/user-info.component';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 export interface Area {
   id: number;
@@ -23,6 +26,19 @@ export interface Area {
   description: string;
   address: string;
   is_active: boolean;
+}
+
+export interface UserOption {
+  id: number;
+  name: string;
+  email?: string;
+}
+
+export interface PermissionGroup {
+  type: 'add' | 'edit' | 'delete';
+  label: string;
+  icon: string;
+  users: UserOption[];
 }
 @Component({
   selector: 'app-location-component',
@@ -39,7 +55,10 @@ export interface Area {
     MatSelectModule,
     CommonModule,
     RouterLinkWithHref,
+    MatChipsModule,
     MatSlideToggleModule,
+    MatMenuModule,
+    MatTooltipModule,
   ],
   templateUrl: './add-new-area.component.html',
   styleUrl: './add-new-area.component.scss',
@@ -59,12 +78,30 @@ export class AddNewAreaComponentComponent implements OnInit {
     is_active: false,
   };
 
+  tenants: TenantOption[] = [];
+  users: UserOption[] = [];
+  selectedTenantId: string | null = null;
+  private editTenantRef: { tenant_id?: string; company?: string } | null = null;
+
+  //role view default
+  viewUsers: UserOption[] = [];
+
+  //role usser add
+  permissionGroups: PermissionGroup[] = [];
+
+  availablePermTypes: { type: 'add' | 'edit' | 'delete'; label: string; icon: string }[] = [
+    { type: 'add', label: 'Thêm', icon: 'add_circle' },
+    { type: 'edit', label: 'Sửa', icon: 'edit' },
+    { type: 'delete', label: 'Xóa', icon: 'delete' },
+  ];
+  userSelections: Record<string, number | null> = { view: null };
+
   constructor(
     private route: ActivatedRoute,
     private snackBar: MatSnackBar,
     private areaService: AreaService,
     private router: Router,
-  ) {}
+  ) { }
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -73,6 +110,8 @@ export class AddNewAreaComponentComponent implements OnInit {
       this.submitLabel = 'Cập nhật';
       this.loadAreaById(+id);
     }
+    this.loadCompanies();
+    this.loadUsers();
   }
   loadAreaById(id: number): void {
     this.areaService.getAreas().subscribe({
@@ -88,12 +127,106 @@ export class AddNewAreaComponentComponent implements OnInit {
             address: found.address,
             is_active: !!found.is_active,
           };
+          this.editTenantRef = {
+            tenant_id: found.tenant_id,
+            company: found.company,
+          };
+          this.applyTenantSelectionFromArea(this.editTenantRef);
         }
       },
       error: (err) => {
         console.error('Lỗi khi lấy danh sách Area:', err);
       },
     });
+  }
+  private applyTenantSelectionFromArea(found: {
+    tenant_id?: string;
+    company?: string;
+  }): void {
+    this.selectedTenantId =
+      found.tenant_id ||
+      this.tenants.find((t) => t.company_name === found.company)?.id ||
+      null;
+  }
+  loadCompanies(): void {
+    this.areaService.getTenants().subscribe({
+      next: (tenants) => {
+        this.tenants = tenants;
+        if (this.editTenantRef) {
+          this.applyTenantSelectionFromArea(this.editTenantRef);
+        }
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy danh sách công ty:', err);
+        this.snackBar.open('Không tải được danh sách công ty', 'Đóng', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'bottom',
+        });
+      },
+    });
+  }
+  loadUsers(): void {
+    // TODO: thay bằng API thực — ví dụ: this.userService.getUsers().subscribe(...)
+    this.users = [
+      { id: 1, name: 'Nguyễn Văn A', email: 'a@example.com' },
+      { id: 2, name: 'Trần Thị B', email: 'b@example.com' },
+      { id: 3, name: 'Lê Văn C', email: 'c@example.com' },
+    ];
+  }
+
+  addUserToView(): void {
+    const uid = this.userSelections['view'];
+    if (!uid) return;
+    const user = this.users.find(u => u.id === uid);
+    if (user && !this.viewUsers.find(u => u.id === uid)) {
+      this.viewUsers.push(user);
+    }
+    this.userSelections['view'] = null;
+  }
+
+  removeUserFromView(userId: number): void {
+    this.viewUsers = this.viewUsers.filter(u => u.id !== userId);
+  }
+
+  // Thêm nhóm quyền mới (add/edit/delete)
+  addPermissionGroup(type: 'add' | 'edit' | 'delete'): void {
+    if (this.permissionGroups.find(g => g.type === type)) return; // đã có rồi
+    const meta = this.availablePermTypes.find(p => p.type === type)!;
+    this.permissionGroups.push({ type, label: meta.label, icon: meta.icon, users: [] });
+    this.userSelections[type] = null;
+  }
+
+  removePermissionGroup(type: string): void {
+    this.permissionGroups = this.permissionGroups.filter(g => g.type !== type);
+  }
+
+  addUserToGroup(group: PermissionGroup): void {
+    const uid = this.userSelections[group.type];
+    if (!uid) return;
+    const user = this.users.find(u => u.id === uid);
+    if (user && !group.users.find(u => u.id === uid)) {
+      group.users.push(user);
+    }
+    this.userSelections[group.type] = null;
+  }
+
+  removeUserFromGroup(group: PermissionGroup, userId: number): void {
+    group.users = group.users.filter(u => u.id !== userId);
+  }
+
+  // Helper: những loại quyền chưa được thêm
+  get availableToAdd() {
+    return this.availablePermTypes.filter(
+      p => !this.permissionGroups.find(g => g.type === p.type)
+    );
+  }
+  isUserInView(userId: number): boolean {
+    return this.viewUsers.some(v => v.id === userId);
+  }
+
+  isUserInGroup(group: PermissionGroup, userId: number): boolean {
+    return group.users.some(v => v.id === userId);
   }
   onSearch(): void {
     console.log('Searching for:');
@@ -139,17 +272,18 @@ export class AddNewAreaComponentComponent implements OnInit {
       return;
     }
 
-    if (this.isEditMode) {
-      // Trường hợp cập nhật
-      const payload = {
-        code: this.area.code,
-        name: this.area.name,
-        thu_kho: this.area.thu_kho,
-        description: this.area.description,
-        address: this.area.address,
-        is_active: this.area.is_active ? 1 : 0,
-      };
+    const payload = this.buildAreaPayload();
+    if (!payload) {
+      this.snackBar.open('Vui lòng chọn công ty!', 'Đóng', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'bottom',
+        panelClass: ['snackbar-error', 'snackbar-position'],
+      });
+      return;
+    }
 
+    if (this.isEditMode) {
       this.areaService.updateArea(this.area.id, payload).subscribe({
         next: () => {
           this.snackBar.open('Cập nhật thành công!', 'Đóng', {
@@ -171,16 +305,6 @@ export class AddNewAreaComponentComponent implements OnInit {
         },
       });
     } else {
-      // Trường hợp thêm mới
-      const payload = {
-        code: this.area.code,
-        name: this.area.name,
-        thu_kho: this.area.thu_kho,
-        description: this.area.description,
-        address: this.area.address,
-        is_active: this.area.is_active ? 1 : 0,
-      };
-
       this.areaService.createArea(payload).subscribe({
         next: () => {
           this.isSaveArea = true;
@@ -203,5 +327,22 @@ export class AddNewAreaComponentComponent implements OnInit {
         },
       });
     }
+  }
+
+  private buildAreaPayload(): AreaPayload | null {
+    const tenant = this.tenants.find((t) => t.id === this.selectedTenantId);
+    if (!tenant) return null;
+
+    return {
+      code: this.area.code,
+      name: this.area.name,
+      company: tenant.company_name,
+      factory: tenant.factory,
+      tenant_id: tenant.id,
+      thu_kho: this.area.thu_kho,
+      description: this.area.description,
+      address: this.area.address,
+      is_active: this.area.is_active ? 1 : 0,
+    };
   }
 }

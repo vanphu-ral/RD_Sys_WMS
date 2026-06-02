@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { SidebarService } from './sidebar/sidebar.service';
+import { SidebarMenu, SidebarService } from './sidebar/sidebar.service';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { SidebarComponent } from './sidebar/sidebar.component';
@@ -56,10 +56,8 @@ export class AppComponent implements OnInit, OnDestroy {
   username = '';
   isLoggedIn = false;
   showMobileMenu = false;
-  mobileSubmenuStates: { [key: string]: boolean } = {
-    kho: false,
-    baocao: false
-  };
+  mobileMenus: SidebarMenu[] = [];
+  mobileSubmenuStates: Record<string, boolean> = {};
 
   isCheckingAuth = true;
 
@@ -167,8 +165,18 @@ export class AppComponent implements OnInit, OnDestroy {
       (isLoggedIn) => {
         console.log('[AppComponent] Login state changed:', isLoggedIn);
         this.isLoggedIn = isLoggedIn;
+        if (isLoggedIn) {
+          this.refreshMobileMenus();
+        } else {
+          this.mobileMenus = [];
+          this.mobileSubmenuStates = {};
+        }
       }
     );
+
+    if (this.authService.isAuthenticated()) {
+      this.refreshMobileMenus();
+    }
 
     this.usernameSubscription = this.authService.username$.subscribe(
       (username) => {
@@ -270,8 +278,26 @@ export class AppComponent implements OnInit, OnDestroy {
   toggleSidebar(): void {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
+  private refreshMobileMenus(): void {
+    this.mobileMenus = this.sidebarservice
+      .getMenuList()
+      .filter((menu) => menu.type !== 'home');
+
+    const nextStates: Record<string, boolean> = {};
+    this.mobileMenus.forEach((menu) => {
+      if (menu.type === 'dropdown') {
+        nextStates[menu.title] = this.mobileSubmenuStates[menu.title] ?? false;
+      }
+    });
+    this.mobileSubmenuStates = nextStates;
+  }
+
   toggleMobileMenu() {
     this.showMobileMenu = !this.showMobileMenu;
+
+    if (this.showMobileMenu) {
+      this.refreshMobileMenus();
+    }
 
     // Reset submenu states when closing
     if (!this.showMobileMenu) {

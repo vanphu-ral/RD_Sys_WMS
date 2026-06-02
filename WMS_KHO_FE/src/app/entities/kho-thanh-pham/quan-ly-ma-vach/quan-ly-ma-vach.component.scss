@@ -1,0 +1,93 @@
+@use "@angular/material" as mat;
+
+.ma-vach-container {
+  padding: 10px;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+.ma-vach-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .title-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: #1e293b;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .subtitle {
+      margin: 4px 0 0 0;
+      font-size: 14px;
+      color: #64748b;
+    }
+  }
+
+  .add-btn {
+    height: 40px;
+    padding: 0 20px;
+    font-weight: 500;
+
+    mat-icon {
+      margin-right: 4px;
+    }
+  }
+}
+
+.ma-vach-card {
+  // margin: 8px;
+  padding: 0;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #ccc;
+
+  .table-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #1e293b;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .table-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .refresh-btn {
+      width: 40px;
+      height: 40px;
+    }
+  }
+}

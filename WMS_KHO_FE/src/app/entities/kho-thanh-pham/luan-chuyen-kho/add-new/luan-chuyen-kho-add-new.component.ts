@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -12,6 +12,11 @@ import {
   MinimalLocation,
   WarehouseTransferRequirementPayload,
 } from '../service/luan-chuyen-kho.service';
+import { mapImportPalletScanResponse } from '../service/luan-chuyen-kho-scan.mapper';
+import {
+  isMobileViewport,
+  LuanChuyenKhoCameraScanner,
+} from '../service/luan-chuyen-kho-camera.helper';
 
 export interface ScannedItem {
   apiScanId?: number;
@@ -41,9 +46,11 @@ export interface TransferForm {
     templateUrl: './luan-chuyen-kho-add-new.component.html',
     styleUrls: ['./luan-chuyen-kho-add-new.component.scss'],
 })
-export class LuanChuyenKhoAddNewComponent implements OnInit {
+export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
   scanMode: 'pallet' | 'thung' = 'pallet';
   scanValue = '';
+  isMobile = false;
+  cameraScanner!: LuanChuyenKhoCameraScanner;
   createdRequirementId?: number;
   requirementCode?: string;
   locations: MinimalLocation[] = [];
@@ -118,10 +125,52 @@ export class LuanChuyenKhoAddNewComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.initMobileAndCamera();
     this.form.nguoiTao = this.authService.getUsername() || '';
     this.form.ngayTao = this.getTodayForInput();
     this.currentTime = this.getCurrentTime();
     this.loadMinimalLocations();
+  }
+
+  ngOnDestroy(): void {
+    void this.cameraScanner?.stop();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.isMobile = isMobileViewport();
+  }
+
+  private initMobileAndCamera(): void {
+    this.isMobile = isMobileViewport();
+    this.cameraScanner = new LuanChuyenKhoCameraScanner(this.snackBar, (code) => {
+      this.scanValue = code;
+      this.onScan();
+    });
+  }
+
+  openCameraScanner(): void {
+    void this.cameraScanner.open(this.scanMode === 'pallet' ? 'Pallet' : 'Thùng');
+  }
+
+  stopScanning(): void {
+    void this.cameraScanner.stop();
+  }
+
+  switchCamera(): void {
+    void this.cameraScanner.switchCamera();
+  }
+
+  get isScanning(): boolean {
+    return this.cameraScanner?.isScanning ?? false;
+  }
+
+  get availableCameras() {
+    return this.cameraScanner?.availableCameras ?? [];
+  }
+
+  get scannerTitle(): string {
+    return this.cameraScanner?.scannerTitle ?? '';
   }
 
   private getTodayForInput(): string {
@@ -313,25 +362,23 @@ export class LuanChuyenKhoAddNewComponent implements OnInit {
     }
 
     return new Observable<any>((observer) => {
-      this.luanChuyenKhoService.scanPalletBySerial(scannedCode).subscribe({
+      this.luanChuyenKhoService.scanImportPallet(scannedCode).subscribe({
         next: (res: any) => {
-          const items = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-          const firstItem = items[0] || {};
-          const palletDetailId = firstItem?.pallet_info_detail_id || firstItem?.pallet_id || firstItem?.id;
-          if (!palletDetailId) {
-            observer.error(new Error('Pallet detail id not found'));
-            return;
+          try {
+            const mapped = mapImportPalletScanResponse(res);
+            observer.next({
+              palletDetailId: mapped.palletDetailId,
+              inventoryIdentifier: mapped.inventoryIdentifier,
+              serialPallet: mapped.serialPallet || scannedCode,
+              quantity: mapped.quantity,
+              locationId: mapped.locationId,
+              sapCode: mapped.sapCode,
+              name: mapped.name,
+            });
+            observer.complete();
+          } catch (e) {
+            observer.error(e);
           }
-          observer.next({
-            palletDetailId,
-            inventoryIdentifier: firstItem?.identifier || firstItem?.inventory_identifier || '---',
-            serialPallet: firstItem?.serial_pallet || scannedCode,
-            quantity: firstItem?.quantity_imported ?? firstItem?.quantity ?? 0,
-            locationId: firstItem?.location_id,
-            sapCode: firstItem?.sap_code || '',
-            name: firstItem?.name || '',
-          });
-          observer.complete();
         },
         error: (err) => observer.error(err),
       });
@@ -348,14 +395,17 @@ export class LuanChuyenKhoAddNewComponent implements OnInit {
 
         this.submitScannedItems(draftRes.id).subscribe({
           next: () => {
-            const approvePayload = this.buildPayload('Chờ duyệt');
-            this.luanChuyenKhoService.updateRequirement({ id: draftRes.id, ...approvePayload }).subscribe({
+            const approvePayload: WarehouseTransferRequirementPayload = {
+              ...this.buildPayload('Chờ duyệt'),
+              id: draftRes.id,
+            };
+            this.luanChuyenKhoService.submitForApproval(approvePayload).subscribe({
               next: () => {
                 this.snackBar.open('Đã gửi đơn chuyển kho để phê duyệt.', 'Đóng', { duration: 3000 });
                 this.router.navigate(['../list'], { relativeTo: this.route });
               },
               error: (err) => {
-                console.error('[LuanChuyenKhoAddNew] Lỗi cập nhật đơn:', err);
+                console.error('[LuanChuyenKhoAddNew] Lỗi gửi phê duyệt:', err);
                 this.snackBar.open('Không gửi được đơn để phê duyệt.', 'Đóng', { duration: 3000 });
               },
             });

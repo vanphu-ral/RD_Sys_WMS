@@ -1,0 +1,36 @@
+<div class="packing-container">
+  <div class="header">
+    <button mat-icon-button (click)="onBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2>Tách mã và đóng gói</h2>
+  </div>
+
+  <app-scan-product 
+    *ngIf="currentStep === 'scan'"
+    (productScanned)="onProductScanned($event)">
+  </app-scan-product>
+
+  <app-package-config 
+    *ngIf="currentStep === 'configure'"
+    [product]="scannedProduct!"
+    (packageConfigured)="onPackageConfigured($event)"
+    (back)="onBackToScan()">
+  </app-package-config>
+
+  <app-packing-process 
+    *ngIf="currentStep === 'packing'"
+    [palletId]="palletId"
+    [packageItems]="packageItems"
+    (packageAdded)="onPackageAdded($event)"
+    (packageRemoved)="onPackageRemoved($event)"
+    (complete)="onComplete()">
+  </app-packing-process>
+
+  <app-packing-complete 
+    *ngIf="currentStep === 'complete'"
+    [palletId]="palletId"
+    [packageItems]="packageItems"
+    (newPacking)="onBackToScan()">
+  </app-packing-complete>
+</div>

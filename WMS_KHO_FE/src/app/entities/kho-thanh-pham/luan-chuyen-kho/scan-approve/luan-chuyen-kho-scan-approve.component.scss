@@ -302,7 +302,26 @@ $row-hover: #f9fafb;
       font-weight: 600;
       color: $text-dark;
     }
+
+    &.col-verify {
+      width: 72px;
+    }
   }
+
+  th.col-verify {
+    width: 72px;
+  }
+
+  tbody tr.row-verified {
+    background: #f0fdf4;
+  }
+}
+
+.verify-icon {
+  font-size: 22px;
+  color: $green;
+  font-family: 'Material Icons';
+  vertical-align: middle;
 }
 
 .empty-row {
@@ -376,4 +395,25 @@ $row-hover: #f9fafb;
   color: $text-sub;
   font-size: 13px;
   letter-spacing: 1px;
+}
+
+.mobile-list-empty {
+  display: none;
+}
+
+@import '../_luan-chuyen-kho-mobile.scss';
+
+@media (max-width: 768px) {
+  .mobile-list-empty {
+    display: block;
+    text-align: center;
+    color: $text-sub;
+    padding: 20px 0;
+    font-style: italic;
+    font-size: 13px;
+  }
+
+  .table-wrapper .empty-row {
+    display: none;
+  }
 }

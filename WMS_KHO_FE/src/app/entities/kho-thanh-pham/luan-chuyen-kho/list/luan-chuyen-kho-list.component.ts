@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   LuanChuyenKhoService,
   MinimalLocation,
@@ -25,7 +26,7 @@ export interface ChuyenKhoItem {
 @Component({
     selector: 'app-luan-chuyen-kho-list',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, FormsModule],
     templateUrl: './luan-chuyen-kho-list.component.html',
     styleUrls: ['./luan-chuyen-kho-list.component.scss'],
 })
@@ -52,7 +53,37 @@ export class LuanChuyenKhoListComponent implements OnInit {
     }
 
     dataList: ChuyenKhoItem[] = [];
+    columnFilters = {
+        maYeuCau: '',
+        tuKho: '',
+        denKho: '',
+        nguoiTao: '',
+        ngayTao: '',
+        ghiChu: '',
+        tongSoLuong: '',
+        soPallet: '',
+        soThung: '',
+        trangThai: '',
+    };
     private locationMap = new Map<string, string>();
+
+    get filteredList(): ChuyenKhoItem[] {
+        return this.dataList.filter((item) => this.matchesColumnFilters(item));
+    }
+
+    get hasActiveFilters(): boolean {
+        return Object.values(this.columnFilters).some((v) => String(v).trim() !== '');
+    }
+
+    get emptyMessage(): string {
+        if (this.dataList.length === 0) {
+            return 'Không có dữ liệu';
+        }
+        if (this.filteredList.length === 0) {
+            return 'Không có dữ liệu phù hợp với bộ lọc';
+        }
+        return '';
+    }
 
     constructor(
       private route: ActivatedRoute,
@@ -97,8 +128,9 @@ export class LuanChuyenKhoListComponent implements OnInit {
       };
     }
 
-    private getLocationCode(rawWarehouse: string): string {
-      return this.locationMap.get(String(rawWarehouse)) || rawWarehouse;
+    private getLocationCode(rawWarehouse: string | number): string {
+      const key = String(rawWarehouse);
+      return this.locationMap.get(key) || key;
     }
 
     private buildLocationMap(locations: MinimalLocation[]): void {
@@ -109,9 +141,13 @@ export class LuanChuyenKhoListComponent implements OnInit {
     }
 
     private loadRequirements(): void {
+      const requirements$ = this.isCreateMode
+        ? this.luanChuyenKhoService.getRequirements(1, 100)
+        : this.luanChuyenKhoService.getApprovals();
+
       forkJoin({
         locations: this.luanChuyenKhoService.getMinimalLocations(),
-        requirements: this.luanChuyenKhoService.getRequirements(1, 100),
+        requirements: requirements$,
       }).subscribe({
         next: ({ locations, requirements }) => {
           this.buildLocationMap(locations);
@@ -129,6 +165,34 @@ export class LuanChuyenKhoListComponent implements OnInit {
     }
 
     onViewDetail(item: ChuyenKhoItem): void {
-        this.router.navigate(['../scan-approve', item.id], { relativeTo: this.route });
+        const target = this.isCreateMode ? '../detail' : '../scan-approve';
+        this.router.navigate([target, item.id], { relativeTo: this.route });
+    }
+
+    clearColumnFilters(): void {
+        Object.keys(this.columnFilters).forEach((key) => {
+            (this.columnFilters as Record<string, string>)[key] = '';
+        });
+    }
+
+    private matchesColumnFilters(item: ChuyenKhoItem): boolean {
+        const f = this.columnFilters;
+        if (!this.matchText(item.maYeuCau, f.maYeuCau)) return false;
+        if (!this.matchText(item.tuKho, f.tuKho)) return false;
+        if (!this.matchText(item.denKho, f.denKho)) return false;
+        if (!this.matchText(item.nguoiTao, f.nguoiTao)) return false;
+        if (!this.matchText(item.ngayTao, f.ngayTao)) return false;
+        if (!this.matchText(item.ghiChu, f.ghiChu)) return false;
+        if (!this.matchText(item.tongSoLuong, f.tongSoLuong)) return false;
+        if (!this.matchText(item.soPallet, f.soPallet)) return false;
+        if (!this.matchText(item.soThung, f.soThung)) return false;
+        if (!this.matchText(item.trangThai, f.trangThai)) return false;
+        return true;
+    }
+
+    private matchText(value: unknown, query: string): boolean {
+        const q = query.trim().toLowerCase();
+        if (!q) return true;
+        return String(value ?? '').toLowerCase().includes(q);
     }
 }

@@ -1,0 +1,41 @@
+<div class="scan-product-container">
+  <div class="scan-card">
+    <div class="scan-icon-wrapper">
+      <div class="scan-icon">
+        <div class="corner top-left"></div>
+        <div class="corner top-right"></div>
+        <div class="corner bottom-left"></div>
+        <div class="corner bottom-right"></div>
+      </div>
+    </div>
+
+    <h2 class="scan-title">Chế độ quét mã</h2>
+    <p class="scan-subtitle">Quét mã pallet/ thùng cần tách</p>
+
+    <mat-tab-group [(selectedIndex)]="selectedTab" class="scan-tabs">
+      <mat-tab label="Pallet"></mat-tab>
+      <mat-tab label="Thùng"></mat-tab>
+    </mat-tab-group>
+
+    <div class="scan-input-container">
+      <mat-form-field appearance="outline" class="scan-input">
+        <input 
+          matInput 
+          [(ngModel)]="scanInput"
+          (keypress)="onInputKeyPress($event)"
+          placeholder="Quét mã pallet/thùng...">
+      </mat-form-field>
+      
+      <div class="scan-actions">
+        <button mat-icon-button class="action-btn next-btn" (click)="onScan()">
+          <mat-icon>arrow_forward_ios</mat-icon>
+        </button>
+        <button mat-icon-button class="action-btn camera-btn" (click)="onCameraClick()">
+          <span class="camera-icon">
+            <mat-icon>camera_alt</mat-icon>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

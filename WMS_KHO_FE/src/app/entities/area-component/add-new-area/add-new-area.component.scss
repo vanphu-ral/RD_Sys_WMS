@@ -1,195 +1,275 @@
 @use "@angular/material" as mat;
 
-
 .area-container {
-    padding: 10px;
-    background-color: #f8fafc;
-    min-height: 100vh;
+  padding: 10px;
+  background-color: #f8fafc;
+  min-height: 100vh;
 }
 
 .shadow-card {
-    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
 .area-card {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-success .mdc-snackbar__surface {
-    background-color: #14AE5C !important;
-    color: white !important;
+  background-color: #14ae5c !important;
+  color: white !important;
 }
-
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-position {
-    margin-bottom: 75vh;
+  margin-bottom: 75vh;
 }
 
-
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-warn .mdc-snackbar__surface {
-    background-color: #f59e0b;
-    color: #1e293b;
+  background-color: #f59e0b;
+  color: #1e293b;
 }
 
 ::ng-deep .mat-mdc-snack-bar-container.snackbar-error .mdc-snackbar__surface {
-    background-color: #dc2626 !important;
-    color: white !important;
+  background-color: #dc2626 !important;
+  color: white !important;
 }
 
 .area-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+
+  .header-title {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
-    padding: 20px 24px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    gap: 12px;
 
-    .header-title {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-
-        .title-icon {
-            font-size: 32px;
-            width: 32px;
-            height: 32px;
-            color: #1e293b;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        .subtitle {
-            margin: 4px 0 0 0;
-            font-size: 14px;
-            color: #64748b;
-        }
+    .title-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: #1e293b;
     }
 
-    .add-btn {
-        height: 40px;
-        padding: 0 20px;
-        font-weight: 500;
-
-        mat-icon {
-            margin-right: 4px;
-        }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: #1e293b;
     }
+
+    .subtitle {
+      margin: 4px 0 0 0;
+      font-size: 14px;
+      color: #64748b;
+    }
+  }
+
+  .add-btn {
+    height: 40px;
+    padding: 0 20px;
+    font-weight: 500;
+
+    mat-icon {
+      margin-right: 4px;
+    }
+  }
 }
 
 .area-card {
-    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
-    border-radius: 8px;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  border-radius: 8px;
 }
 
-::ng-deep .mat-mdc-raised-button>.mat-icon {
-    margin: 0 !important;
+::ng-deep .mat-mdc-raised-button > .mat-icon {
+  margin: 0 !important;
 }
 
 ::ng-deep .icon-only {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    padding: 0 !important;
-    line-height: 1;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid #0D6EFD !important;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0 !important;
+  line-height: 1;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #0d6efd !important;
 
-    mat-icon {
-        font-size: 24px;
-        line-height: 1;
-        margin: 0;
-    }
+  mat-icon {
+    font-size: 24px;
+    line-height: 1;
+    margin: 0;
+  }
+}
+// Phân quyền
+.permission-section {
+  flex-direction: column;
+  gap: 16px;
 }
 
+.permission-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .perm-icon {
+    color: #1976d2;
+  }
+
+  .perm-title {
+    font-weight: 600;
+    font-size: 15px;
+    flex: 1;
+  }
+
+  .add-perm-btn {
+    margin-left: auto;
+  }
+}
+
+.perm-group {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  background: #fafafa;
+
+  .perm-group-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: #444;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .default-badge {
+      font-size: 11px;
+      background: #e3f2fd;
+      color: #1565c0;
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-weight: 500;
+    }
+
+    .remove-group-btn {
+      margin-left: auto;
+      width: 28px;
+      height: 28px;
+      line-height: 28px;
+      mat-icon {
+        font-size: 16px;
+      }
+    }
+  }
+
+  .perm-user-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .user-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      flex: 1;
+      min-height: 40px;
+    }
+
+    .perm-select {
+      width: 220px;
+      flex-shrink: 0;
+    }
+  }
+}
 ::ng-deep .input-field {
-    width: 120px;
-    margin-bottom: -1.75rem;
-    @include mat.form-field-density(-5);
-    @include mat.icon-button-density(-5);
-    @include mat.datepicker-density(-5);
+  width: 120px;
+  margin-bottom: -1.75rem;
+  @include mat.form-field-density(-5);
+  @include mat.icon-button-density(-5);
+  @include mat.datepicker-density(-5);
 }
 
 .search-field-none {
-    display: none;
+  display: none;
 }
 
 .area-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 1rem;
 }
 
 .info-configuration {
-    font-size: 12px;
-    color: #64748b;
-    font-style: italic;
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
 }
 
 .toggle-slide {
-    height: 30px;
-    padding: 15px;
+  height: 30px;
+  padding: 15px;
 }
 
 .form-row {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-
 .action-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    padding: 8px 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 8px 16px;
 }
 
 .form-field {
-    flex: 1;
-    min-width: 250px;
+  flex: 1;
+  min-width: 250px;
 }
 
 .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #ccc;
+
+  .table-title {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 16px 24px;
-    border-bottom: 1px solid #ccc;
+    gap: 8px;
+    font-weight: 600;
+    color: #1e293b;
 
-    .table-title {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 600;
-        color: #1e293b;
-
-        mat-icon {
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
-        }
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
+  }
 
-    .table-actions {
-        display: flex;
-        align-items: center;
-        gap: 12px;
+  .table-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 
-
-        .refresh-btn {
-            width: 40px;
-            height: 40px;
-        }
+    .refresh-btn {
+      width: 40px;
+      height: 40px;
     }
+  }
 }

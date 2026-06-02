@@ -54,12 +54,12 @@ import { MatDialogContent } from '@angular/material/dialog';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDividerModule } from '@angular/material/divider';
-// import { QuanLyMaVachComponent } from './quan-ly-ma-vach/quan-ly-ma-vach.component';
-// import { SplitManagementComponent } from './quan-ly-ma-vach/split-main-component/split-management.component';
+import { QuanLyMaVachComponent } from './quan-ly-ma-vach/quan-ly-ma-vach.component';
+import { SplitManagementComponent } from './quan-ly-ma-vach/split-main-component/split-management.component';
 import { ScanProductComponent } from './quan-ly-ma-vach/scan-product/scan-product.component';
-// import { PackageConfigComponent } from './quan-ly-ma-vach/package-config/package-config.component';
-// import { PackingProcessComponent } from './quan-ly-ma-vach/packing-process/packing-process.component';
-// import { PackingCompleteComponent } from './quan-ly-ma-vach/packing-complete/packing-complete.component';
+import { PackageConfigComponent } from './quan-ly-ma-vach/package-config/package-config.component';
+import { PackingProcessComponent } from './quan-ly-ma-vach/packing-process/packing-process.component';
+import { PackingCompleteComponent } from './quan-ly-ma-vach/packing-complete/packing-complete.component';
 import { LuanChuyenKhoComponent } from './luan-chuyen-kho/luan-chuyen-kho.component';
 @NgModule({
   declarations: [
@@ -78,12 +78,12 @@ import { LuanChuyenKhoComponent } from './luan-chuyen-kho/luan-chuyen-kho.compon
     XuatHangDetailComponent,
     AddXuatHangTheoDonBanHangComponent,
     BoxListDialogComponent,
-    // QuanLyMaVachComponent,
-    // SplitManagementComponent,
+    QuanLyMaVachComponent,
+    SplitManagementComponent,
     ScanProductComponent,
-    // PackageConfigComponent,
-    // PackingProcessComponent,
-    // PackingCompleteComponent,
+    PackageConfigComponent,
+    PackingProcessComponent,
+    PackingCompleteComponent,
     LuanChuyenKhoComponent,
   ],
   imports: [

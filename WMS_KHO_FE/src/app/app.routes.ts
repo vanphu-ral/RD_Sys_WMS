@@ -31,6 +31,7 @@ import { LuanChuyenKhoComponent } from './entities/kho-thanh-pham/luan-chuyen-kh
 import { LuanChuyenKhoListComponent } from './entities/kho-thanh-pham/luan-chuyen-kho/list/luan-chuyen-kho-list.component';
 import { LuanChuyenKhoAddNewComponent } from './entities/kho-thanh-pham/luan-chuyen-kho/add-new/luan-chuyen-kho-add-new.component';
 import { LuanChuyenKhoScanApproveComponent } from './entities/kho-thanh-pham/luan-chuyen-kho/scan-approve/luan-chuyen-kho-scan-approve.component';
+import { LuanChuyenKhoDetailComponent } from './entities/kho-thanh-pham/luan-chuyen-kho/detail/luan-chuyen-kho-detail.component';
 
 export const routes: Routes = [
   {
@@ -233,8 +234,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Quản lý kho',
-      // roles: []
-      roles: ['WMS_RD_STOCKOPS', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+      roles: []
+      // roles: ['WMS_RD_STOCKOPS', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
     }
   },
   {
@@ -273,8 +274,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Luân chuyển kho',
-      // roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
-      roles: [],
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      // roles: [],
       factories: ['vcoil gia công']
     }
   },
@@ -284,8 +285,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Luân chuyển kho - Danh sách',
-      // roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
-      roles: [],
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      // roles: [],
       factories: ['vcoil gia công']
     }
   },
@@ -295,7 +296,17 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Luân chuyển kho - Tạo mới',
-      // roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      // roles: [],
+      factories: ['vcoil gia công']
+    }
+  },
+  {
+    path: 'kho-thanh-pham/luan-chuyen-kho/detail/:id',
+    component: LuanChuyenKhoDetailComponent,
+    canActivate: [AuthGuard],
+    data: {
+      tabLabel: 'Luân chuyển kho - Chi tiết tạo đơn',
       roles: [],
       factories: ['vcoil gia công']
     }
@@ -306,8 +317,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Luân chuyển kho - Phê duyệt',
-      // roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
-      roles: [],
+      roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
+      // roles: [],
       factories: ['vcoil gia công']
     }
   },

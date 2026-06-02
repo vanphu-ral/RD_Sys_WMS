@@ -1,0 +1,88 @@
+<div class="package-config-container">
+  <div class="config-layout">
+    <div class="product-info-card">
+      <div class="product-header">
+        <span class="product-icon"><mat-icon>view_in_ar</mat-icon></span>
+        <span class="product-label">Tên sản phẩm</span>
+      </div>
+      
+      <h3 class="product-name">{{ product.name }}</h3>
+      
+      <div class="product-details">
+        <div class="detail-row">
+          <span class="detail-label">Mã lô:</span>
+          <span class="detail-value">{{ product.code }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Khách hàng:</span>
+          <span class="detail-value">{{ product.customer }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Ngành:</span>
+          <span class="detail-value">{{ product.industry }}</span>
+        </div>
+      </div>
+
+      <div class="product-stats">
+        <div class="stat-item">
+          <div class="stat-label">Tổng SP</div>
+          <div class="stat-value">{{ product.totalQuantity }}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Đơn vị</div>
+          <div class="stat-value">{{ product.unit }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-form-card">
+      <div class="form-header">
+        <span class="form-icon"><mat-icon>settings</mat-icon></span>
+        <h3>Cấu hình tách</h3>
+      </div>
+
+      <div class="form-content">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Số lượng sản phẩm</label>
+            <mat-form-field appearance="outline">
+              <input matInput type="number" [(ngModel)]="productQuantity" placeholder="0">
+            </mat-form-field>
+          </div>
+
+          <div class="form-group">
+            <label>Vị trí lưu kho</label>
+            <mat-form-field appearance="outline">
+              <input matInput [(ngModel)]="storageLocation" placeholder="Scan/Nhập vị trí...">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Số lượng thùng tách</label>
+            <mat-form-field appearance="outline">
+              <input matInput type="number" [(ngModel)]="boxQuantity" placeholder="0">
+            </mat-form-field>
+          </div>
+
+          <div class="form-group">
+            <label>Ghi chú</label>
+            <mat-form-field appearance="outline">
+              <input matInput [(ngModel)]="note" placeholder="Mô tả...">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button mat-stroked-button class="back-btn" (click)="onBack()">
+            Quay lại
+          </button>
+          <button mat-raised-button class="package-btn" (click)="onPackage()">
+            Package
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

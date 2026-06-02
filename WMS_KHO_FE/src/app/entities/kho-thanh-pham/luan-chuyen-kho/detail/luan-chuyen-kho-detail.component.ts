@@ -4,25 +4,24 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { forkJoin, Observable } from 'rxjs';
 import {
   LuanChuyenKhoService,
   MinimalLocation,
   WarehouseTransferRequirement,
-  WarehouseTransferRequirementPayload,
 } from '../service/luan-chuyen-kho.service';
 import {
   mapImportPalletScanResponse,
   mapWithDetailsResponse,
   toDisplayScannedItem,
 } from '../service/luan-chuyen-kho-scan.mapper';
-import { forkJoin, Observable } from 'rxjs';
 import { ConfirmDialogComponent } from '../../chuyen-kho/dialog/confirm-dialog.component';
 import {
   isMobileViewport,
   LuanChuyenKhoCameraScanner,
 } from '../service/luan-chuyen-kho-camera.helper';
 
-export interface ScannedItem {
+interface ScannedItem {
   scanType: 'pallet' | 'thung';
   refId?: number;
   maHangHoa: string;
@@ -32,11 +31,9 @@ export interface ScannedItem {
   soLuong: number;
   kho: string;
   thoiDiemScan: string;
-  /** Đã scan lại đúng hiện vật khi phê duyệt */
-  verified: boolean;
 }
 
-export interface OrderInfo {
+interface OrderInfo {
   id?: number;
   requirementCode?: string;
   khoXuat: string;
@@ -47,13 +44,13 @@ export interface OrderInfo {
 }
 
 @Component({
-  selector: 'app-luan-chuyen-kho-scan-approve',
+  selector: 'app-luan-chuyen-kho-detail',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './luan-chuyen-kho-scan-approve.component.html',
-  styleUrls: ['./luan-chuyen-kho-scan-approve.component.scss'],
+  templateUrl: './luan-chuyen-kho-detail.component.html',
+  styleUrls: ['./luan-chuyen-kho-detail.component.scss'],
 })
-export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
+export class LuanChuyenKhoDetailComponent implements OnInit, OnDestroy {
   scanMode: 'pallet' | 'thung' = 'pallet';
   scanValue = '';
   isMobile = false;
@@ -72,8 +69,6 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
   };
 
   scannedList: ScannedItem[] = [];
-
-  // ── Pagination ──────────────────────────────────────────────────────────────
   pageSize = 5;
   currentPage = 1;
 
@@ -86,33 +81,20 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
     return this.scannedList.slice(start, start + this.pageSize);
   }
 
-  /** Tính dãy trang hiển thị: 1 2 3 ... 8 9 */
   get visiblePages(): number[] {
     const total = this.totalPages;
     const cur = this.currentPage;
     const pages: number[] = [];
-
-    if (total <= 7) {
-      return Array.from({ length: total }, (_, i) => i + 1);
-    }
-
-    // Luôn hiện trang 1 và 2
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
     pages.push(1, 2, 3);
-
-    if (cur > 4) pages.push(-1); // ellipsis
-
-    // Trang xung quanh currentPage
+    if (cur > 4) pages.push(-1);
     for (let p = Math.max(4, cur - 1); p <= Math.min(total - 2, cur + 1); p++) {
       if (!pages.includes(p)) pages.push(p);
     }
-
-    if (cur < total - 3) pages.push(-1); // ellipsis
-
-    // Luôn hiện 2 trang cuối
+    if (cur < total - 3) pages.push(-1);
     [total - 1, total].forEach((p) => {
       if (!pages.includes(p)) pages.push(p);
     });
-
     return pages;
   }
 
@@ -121,7 +103,6 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
     this.currentPage = page;
   }
 
-  // ── Scan ────────────────────────────────────────────────────────────────────
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -183,7 +164,7 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
   private loadRequirement(id: number): void {
     forkJoin({
       locations: this.luanChuyenKhoService.getMinimalLocations(),
-      detail: this.luanChuyenKhoService.getApprovalWithDetails(id),
+      detail: this.luanChuyenKhoService.getRequirementWithDetails(id),
     }).subscribe({
       next: ({ locations, detail }) => {
         this.buildLocationMap(locations);
@@ -194,17 +175,16 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
         this.applyScannedRows(scannedRows);
       },
       error: (err) => {
-        console.error('[LuanChuyenKhoScanApprove] Lỗi lấy chi tiết đơn phê duyệt:', err);
-        this.snackBar.open('Không tải được chi tiết đơn phê duyệt.', 'Đóng', { duration: 3000 });
+        console.error('[LuanChuyenKhoDetail] Lỗi lấy chi tiết đơn:', err);
+        this.snackBar.open('Không tải được chi tiết đơn.', 'Đóng', { duration: 3000 });
       },
     });
   }
 
   private applyScannedRows(rows: ReturnType<typeof mapWithDetailsResponse>['scannedRows']): void {
-    this.scannedList = rows.map((row) => ({
-      ...toDisplayScannedItem(row, (id) => this.getLocationCode(String(id ?? '')), this.orderInfo.khoXuat),
-      verified: false,
-    }));
+    this.scannedList = rows.map((row) =>
+      toDisplayScannedItem(row, (id) => this.getLocationCode(String(id ?? '')), this.orderInfo.khoXuat)
+    );
     this.currentPage = 1;
   }
 
@@ -234,9 +214,7 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
 
   private formatDate(dateValue: string): string {
     const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) {
-      return dateValue;
-    }
+    if (Number.isNaN(date.getTime())) return dateValue;
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, '0');
     const dd = String(date.getDate()).padStart(2, '0');
@@ -254,67 +232,108 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
     return (value || '').trim().toUpperCase();
   }
 
-  private markItemVerified(item: ScannedItem): void {
-    item.verified = true;
-  }
-
-  /** Khớp theo serial hiển thị trên danh sách đơn */
-  private tryMarkVerifiedBySerial(scanCode: string, mode: 'pallet' | 'thung'): boolean {
+  private isDuplicateByCode(scanCode: string, mode: 'pallet' | 'thung'): boolean {
     const normalized = this.normalizeCode(scanCode);
-    const item = this.scannedList.find((row) => {
-      if (row.scanType !== mode || row.verified) return false;
-      if (mode === 'pallet') {
-        return this.normalizeCode(row.serialPallet) === normalized;
-      }
-      return this.normalizeCode(row.serialThung) === normalized;
-    });
-    if (!item) return false;
-    this.markItemVerified(item);
-    return true;
+    return this.scannedList.some((item) =>
+      mode === 'thung'
+        ? this.normalizeCode(item.serialThung) === normalized
+        : this.normalizeCode(item.serialPallet) === normalized
+    );
   }
 
-  /** Khớp theo refId sau khi tra cứu API (mã vật lý có thể khác serial hiển thị) */
-  private tryMarkVerifiedByRef(scanRef: any, mode: 'pallet' | 'thung'): boolean {
-    const refId =
-      mode === 'thung' ? Number(scanRef.inventoryId) : Number(scanRef.palletDetailId);
-    if (!refId) return false;
-
-    const item = this.scannedList.find(
-      (row) => row.scanType === mode && !row.verified && Number(row.refId) === refId
-    );
-    if (!item) return false;
-    this.markItemVerified(item);
-    return true;
+  private isDuplicateByRef(refId: number, mode: 'pallet' | 'thung'): boolean {
+    return this.scannedList.some((item) => item.scanType === mode && Number(item.refId) === Number(refId));
   }
 
   onScan(): void {
+    if (!this.requirementId) {
+      this.snackBar.open('Không xác định được đơn luân chuyển kho.', 'Đóng', { duration: 3000 });
+      return;
+    }
     const value = this.scanValue.trim();
     if (!value) return;
-
-    if (this.tryMarkVerifiedBySerial(value, this.scanMode)) {
+    if (this.isDuplicateByCode(value, this.scanMode)) {
+      this.snackBar.open('Mã đã tồn tại trong danh sách scan.', 'Đóng', { duration: 2500 });
       this.scanValue = '';
       return;
     }
 
+    const now = new Date();
+    const formatted = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}/${now.getFullYear()} ${now
+      .getHours()
+      .toString()
+      .padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
     this.activeScanRequests++;
     this.resolveScanReference(value, this.scanMode).subscribe({
       next: (scanRef) => {
-        this.tryMarkVerifiedByRef(scanRef, this.scanMode);
-        this.scanValue = '';
-        this.activeScanRequests = Math.max(0, this.activeScanRequests - 1);
+        const refId = this.scanMode === 'thung' ? Number(scanRef.inventoryId) : Number(scanRef.palletDetailId);
+        if (this.isDuplicateByRef(refId, this.scanMode)) {
+          this.snackBar.open('Mã đã tồn tại trong danh sách scan.', 'Đóng', { duration: 2500 });
+          this.scanValue = '';
+          this.activeScanRequests = Math.max(0, this.activeScanRequests - 1);
+          return;
+        }
+        const newItem: ScannedItem = {
+          scanType: this.scanMode,
+          refId,
+          maHangHoa: scanRef.sapCode || '---',
+          tenHangHoa: scanRef.name || '---',
+          serialPallet: scanRef.serialPallet || (this.scanMode === 'pallet' ? value : '---'),
+          serialThung: scanRef.inventoryIdentifier || (this.scanMode === 'thung' ? value : '---'),
+          soLuong: scanRef.quantity || 0,
+          kho: this.getLocationCode(String(scanRef.locationId)) || this.orderInfo.khoXuat,
+          thoiDiemScan: formatted,
+        };
+
+        const onSuccess = () => {
+          this.scannedList = [newItem, ...this.scannedList];
+          this.currentPage = 1;
+          this.scanValue = '';
+          this.activeScanRequests = Math.max(0, this.activeScanRequests - 1);
+        };
+
+        if (this.scanMode === 'thung') {
+          this.luanChuyenKhoService
+            .addScannedInventory({
+              warehouse_transfer_gc_requirement_id: this.requirementId!,
+              inventory_id: Number(scanRef.inventoryId),
+            })
+            .subscribe({
+              next: onSuccess,
+              error: (err) => {
+                console.error('[LuanChuyenKhoDetail] Lỗi lưu scan thùng:', err);
+                this.snackBar.open('Không lưu được thùng scan vào đơn.', 'Đóng', { duration: 3000 });
+                this.activeScanRequests = Math.max(0, this.activeScanRequests - 1);
+              },
+            });
+        } else {
+          this.luanChuyenKhoService
+            .addScannedPallet({
+              warehouse_transfer_gc_requirement_id: this.requirementId!,
+              pallet_info_detail_id: Number(scanRef.palletDetailId),
+            })
+            .subscribe({
+              next: onSuccess,
+              error: (err) => {
+                console.error('[LuanChuyenKhoDetail] Lỗi lưu scan pallet:', err);
+                this.snackBar.open('Không lưu được pallet scan vào đơn.', 'Đóng', { duration: 3000 });
+                this.activeScanRequests = Math.max(0, this.activeScanRequests - 1);
+              },
+            });
+        }
       },
       error: (err) => {
-        console.error('[LuanChuyenKhoScanApprove] Lỗi tra cứu mã scan:', err);
-        this.scanValue = '';
+        console.error('[LuanChuyenKhoDetail] Lỗi tra cứu mã scan:', err);
+        this.snackBar.open('Mã scan không hợp lệ hoặc không tìm thấy dữ liệu.', 'Đóng', { duration: 3000 });
         this.activeScanRequests = Math.max(0, this.activeScanRequests - 1);
       },
     });
   }
 
-  private resolveScanReference(
-    scannedCode: string,
-    mode: 'pallet' | 'thung'
-  ): Observable<any> {
+  private resolveScanReference(scannedCode: string, mode: 'pallet' | 'thung'): Observable<any> {
     if (mode === 'thung') {
       return new Observable<any>((observer) => {
         this.luanChuyenKhoService.getInventoryByIdentifier(scannedCode).subscribe({
@@ -365,53 +384,47 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
     });
   }
 
-  onApprove(): void {
+  onUpdate(): void {
     if (!this.requirementId || !this.rawRequirement) {
-      this.snackBar.open('Không xác định được đơn để phê duyệt.', 'Đóng', { duration: 3000 });
+      this.snackBar.open('Không xác định được đơn để cập nhật.', 'Đóng', { duration: 3000 });
       return;
     }
-    const payload: WarehouseTransferRequirementPayload = {
-      id: this.requirementId,
-      requirement_code: this.rawRequirement.requirement_code,
-      number_of_pallet: this.rawRequirement.number_of_pallet,
-      number_of_box: this.rawRequirement.number_of_box,
-      total_quantity: this.rawRequirement.total_quantity,
-      status: 'Đã duyệt',
-      source_warehouse: this.rawRequirement.source_warehouse,
-      destination_warehouse: this.rawRequirement.destination_warehouse,
-      note: this.rawRequirement.note || '',
-    };
-    this.luanChuyenKhoService.updateApproval(payload).subscribe({
-      next: () => {
-        this.snackBar.open('Đã xác nhận phê duyệt đơn.', 'Đóng', { duration: 3000 });
-        this.router.navigate(['../../list'], {
-          relativeTo: this.route,
-          queryParams: { mode: 'approve' },
-        });
-      },
-      error: (err) => {
-        console.error('[LuanChuyenKhoScanApprove] Lỗi phê duyệt đơn:', err);
-        this.snackBar.open('Không thể phê duyệt đơn.', 'Đóng', { duration: 3000 });
-      },
-    });
+
+    this.luanChuyenKhoService
+      .updateRequirement({
+        id: this.requirementId,
+        requirement_code: this.rawRequirement.requirement_code,
+        number_of_pallet: this.rawRequirement.number_of_pallet,
+        number_of_box: this.rawRequirement.number_of_box,
+        total_quantity: this.rawRequirement.total_quantity,
+        status: this.rawRequirement.status || 'Bản nháp',
+        source_warehouse: this.rawRequirement.source_warehouse,
+        destination_warehouse: this.rawRequirement.destination_warehouse,
+        note: this.orderInfo.ghiChu || '',
+      })
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Đã cập nhật thông tin đơn thành công.', 'Đóng', { duration: 3000 });
+          this.router.navigate(['../../list'], { relativeTo: this.route });
+        },
+        error: (err) => {
+          console.error('[LuanChuyenKhoDetail] Lỗi cập nhật đơn:', err);
+          this.snackBar.open('Không thể cập nhật đơn.', 'Đóng', { duration: 3000 });
+        },
+      });
   }
 
-  confirmAndApprove(): void {
+  confirmAndUpdate(): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '420px',
-      data: { message: 'Bạn có chắc chắn muốn xác nhận phê duyệt đơn này không?' },
+      data: { message: 'Bạn có chắc chắn muốn cập nhật đơn này không?' },
     });
     dialogRef.afterClosed().subscribe((confirmed) => {
-      if (confirmed) {
-        this.onApprove();
-      }
+      if (confirmed) this.onUpdate();
     });
   }
 
   goBack(): void {
-    this.router.navigate(['../../list'], {
-      relativeTo: this.route,
-      queryParams: { mode: 'approve' },
-    });
+    this.router.navigate(['../../list'], { relativeTo: this.route });
   }
 }

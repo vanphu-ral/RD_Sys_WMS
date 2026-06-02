@@ -1,0 +1,353 @@
+// Shared responsive styles — luân chuyển kho
+
+$lck-mobile-break: 768px;
+$lck-border: #e5e7eb;
+$lck-text: #1e1b2e;
+$lck-muted: #6b7280;
+$lck-sub: #9ca3af;
+$lck-green: #16a34a;
+
+.mobile-only {
+  display: none !important;
+}
+
+.mobile-list {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mobile-card {
+  background: #fff;
+  border: 1px solid $lck-border;
+  border-radius: 8px;
+  padding: 12px 14px;
+
+  &.is-verified {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+  }
+}
+
+.mobile-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.mobile-card-stt {
+  font-size: 13px;
+  font-weight: 600;
+  color: $lck-text;
+}
+
+.mobile-card-code {
+  font-size: 13px;
+  font-weight: 600;
+  color: $lck-text;
+  word-break: break-all;
+}
+
+.mobile-card-actions {
+  flex-shrink: 0;
+}
+
+.mobile-verified {
+  font-size: 20px;
+  color: $lck-green;
+  font-family: 'Material Icons';
+}
+
+.mobile-card-body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mobile-row {
+  display: grid;
+  grid-template-columns: minmax(88px, 38%) 1fr;
+  gap: 8px;
+  align-items: start;
+  font-size: 12.5px;
+  line-height: 1.4;
+
+  dt {
+    margin: 0;
+    color: $lck-sub;
+    font-weight: 500;
+  }
+
+  dd {
+    margin: 0;
+    color: $lck-muted;
+    font-weight: 500;
+    word-break: break-word;
+    text-align: right;
+
+    &.emphasis {
+      color: $lck-text;
+      font-weight: 600;
+    }
+  }
+}
+
+.mobile-status {
+  font-weight: 600;
+  font-size: 12.5px;
+
+  &.status-approved {
+    color: $lck-green;
+  }
+
+  &.status-pending {
+    color: #ca8a04;
+  }
+}
+
+// Scan input + camera (camera visible only on mobile via .mobile-only)
+.scan-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 430px;
+
+  .scan-input {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+.btn-camera {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  background: #f0fdf4;
+  color: $lck-green;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  .material-icons {
+    font-size: 22px;
+    font-family: 'Material Icons';
+  }
+
+  &:active {
+    background: #dcfce7;
+  }
+}
+
+// QR scanner overlay
+.qr-scanner-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.qr-scanner-modal {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.scanner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid $lck-border;
+
+  h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: $lck-text;
+  }
+}
+
+.scanner-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.scanner-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  color: $lck-muted;
+
+  .material-icons {
+    font-size: 22px;
+    font-family: 'Material Icons';
+  }
+}
+
+.scanner-hint {
+  margin: 0;
+  padding: 10px 14px 14px;
+  text-align: center;
+  font-size: 12.5px;
+  color: $lck-sub;
+}
+
+@media (max-width: $lck-mobile-break) {
+  .mobile-only {
+    display: inline-flex !important;
+  }
+
+  .desktop-table-wrap {
+    display: none !important;
+  }
+
+  .mobile-list {
+    display: flex;
+  }
+
+  .page-wrapper {
+    .page-header {
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 12px 14px;
+
+      .page-title {
+        font-size: 15px;
+      }
+
+      .page-subtitle {
+        font-size: 11.5px;
+      }
+    }
+
+    .btn-add,
+    .btn-submit {
+      min-height: 40px;
+      padding: 8px 14px;
+      font-size: 13px;
+
+      .material-icons {
+        font-size: 17px;
+      }
+    }
+
+    .btn-back {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+    }
+
+    .page-content {
+      margin: 12px;
+      padding: 0;
+    }
+
+    .page-content--stack {
+      padding: 12px 14px 16px;
+      gap: 12px;
+    }
+
+    .info-banner {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 14px 16px;
+      gap: 10px;
+
+      .info-col {
+        padding: 0;
+      }
+
+      .info-divider {
+        display: none;
+      }
+    }
+
+    .card {
+      padding: 14px 16px;
+    }
+
+    .form-grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    .scan-mode-group {
+      flex-wrap: wrap;
+
+      .btn-scan-mode {
+        flex: 1;
+        min-width: 0;
+        justify-content: center;
+        min-height: 40px;
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+    }
+
+    .scan-input-row {
+      max-width: none;
+    }
+
+    .pagination {
+      justify-content: center;
+      gap: 6px;
+
+      .page-btn {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 8px;
+        font-size: 12.5px;
+
+        &.nav-btn {
+          padding: 0 10px;
+        }
+      }
+    }
+  }
+
+  // Hub menu
+  .page-content.hub-content {
+    padding: 20px 16px;
+
+    .cards-container {
+      flex-direction: column;
+      width: 100%;
+      max-width: 360px;
+      gap: 16px;
+    }
+
+    .action-card {
+      width: 100%;
+      min-height: auto;
+      padding: 24px 20px 20px;
+    }
+  }
+
+  #qr-reader {
+    min-height: 240px;
+  }
+}

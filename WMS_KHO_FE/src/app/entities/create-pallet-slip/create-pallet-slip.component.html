@@ -1,0 +1,228 @@
+<div class="page-wrapper">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">TẠO PHIẾU THÔNG TIN NHẬP KHO RẠNG ĐÔNG</h1>
+  </div>
+
+  <!-- Slip Container -->
+  <div class="slip-container">
+    <div class="slip-card" #palletSlip>
+
+      <!-- ── HEADER ── -->
+      <div class="slip-header">
+        <div class="qr-box">
+          <mat-icon class="qr-icon">qr_code_2</mat-icon>
+          <span class="qr-label">QR CODE</span>
+        </div>
+        <div class="slip-title-block">
+          <h2 class="slip-title">PHIẾU THÔNG TIN</h2>
+          <p class="slip-subtitle">Pallet Information Sheet</p>
+        </div>
+      </div>
+
+      <!-- ── BODY ── -->
+
+      <!-- Khách hàng -->
+      <div class="row">
+        <div class="lbl">Khách hàng</div>
+        <div class="val val-lg">
+          <mat-form-field appearance="outline" class="ff">
+            <input matInput [(ngModel)]="formData.khachHang" placeholder="Nhập tên khách hàng" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Serial pallet -->
+      <div class="row">
+        <div class="lbl">Serial pallet</div>
+        <div class="val">
+          <span class="auto-text">Mã pallet hệ thống tự tạo</span>
+        </div>
+      </div>
+
+      <!-- Tên sản phẩm -->
+      <div class="row">
+        <div class="lbl">Tên sản phẩm</div>
+        <div class="val">
+          <mat-form-field appearance="outline" class="ff">
+            <input matInput [(ngModel)]="formData.tenSanPham" placeholder="Nhập tên sản phẩm" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- PO Number -->
+      <div class="row">
+        <div class="lbl">PO Number</div>
+        <div class="val val-xl">
+          <mat-form-field appearance="outline" class="ff">
+            <input matInput [(ngModel)]="formData.poNumber" placeholder="Nhập PO Number" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Item No/SKU  |  Ngành / Tổ -->
+      <div class="row row-split">
+        <div class="split-l">
+          <div class="lbl">Item No/SKU</div>
+          <div class="val">
+            <mat-form-field appearance="outline" class="ff">
+              <input matInput [(ngModel)]="formData.itemSku" placeholder="Item No/SKU" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="split-r">
+          <div class="meta-pair">
+            <span class="meta-lbl">Ngành:</span>
+            <mat-form-field appearance="outline" class="ff ff-meta">
+              <mat-select [(ngModel)]="formData.nganh" placeholder="Chọn ngành"
+                          (ngModelChange)="onNganhChange()">
+                <mat-option *ngFor="let branch of allBranches"
+                            [value]="branch.branchCode">
+                  {{ branch.branchCode }} — {{ branch.branchName }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- Số QDSX -->
+      <div class="row row-split">
+        <div class="split-l">
+          <div class="lbl">Số QDSX</div>
+          <div class="val">
+            <mat-form-field appearance="outline" class="ff">
+              <input matInput [(ngModel)]="formData.soQdsx" placeholder="Nhập số QDSX" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="split-r">
+          <div class="meta-pair">
+            <span class="meta-lbl">Tổ:</span>
+            <mat-form-field appearance="outline" class="ff ff-meta">
+              <mat-select [(ngModel)]="formData.to" placeholder="Chọn tổ"
+                          [disabled]="!formData.nganh">
+                <mat-option *ngFor="let team of filteredTeams"
+                            [value]="team.productionTeamCode">
+                  {{ team.productionTeamName }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ngày sản xuất  |  Date Code -->
+      <div class="row row-split">
+        <div class="split-l">
+          <div class="lbl">Ngày sản xuất</div>
+          <div class="val">
+            <mat-form-field appearance="outline" class="ff">
+              <input matInput [matDatepicker]="dpNgaySx" [(ngModel)]="formData.ngaySanXuat" placeholder="dd/MM/yyyy"
+                readonly />
+              <mat-datepicker-toggle matIconSuffix [for]="dpNgaySx"></mat-datepicker-toggle>
+              <mat-datepicker #dpNgaySx></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="split-r">
+          <div class="meta-pair meta-pair--single">
+            <span class="meta-lbl">Date Code:</span>
+            <mat-form-field appearance="outline" class="ff ff-meta">
+              <input matInput [(ngModel)]="formData.dateCode" placeholder="Date Code" />
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- Số lượng SP/pallet  |  SL SP/Thùng -->
+      <div class="row row-split">
+        <div class="split-l">
+          <div class="lbl lbl-2line">Số lượng<br />(sản phẩm/pallet)</div>
+          <div class="val val-num">
+            <mat-form-field appearance="outline" class="ff">
+              <input matInput type="number" [(ngModel)]="formData.slSanPhamPallet" placeholder="0" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="split-r">
+          <div class="meta-pair meta-pair--single">
+            <span class="meta-lbl">SL SP/Thùng:</span>
+            <mat-form-field appearance="outline" class="ff ff-meta">
+              <input matInput type="number" [(ngModel)]="formData.slSpThung" placeholder="0" />
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- Số lượng thùng/pallet  |  Thứ tự giá -->
+      <div class="row row-split">
+        <div class="split-l">
+          <div class="lbl lbl-2line">Số lượng<br />(thùng/pallet)</div>
+          <div class="val val-num">
+            <mat-form-field appearance="outline" class="ff">
+              <input matInput type="number" [(ngModel)]="formData.slThungPallet" placeholder="0" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="split-r">
+          <div class="meta-pair meta-pair--single">
+            <span class="meta-lbl">Thứ tự giá:</span>
+            <mat-form-field appearance="outline" class="ff ff-meta">
+              <input matInput type="number" [(ngModel)]="formData.thuTuGia" placeholder="1" />
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- Người kiểm tra  |  KQ kiểm tra -->
+      <div class="row row-split">
+        <div class="split-l">
+          <div class="lbl">Người kiểm tra</div>
+          <div class="val">
+            <mat-form-field appearance="outline" class="ff">
+              <input matInput [(ngModel)]="formData.nguoiKiemTra" placeholder="Tên người kiểm tra" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="split-r">
+          <div class="meta-pair meta-pair--single">
+            <span class="meta-lbl">KQ kiểm tra:</span>
+            <mat-form-field appearance="outline" class="ff ff-meta">
+              <mat-select [(ngModel)]="formData.kqKiemTra" placeholder="Chọn KQ">
+                <mat-option value="Đạt">Đạt</mat-option>
+                <mat-option value="Không đạt">Không đạt</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ghi chú -->
+      <div class="row row-last">
+        <div class="lbl">Ghi chú</div>
+        <div class="val">
+          <mat-form-field appearance="outline" class="ff">
+            <input matInput [(ngModel)]="formData.ghiChu" placeholder="Ghi chú (nếu có)" />
+          </mat-form-field>
+        </div>
+      </div>
+
+    </div><!-- /slip-card -->
+
+    <!-- Footer -->
+    <div class="slip-footer">
+      <div class="footer-left">
+        <span class="footer-label">Số lượng phiếu cần tạo:</span>
+        <mat-form-field appearance="outline" class="qty-field">
+          <input matInput type="number" [(ngModel)]="soLuongPhieu" min="1" max="999" placeholder="1" />
+        </mat-form-field>
+      </div>
+      <button mat-raised-button class="btn-create" (click)="onTaoPhieu()">
+        <mat-icon>print</mat-icon>
+        TẠO PHIẾU
+      </button>
+    </div>
+
+  </div><!-- /slip-container -->
+</div>

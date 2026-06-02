@@ -51,7 +51,7 @@
     </div>
 
     <!-- Content -->
-    <div class="page-content">
+    <div class="page-content page-content--stack">
 
         <!-- Section: Mode scan -->
         <div class="card">
@@ -72,8 +72,15 @@
                 </button>
             </div>
 
-            <input class="field-input scan-input" type="text" [(ngModel)]="scanValue"
-                [placeholder]="scanMode === 'pallet' ? 'Pallet scan...' : 'Thùng scan...'" (keyup.enter)="onScan()" />
+            <div class="scan-input-row">
+                <input class="field-input scan-input" type="text" [(ngModel)]="scanValue"
+                    [placeholder]="scanMode === 'pallet' ? 'Pallet scan...' : 'Thùng scan...'"
+                    (keyup.enter)="onScan()" inputmode="none" />
+                <button type="button" class="btn-camera mobile-only" *ngIf="isMobile" (click)="openCameraScanner()"
+                    aria-label="Quét bằng camera">
+                    <span class="material-icons">photo_camera</span>
+                </button>
+            </div>
             <small *ngIf="activeScanRequests > 0">Đang xử lý scan... ({{ activeScanRequests }})</small>
         </div>
 
@@ -85,10 +92,11 @@
             </div>
             <div class="section-divider"></div>
 
-            <div class="table-wrapper">
+            <div class="table-wrapper desktop-table-wrap">
                 <table class="data-table">
                     <thead>
                         <tr>
+                            <th class="col-verify">Xác nhận</th>
                             <th>STT</th>
                             <th>Mã hàng hoá</th>
                             <th>Tên hàng hoá</th>
@@ -100,7 +108,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let item of pagedList; let i = index">
+                        <tr *ngFor="let item of pagedList; let i = index" [class.row-verified]="item.verified">
+                            <td class="col-verify">
+                                <span *ngIf="item.verified" class="material-icons verify-icon" title="Đã kiểm tra">check_circle</span>
+                            </td>
                             <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
                             <td class="col-bold">{{ item.maHangHoa }}</td>
                             <td class="col-bold">{{ item.tenHangHoa }}</td>
@@ -111,11 +122,52 @@
                             <td>{{ item.thoiDiemScan }}</td>
                         </tr>
                         <tr *ngIf="scannedList.length === 0">
-                            <td colspan="8" class="empty-row">Chưa có dữ liệu scan</td>
+                            <td colspan="9" class="empty-row">Chưa có dữ liệu scan</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+
+            <div class="mobile-list" *ngIf="pagedList.length > 0">
+                <article class="mobile-card" *ngFor="let item of pagedList; let i = index"
+                    [class.is-verified]="item.verified">
+                    <div class="mobile-card-head">
+                        <span class="mobile-card-stt">#{{ (currentPage - 1) * pageSize + i + 1 }}</span>
+                        <span *ngIf="item.verified" class="material-icons mobile-verified" title="Đã kiểm tra">check_circle</span>
+                    </div>
+                    <dl class="mobile-card-body">
+                        <div class="mobile-row">
+                            <dt>Mã HH</dt>
+                            <dd class="emphasis">{{ item.maHangHoa }}</dd>
+                        </div>
+                        <div class="mobile-row">
+                            <dt>Tên HH</dt>
+                            <dd class="emphasis">{{ item.tenHangHoa }}</dd>
+                        </div>
+                        <div class="mobile-row">
+                            <dt>Serial pallet</dt>
+                            <dd>{{ item.serialPallet }}</dd>
+                        </div>
+                        <div class="mobile-row">
+                            <dt>Serial box</dt>
+                            <dd>{{ item.serialThung }}</dd>
+                        </div>
+                        <div class="mobile-row">
+                            <dt>SL/thùng</dt>
+                            <dd>{{ item.soLuong }}</dd>
+                        </div>
+                        <div class="mobile-row">
+                            <dt>Kho</dt>
+                            <dd>{{ item.kho }}</dd>
+                        </div>
+                        <div class="mobile-row">
+                            <dt>Thời điểm</dt>
+                            <dd>{{ item.thoiDiemScan }}</dd>
+                        </div>
+                    </dl>
+                </article>
+            </div>
+            <p class="empty-row mobile-list-empty" *ngIf="scannedList.length === 0">Chưa có dữ liệu scan</p>
 
             <!-- Pagination -->
             <div class="pagination" *ngIf="totalPages > 1">
@@ -136,5 +188,24 @@
             </div>
         </div>
 
+    </div>
+
+    <div class="qr-scanner-overlay" *ngIf="isScanning" (click)="stopScanning()">
+        <div class="qr-scanner-modal" (click)="$event.stopPropagation()">
+            <div class="scanner-header">
+                <h3>Quét {{ scannerTitle }}</h3>
+                <div class="scanner-actions">
+                    <button type="button" class="scanner-icon-btn" *ngIf="availableCameras.length > 1"
+                        (click)="switchCamera()" aria-label="Chuyển camera">
+                        <span class="material-icons">flip_camera_android</span>
+                    </button>
+                    <button type="button" class="scanner-icon-btn" (click)="stopScanning()" aria-label="Đóng">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+            </div>
+            <div id="lck-qr-reader"></div>
+            <p class="scanner-hint">Đưa mã vào khung hình để quét</p>
+        </div>
     </div>
 </div>

@@ -1,9 +1,18 @@
 import { Injectable } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-interface SubMenu {
+export interface SidebarSubMenu {
   title: string;
   link: string;
-  factories?: string[];  
+  factories?: string[];
+}
+
+export interface SidebarMenu {
+  title: string;
+  type: string;
+  link?: string;
+  icon?: string;
+  active?: boolean;
+  submenus?: SidebarSubMenu[];
 }
 @Injectable({
   providedIn: 'root'
@@ -88,14 +97,16 @@ export class SidebarService {
     this.toggled = state;
   }
 
-  getMenuList() {
-    const factory = this.auth.getFactory()?.toLowerCase();
-    return this.allMenus.map(menu => {
-      if (!menu.submenus) return menu;
+  getMenuList(): SidebarMenu[] {
+    const factory = this.auth.getFactory()?.toLowerCase() ?? '';
+    return this.allMenus.map((menu) => {
+      if (!menu.submenus) return { ...menu };
       return {
         ...menu,
         submenus: menu.submenus.filter(
-          sm => !sm.factories || sm.factories.some(f => f.toLowerCase() === factory)
+          (sm) =>
+            !sm.factories?.length ||
+            (!!factory && sm.factories.some((f) => f.toLowerCase() === factory))
         ),
       };
     });

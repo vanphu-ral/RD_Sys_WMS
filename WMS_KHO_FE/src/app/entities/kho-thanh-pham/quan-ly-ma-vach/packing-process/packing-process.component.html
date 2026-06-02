@@ -1,0 +1,92 @@
+<div class="packing-process-container">
+  <div class="pallet-header">
+    <div class="qr-code">
+      <div class="qr-placeholder"></div>
+    </div>
+    <div class="pallet-info">
+      <div class="pallet-title">
+        <span>Pallet:</span>
+        <span class="pallet-id">{{ palletId }}</span>
+      </div>
+      <div class="pallet-stats">
+        <span class="stat-label">Tổng số lượng:</span>
+        <span class="stat-value">{{ totalCases }} cái</span>
+        <span class="divider">|</span>
+        <span class="stat-label">Thùng:</span>
+        <span class="stat-value">{{ totalBoxes }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="packing-content">
+    <div class="scan-section">
+      <div class="section-header">
+        <span class="section-icon"><mat-icon>crop_free</mat-icon></span>
+        <h3>Quét mã thùng</h3>
+      </div>
+
+      <div class="scan-input-wrapper">
+        <div class="scan-icon-small">
+          <div class="corner-small tl"></div>
+          <div class="corner-small tr"></div>
+          <div class="corner-small bl"></div>
+          <div class="corner-small br"></div>
+        </div>
+        <mat-form-field appearance="outline" class="scan-field">
+          <input 
+            matInput 
+            [(ngModel)]="scanInput"
+            (keypress)="onInputKeyPress($event)"
+            placeholder="Scan mã thùng...">
+        </mat-form-field>
+      </div>
+
+      <div class="scan-actions">
+        <button mat-raised-button class="scan-btn" (click)="onScan()">
+          Tách thùng
+        </button>
+        <button mat-icon-button class="next-btn" (click)="onNext()">
+          <mat-icon>arrow_forward_ios</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="items-section">
+      <div class="section-header">
+        <span class="section-icon"><mat-icon>view_in_ar</mat-icon></span>
+        <h3>Danh sách thùng</h3>
+      </div>
+
+      <div class="items-list">
+        <div class="item-card" *ngFor="let item of packageItems; let i = index">
+          <div class="item-info">
+            <div class="item-barcode">{{ item.barcode }}</div>
+            <div class="item-details">
+              <span class="item-label">Sản phẩm:</span>
+              <span class="item-name">{{ item.productName }}</span>
+            </div>
+            <div class="item-quantity">
+              <span class="quantity-label">Số lượng tách:</span>
+              <span class="quantity-value">{{ item.stackQuantity }} cái</span>
+            </div>
+          </div>
+          <button mat-icon-button class="remove-btn" (click)="onRemoveItem(i)">
+            <span class="close-icon">✕</span>
+          </button>
+        </div>
+
+        <div class="empty-state" *ngIf="packageItems.length === 0">
+          <p>Chưa có thùng nào được tách</p>
+        </div>
+      </div>
+
+      <button 
+        mat-raised-button 
+        class="complete-btn" 
+        (click)="onComplete()"
+        [disabled]="packageItems.length === 0">
+        Hoàn thành
+      </button>
+    </div>
+  </div>
+</div>

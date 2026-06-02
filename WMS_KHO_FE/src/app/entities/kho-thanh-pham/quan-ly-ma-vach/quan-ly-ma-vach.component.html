@@ -1,0 +1,30 @@
+<div class="ma-vach-container">
+    <div class="ma-vach-header">
+        <div class="header-title">
+            <mat-icon class="title-icon">qr_code_2</mat-icon>
+            <div>
+                <h1>Quản lý mã vạch</h1>
+                <p class="subtitle">Barcode management and pallet/box splits.</p>
+            </div>
+        </div>
+        <button mat-raised-button color="primary" class="add-btn" (click)="redirecSplit()">
+            <mat-icon>auto_awesome_motion</mat-icon>
+            Tách mã vạch
+        </button>
+    </div>
+
+    <mat-card class="ma-vach-card">
+        <div class="table-header">
+            <div class="table-title">
+                <mat-icon>calendar_month</mat-icon>
+                <span>Lịch sử hoàn thành</span>
+            </div>
+            <div class="table-actions">
+                <button mat-raised-button (click)="onRefresh()" class="refresh-btn icon-only">
+                    <mat-icon color="primary">sync</mat-icon>
+                </button>
+            </div>
+        </div>
+    </mat-card>
+
+</div>

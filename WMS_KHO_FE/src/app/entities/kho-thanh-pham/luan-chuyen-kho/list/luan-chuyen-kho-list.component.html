@@ -23,15 +23,15 @@
     </div>
     <div class="section-divider"></div>
 
-    <!-- Table -->
-    <div class="table-wrapper">
+    <!-- Desktop table -->
+    <div class="table-wrapper desktop-table-wrap">
       <table class="data-table">
         <thead>
           <tr>
             <th>STT</th>
             <th>Mã yêu cầu</th>
             <th>Từ kho</th>
-            <th>Từ kho</th>
+            <th>Đến kho</th>
             <th>Người tạo</th>
             <th>Ngày tạo</th>
             <th>Ghi chú</th>
@@ -41,9 +41,48 @@
             <th>Trạng thái</th>
             <th>Tuỳ chọn</th>
           </tr>
+          <tr class="filter-row">
+            <th></th>
+            <th>
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.maYeuCau" placeholder="Lọc..." />
+            </th>
+            <th>
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.tuKho" placeholder="Lọc..." />
+            </th>
+            <th>
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.denKho" placeholder="Lọc..." />
+            </th>
+            <th>
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.nguoiTao" placeholder="Lọc..." />
+            </th>
+            <th>
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.ngayTao" placeholder="Lọc..." />
+            </th>
+            <th>
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.ghiChu" placeholder="Lọc..." />
+            </th>
+            <th>
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.tongSoLuong" placeholder="Lọc..." />
+            </th>
+            <th>
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.soPallet" placeholder="Lọc..." />
+            </th>
+            <th>
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.soThung" placeholder="Lọc..." />
+            </th>
+            <th>
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.trangThai" placeholder="Lọc..." />
+            </th>
+            <th>
+              <button type="button" class="btn-clear-filter" *ngIf="hasActiveFilters" (click)="clearColumnFilters()"
+                title="Xóa bộ lọc">
+                <span class="material-icons">clear</span>
+              </button>
+            </th>
+          </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of dataList; let i = index">
+          <tr *ngFor="let item of filteredList; let i = index">
             <td>{{ i + 1 }}</td>
             <td class="col-bold">{{ item.maYeuCau }}</td>
             <td>{{ item.tuKho }}</td>
@@ -65,11 +104,83 @@
               </button>
             </td>
           </tr>
-          <tr *ngIf="dataList.length === 0">
-            <td colspan="12" class="empty-row">Không có dữ liệu</td>
+          <tr *ngIf="filteredList.length === 0">
+            <td colspan="12" class="empty-row">{{ emptyMessage }}</td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <!-- Mobile: bộ lọc (cùng logic với bảng desktop) -->
+    <div class="mobile-filters" *ngIf="dataList.length > 0">
+      <div class="mobile-filter-grid">
+        <input class="col-filter" type="text" [(ngModel)]="columnFilters.maYeuCau" placeholder="Mã yêu cầu" />
+        <input class="col-filter" type="text" [(ngModel)]="columnFilters.tuKho" placeholder="Từ kho" />
+        <input class="col-filter" type="text" [(ngModel)]="columnFilters.denKho" placeholder="Đến kho" />
+        <input class="col-filter" type="text" [(ngModel)]="columnFilters.nguoiTao" placeholder="Người tạo" />
+        <input class="col-filter" type="text" [(ngModel)]="columnFilters.trangThai" placeholder="Trạng thái" />
+      </div>
+      <button type="button" class="btn-clear-filter-text" *ngIf="hasActiveFilters" (click)="clearColumnFilters()">
+        Xóa bộ lọc
+      </button>
+    </div>
+
+    <!-- Mobile cards -->
+    <div class="mobile-list" *ngIf="filteredList.length > 0">
+      <article class="mobile-card" *ngFor="let item of filteredList; let i = index">
+        <div class="mobile-card-head">
+          <span class="mobile-card-stt">#{{ i + 1 }}</span>
+          <span class="mobile-card-code">{{ item.maYeuCau }}</span>
+          <div class="mobile-card-actions">
+            <button class="btn-view" (click)="onViewDetail(item)" title="Xem chi tiết" type="button">
+              <span class="material-icons">visibility</span>
+            </button>
+          </div>
+        </div>
+        <dl class="mobile-card-body">
+          <div class="mobile-row">
+            <dt>Từ kho</dt>
+            <dd class="emphasis">{{ item.tuKho }}</dd>
+          </div>
+          <div class="mobile-row">
+            <dt>Đến kho</dt>
+            <dd class="emphasis">{{ item.denKho }}</dd>
+          </div>
+          <div class="mobile-row">
+            <dt>Người tạo</dt>
+            <dd>{{ item.nguoiTao }}</dd>
+          </div>
+          <div class="mobile-row">
+            <dt>Ngày tạo</dt>
+            <dd>{{ item.ngayTao }}</dd>
+          </div>
+          <div class="mobile-row" *ngIf="item.ghiChu">
+            <dt>Ghi chú</dt>
+            <dd>{{ item.ghiChu }}</dd>
+          </div>
+          <div class="mobile-row">
+            <dt>Tổng SL SP</dt>
+            <dd>{{ item.tongSoLuong }}</dd>
+          </div>
+          <div class="mobile-row">
+            <dt>Số pallet</dt>
+            <dd>{{ item.soPallet }}</dd>
+          </div>
+          <div class="mobile-row">
+            <dt>Số thùng</dt>
+            <dd>{{ item.soThung }}</dd>
+          </div>
+          <div class="mobile-row">
+            <dt>Trạng thái</dt>
+            <dd>
+              <span class="mobile-status" [ngClass]="item.trangThai === 'Đã duyệt' ? 'status-approved' : 'status-pending'">
+                {{ item.trangThai }}
+              </span>
+            </dd>
+          </div>
+        </dl>
+      </article>
+    </div>
+    <p class="empty-row mobile-only-empty" *ngIf="filteredList.length === 0">{{ emptyMessage }}</p>
   </div>
 </div>

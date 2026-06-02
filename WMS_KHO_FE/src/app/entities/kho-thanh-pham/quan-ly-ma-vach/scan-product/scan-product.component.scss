@@ -1,0 +1,201 @@
+.scan-product-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px;
+
+  .scan-card {
+    background: white;
+    border-radius: 16px;
+    padding: 60px 80px;
+    max-width: 700px;
+    width: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+
+    .scan-icon-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 32px;
+
+      .scan-icon {
+        width: 120px;
+        height: 120px;
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .corner {
+          position: absolute;
+          width: 24px;
+          height: 24px;
+          border: 8px solid #2196f3;
+
+          &.top-left {
+            top: 20px;
+            left: 20px;
+            border-right: none;
+            border-bottom: none;
+            border-radius: 8px 0 0 0;
+          }
+
+          &.top-right {
+            top: 20px;
+            right: 20px;
+            border-left: none;
+            border-bottom: none;
+            border-radius: 0 8px 0 0;
+          }
+
+          &.bottom-left {
+            bottom: 20px;
+            left: 20px;
+            border-right: none;
+            border-top: none;
+            border-radius: 0 0 0 8px;
+          }
+
+          &.bottom-right {
+            bottom: 20px;
+            right: 20px;
+            border-left: none;
+            border-top: none;
+            border-radius: 0 0 8px 0;
+          }
+        }
+      }
+    }
+
+    .scan-title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+      color: #1a1a1a;
+    }
+
+    .scan-subtitle {
+      text-align: center;
+      font-size: 16px;
+      color: #666;
+      margin: 0 0 32px 0;
+    }
+
+    .scan-tabs {
+      margin-bottom: 32px;
+
+      ::ng-deep .mat-mdc-tab-labels {
+        justify-content: center;
+      }
+
+      ::ng-deep .mat-mdc-tab {
+        min-width: 160px;
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      ::ng-deep .mat-mdc-tab.mdc-tab--active {
+        color: #2196f3;
+      }
+
+      ::ng-deep .mat-mdc-tab-body-content {
+        display: none;
+      }
+    }
+
+    .scan-input-container {
+      position: relative;
+
+      .scan-input {
+        width: 100%;
+
+        ::ng-deep .mat-mdc-text-field-wrapper {
+          background: white;
+        }
+
+        ::ng-deep .mat-mdc-form-field-outline {
+          border: 2px dashed #ccc;
+          border-radius: 8px;
+        }
+
+        ::ng-deep input {
+          font-size: 16px;
+          color: #999;
+          padding: 16px;
+        }
+      }
+
+      .scan-actions {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-80%);
+        display: flex;
+        gap: 8px;
+
+        .action-btn {
+          width: 44px;
+          height: 44px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: none;
+          cursor: pointer;
+          font-size: 20px;
+
+          &.next-btn {
+            background: #2196f3;
+            color: white;
+
+            .arrow-icon {
+              font-size: 24px;
+              font-weight: bold;
+            }
+          }
+
+          &.camera-btn {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .scan-product-container {
+    padding: 20px 12px;
+
+    .scan-card {
+      padding: 40px 24px;
+
+      .scan-icon-wrapper .scan-icon {
+        width: 100px;
+        height: 100px;
+
+        .corner {
+          width: 20px;
+          height: 20px;
+        }
+      }
+
+      .scan-title {
+        font-size: 24px;
+      }
+
+      .scan-subtitle {
+        font-size: 14px;
+      }
+
+      .scan-tabs ::ng-deep .mat-mdc-tab {
+        min-width: 120px;
+        font-size: 14px;
+      }
+    }
+  }
+}

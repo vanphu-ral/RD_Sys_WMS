@@ -17,6 +17,9 @@ export interface Area {
   id: number;
   code: string;
   name: string;
+  company: string;
+  factory: string;
+  tenant_id: string;
   storekeeper: string;
   description: string;
   address: string;
@@ -52,6 +55,7 @@ export class AreaManagementComponent {
     'stt',
     'code',
     'name',
+    'company',
     'storekeeper',
     'description',
     'address',
@@ -61,6 +65,7 @@ export class AreaManagementComponent {
   filterValues = {
     code: '',
     name: '',
+    company: '',
     storekeeper: '',
     is_active: '',
     description: '',
@@ -186,12 +191,13 @@ export class AreaManagementComponent {
     this.totalPages = Math.ceil(this.areas.length / this.pageSize);
   }
   applyFilter(): void {
-    const { code, name, storekeeper, description, address, is_active } =
+    const { code, name, company, storekeeper, description, address, is_active } =
       this.filterValues;
 
     const isEmpty =
       !code.trim() &&
       !name.trim() &&
+      !company.trim() &&
       !storekeeper.trim() &&
       !description.trim() &&
       !address.trim() &&
@@ -206,6 +212,7 @@ export class AreaManagementComponent {
       return (
         loc.code.toLowerCase().includes(code.toLowerCase()) &&
         loc.name.toLowerCase().includes(name.toLowerCase()) &&
+        (loc.company || '').toLowerCase().includes(company.toLowerCase()) &&
         loc.storekeeper.toLowerCase().includes(storekeeper.toLowerCase()) &&
         loc.description.toLowerCase().includes(description.toLowerCase()) &&
         loc.address.toLowerCase().includes(address.toLowerCase()) &&
@@ -223,6 +230,7 @@ export class AreaManagementComponent {
     this.filterValues = {
       code: '',
       name: '',
+      company: '',
       storekeeper: '',
       is_active: '',
       description: '',

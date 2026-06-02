@@ -4,13 +4,43 @@ import { Observable, map } from 'rxjs';
 import { Area } from '../area-management.component';
 import { environment } from '../../../../environments/environment';
 
+export interface TenantOption {
+  company_name: string;
+  factory: string;
+  id: string;
+}
+
+export interface AreaPayload {
+  code: string;
+  name: string;
+  company: string;
+  factory: string;
+  tenant_id: string;
+  thu_kho: string;
+  description: string;
+  address: string;
+  is_active: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class AreaService {
-  private apiUrl = `${environment.apiUrl}/areas`;   
+  private apiUrl = `${environment.apiUrl}/areas`;
+  // private apiUrl = `http://192.168.10.99:9030/api/areas`;
+  private tenantUrl = `${environment.apiUrl}/auth/tenant`;
+  // private tenantUrl = `http://192.168.10.99:9030/api/auth/tenant`;
 
   constructor(private http: HttpClient) {}
+
+  getTenants(): Observable<TenantOption[]> {
+    return this.http.get<TenantOption[] | { data: TenantOption[] } | TenantOption>(this.tenantUrl).pipe(
+      map((res) => {
+        const raw = Array.isArray(res) ? res : (res as { data?: TenantOption[] })?.data ?? [res as TenantOption];
+        return (raw || []).filter((item) => item?.id && item?.company_name);
+      })
+    );
+  }
 
   // Lấy danh sách area
   getAreas(): Observable<{
@@ -23,6 +53,9 @@ export class AreaService {
           id: item.id,
           code: item.code,
           name: item.name,
+          company: item.company ?? '',
+          factory: item.factory ?? '',
+          tenant_id: item.tenant_id ?? '',
           storekeeper: item.thu_kho,
           description: item.description,
           address: item.address,
@@ -41,22 +74,12 @@ export class AreaService {
   }
 
   // Thêm mới area
-  createArea(area: any): Observable<any> {
+  createArea(area: AreaPayload): Observable<any> {
     return this.http.post(this.apiUrl, [area]);
   }
 
   // Cập nhật area
-  updateArea(
-    id: number,
-    area: {
-      code: string;
-      name: string;
-      thu_kho: string;
-      description: string;
-      address: string;
-      is_active: number;
-    }
-  ): Observable<any> {
+  updateArea(id: number, area: AreaPayload): Observable<any> {
     const url = `${this.apiUrl}/${id}`;
     return this.http.patch(url, area);
   }

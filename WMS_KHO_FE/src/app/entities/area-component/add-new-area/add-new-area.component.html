@@ -61,6 +61,96 @@
                     </mat-form-field>
                 </div>
 
+                <!-- Phan quyen -->
+                 <!-- Row: Công ty -->
+                <div class="form-row">
+                    <mat-form-field appearance="outline" class="form-field full-width">
+                        <mat-label>Công ty</mat-label>
+                        <mat-select name="tenant_id" [(ngModel)]="selectedTenantId" required #tenantSelect="ngModel">
+                        <mat-option *ngFor="let t of tenants" [value]="t.id">
+                            {{ t.company_name }}<span *ngIf="t.factory && t.factory !== t.company_name"> · {{ t.factory }}</span>
+                        </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="tenantSelect.invalid && tenantSelect.touched">Vui lòng chọn công ty</mat-error>
+                    </mat-form-field>
+                </div>
+
+                    <!-- Row: Phân quyền -->
+                    <!-- <div class="form-row permission-section">
+                        <div class="permission-header">
+                            <mat-icon class="perm-icon">security</mat-icon>
+                            <span class="perm-title">Phân quyền kho</span>
+
+                            <button mat-stroked-button color="accent" type="button"
+                            [matMenuTriggerFor]="permMenu"
+                            [disabled]="availableToAdd.length === 0"
+                            class="add-perm-btn">
+                            <mat-icon>add</mat-icon> Thêm quyền
+                            </button>
+                            <mat-menu #permMenu="matMenu">
+                            <button mat-menu-item *ngFor="let p of availableToAdd" type="button"
+                                (click)="addPermissionGroup(p.type)">
+                                <mat-icon>{{ p.icon }}</mat-icon>
+                                <span>Quyền {{ p.label }}</span>
+                            </button>
+                            </mat-menu>
+                        </div> -->
+
+                    <!-- Quyền XEM — mặc định, không xóa được nhóm -->
+                    <!-- <div class="perm-group">
+                        <div class="perm-group-label">
+                        <mat-icon>visibility</mat-icon>
+                        <span>Quyền Xem <span class="default-badge">Mặc định</span></span>
+                        </div>
+                        <div class="perm-user-row">
+                        <mat-chip-set class="user-chips">
+                            <mat-chip *ngFor="let u of viewUsers" (removed)="removeUserFromView(u.id)">
+                            {{ u.name }}
+                            <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                            </mat-chip>
+                        </mat-chip-set>
+                        <mat-form-field appearance="outline" class="perm-select">
+                            <mat-label>Chọn người dùng</mat-label>
+                            <mat-select [(ngModel)]="userSelections['view']" name="view_user_select"
+                            (ngModelChange)="addUserToView()">
+                            <mat-option *ngFor="let u of users" [value]="u.id"
+                                [disabled]="isUserInView(u.id)">
+                                {{ u.name }}
+                            </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        </div>
+                    </div>
+                    <div class="perm-group" *ngFor="let group of permissionGroups">
+                        <div class="perm-group-label">
+                        <mat-icon>{{ group.icon }}</mat-icon>
+                        <span>Quyền {{ group.label }}</span>
+                        <button mat-icon-button color="warn" type="button" class="remove-group-btn"
+                            (click)="removePermissionGroup(group.type)" matTooltip="Xóa nhóm quyền này">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                        </div>
+                        <div class="perm-user-row">
+                        <mat-chip-set class="user-chips">
+                            <mat-chip *ngFor="let u of group.users" (removed)="removeUserFromGroup(group, u.id)">
+                            {{ u.name }}
+                            <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                            </mat-chip>
+                        </mat-chip-set>
+                        <mat-form-field appearance="outline" class="perm-select">
+                            <mat-label>Chọn người dùng</mat-label>
+                            <mat-select [(ngModel)]="userSelections[group.type]" [name]="group.type + '_user_select'"
+                            (ngModelChange)="addUserToGroup(group)">
+                            <mat-option *ngFor="let u of users" [value]="u.id"
+                                [disabled]="isUserInGroup(group, u.id)">
+                                {{ u.name }}
+                            </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        </div>
+                    </div>
+                </div> -->
+
                 <!-- Row 3 -->
                 <div class="form-row">
                     <mat-form-field appearance="outline" class="form-field full-width">

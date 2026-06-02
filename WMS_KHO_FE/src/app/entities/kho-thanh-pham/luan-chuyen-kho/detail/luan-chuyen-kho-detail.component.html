@@ -1,57 +1,54 @@
 <div class="page-wrapper">
-    <!-- Header -->
     <div class="page-header">
         <div class="page-title-group">
             <button class="btn-back" (click)="goBack()">
                 <span class="material-icons">chevron_left</span>
             </button>
-            <h1 class="page-title">Tạo mới chuyển kho</h1>
+            <h1 class="page-title">Chi tiết đơn luân chuyển kho</h1>
         </div>
-        <button class="btn-submit" (click)="confirmAndSubmit()">
-            <span class="material-icons">send</span>
-            Gửi
+        <button class="btn-submit" (click)="confirmAndUpdate()">
+            <span class="material-icons">save</span>
+            Cập nhật đơn
         </button>
     </div>
 
-    <!-- Content -->
-    <div class="page-content page-content--stack">
-
-        <!-- Section: Thông tin -->
-        <div class="card">
-            <div class="form-grid">
-                <div class="form-field">
-                    <label class="field-label">Nhà máy nhận</label>
-                    <input class="field-input" type="text" [(ngModel)]="form.khoGui"
-                        placeholder="Tìm và chọn mã kho" list="warehouse-options" />
-                </div>
-                <div class="form-field">
-                    <label class="field-label">Kho nhận</label>
-                    <input class="field-input" type="text" [(ngModel)]="form.khoNhan"
-                        placeholder="Tìm và chọn mã kho" list="warehouse-options" />
-                </div>
-                <datalist id="warehouse-options">
-                    <option *ngFor="let location of locations" [value]="location.code">
-                        {{ location.code }} - {{ location.id }}
-                    </option>
-                </datalist>
-                <div class="form-field">
-                    <label class="field-label">Người tạo</label>
-                    <input class="field-input" type="text" [(ngModel)]="form.nguoiTao" readonly />
-                </div>
-                <div class="form-field">
-                    <label class="field-label">Ngày tạo</label>
-                    <input class="field-input" type="date" [(ngModel)]="form.ngayTao" />
-                    <small>Giờ tạo tự động: {{ currentTime }}</small>
-                </div>
-            </div>
-            <div class="form-field full-width">
-                <label class="field-label">Ghi chú</label>
-                <textarea class="field-textarea" [(ngModel)]="form.ghiChu" rows="2"
-                    placeholder=""></textarea>
+    <div class="info-banner">
+        <div class="info-col">
+            <span class="info-label">Nhà máy xuất</span>
+            <div class="info-value-row">
+                <span class="info-value">{{ orderInfo.khoXuat }}</span>
+                <span class="material-icons arrow-icon">double_arrow</span>
             </div>
         </div>
 
-        <!-- Section: Mode scan -->
+        <div class="info-col">
+            <span class="info-label">Kho nhập</span>
+            <span class="info-value">{{ orderInfo.khoNhap }}</span>
+        </div>
+
+        <div class="info-divider"></div>
+
+        <div class="info-col">
+            <span class="info-label">Người tạo</span>
+            <span class="info-value">{{ orderInfo.nguoiTao }}</span>
+        </div>
+
+        <div class="info-divider"></div>
+
+        <div class="info-col">
+            <span class="info-label">Ngày tạo</span>
+            <span class="info-value">{{ orderInfo.ngayTao }}</span>
+        </div>
+
+        <div class="info-divider"></div>
+
+        <div class="info-col">
+            <span class="info-label">Ghi chú</span>
+            <span class="info-value info-note">{{ orderInfo.ghiChu }}</span>
+        </div>
+    </div>
+
+    <div class="page-content page-content--stack">
         <div class="card">
             <div class="section-header">
                 <span class="material-icons section-icon">grid_view</span>
@@ -82,7 +79,6 @@
             <small *ngIf="activeScanRequests > 0">Đang xử lý scan... ({{ activeScanRequests }})</small>
         </div>
 
-        <!-- Section: Danh sách đã scan -->
         <div class="card">
             <div class="section-header">
                 <span class="material-icons section-icon">grid_view</span>
@@ -106,7 +102,7 @@
                     </thead>
                     <tbody>
                         <tr *ngFor="let item of pagedList; let i = index">
-                            <td>{{ i + 1 }}</td>
+                            <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
                             <td class="col-bold">{{ item.maHangHoa }}</td>
                             <td class="col-bold">{{ item.tenHangHoa }}</td>
                             <td>{{ item.serialPallet }}</td>
@@ -158,7 +154,6 @@
             </div>
             <p class="empty-row mobile-list-empty" *ngIf="scannedList.length === 0">Chưa có dữ liệu scan</p>
 
-            <!-- Pagination -->
             <div class="pagination" *ngIf="totalPages > 1">
                 <button class="page-btn nav-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
                     <span class="material-icons">chevron_left</span> Previous
@@ -176,7 +171,6 @@
                 </button>
             </div>
         </div>
-
     </div>
 
     <div class="qr-scanner-overlay" *ngIf="isScanning" (click)="stopScanning()">
