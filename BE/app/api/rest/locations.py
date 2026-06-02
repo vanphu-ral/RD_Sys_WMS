@@ -33,9 +33,9 @@ async def get_locations(
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    # print(f"DEBUG: current_user = {current_user}")
-    # tenant_id = current_user.get("factory") 
-    tenant_id = "VCOIL Gia Công"
+    print(f"DEBUG: current_user = {current_user}")
+    tenant_id = current_user.get("factory") 
+    # tenant_id = "VCOIL Gia Công"
     print(f"DEBUG: tenant_id = {tenant_id}")
     return await LocationService.get_locations_paginated(
         db,
