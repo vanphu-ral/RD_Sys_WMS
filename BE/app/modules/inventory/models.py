@@ -111,6 +111,7 @@ class WarehouseImportRequirement(Base):
     updated_date = Column(DateTime, default=func.now())
     deleted_at = Column(DateTime, nullable=True)
     deleted_by = Column(String(10), nullable=True)
+    tenant_id = Column(String(50), nullable=True)
 
 class ImportPalletInfo(Base):
     __tablename__ = "import_pallet_info"
@@ -246,6 +247,7 @@ class OutboundShipmentRequestOnOrder(Base):
     updated_date = Column(DateTime, default=func.now())
     deleted_at = Column(DateTime, nullable=True)
     deleted_by = Column(String(10), nullable=True)
+    tenant_id = Column(String(50), nullable=True)
 
 
 class ProductsInOSR(Base):
