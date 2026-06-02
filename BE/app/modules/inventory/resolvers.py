@@ -1,9 +1,11 @@
 
+from fastapi.params import Depends
 import strawberry
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.types import Info
 
+from app.core.security import get_current_user
 from app.modules.inventory.schemas import (
     InventoryItem,
     InventoryItemCreate,
@@ -69,6 +71,8 @@ class InventoryQuery:
         from app.core.database import AsyncSessionLocal
         from app.modules.inventory.dashboard_resolver import PaginationMeta
 
+        tenant_id = info.context.get("user", {}).get("factory")
+
         async with AsyncSessionLocal() as db:
             result = await InventoryService.get_inventories_paginated(
                 db=db,
@@ -80,7 +84,8 @@ class InventoryQuery:
                 po=po,
                 lot=lot,
                 vendor=vendor,
-                location_id=location_id
+                location_id=location_id,
+                tenant_id=tenant_id
             )
 
             data = []

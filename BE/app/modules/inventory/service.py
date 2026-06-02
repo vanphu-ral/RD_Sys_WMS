@@ -418,7 +418,8 @@ class InventoryService:
         vendor: Optional[str] = None,
         location_id: Optional[int] = None,
         available_quantity_gt: Optional[int] = None,
-        available_quantity_lt: Optional[int] = None
+        available_quantity_lt: Optional[int] = None,
+        tenant_id: Optional[str] = None
     ) -> dict:
         """Get inventories with pagination and filtering"""
         from sqlalchemy import and_, or_, func
@@ -445,6 +446,8 @@ class InventoryService:
             filters.append(Inventory.available_quantity > available_quantity_gt)
         if available_quantity_lt is not None:
             filters.append(Inventory.available_quantity < available_quantity_lt)
+        if tenant_id:
+            filters.append(Inventory.tenant_id == tenant_id)
 
         if filters:
             query = query.where(and_(*filters))

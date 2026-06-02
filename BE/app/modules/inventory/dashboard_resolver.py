@@ -1,6 +1,6 @@
 
 import strawberry
-from typing import List, Optional
+from typing import Dict, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.types import Info
 

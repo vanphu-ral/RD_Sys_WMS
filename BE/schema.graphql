@@ -78,6 +78,7 @@ type Inventory {
   parent_location: Location # Quan hệ n-1
   last_location: Location # Quan hệ n-1
   container_inventories: [ContainerInventory] # Quan hệ 1-n
+  tenant_id: String
 }
 
 ## Nhập kho (Warehouse Import) ##

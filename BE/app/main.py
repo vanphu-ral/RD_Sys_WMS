@@ -10,7 +10,7 @@ from strawberry.fastapi import GraphQLRouter
 from app.core.cache import close_cache, init_cache
 from app.core.config import settings
 from app.core.database import create_tables
-from app.api.graphql import schema
+from app.api.graphql import graphql_app
 from app.api.rest.auth import router as auth_router
 from app.api.rest.misc import router as misc_router
 from app.api.rest.areas import router as areas_router
@@ -81,7 +81,7 @@ async def startup_event():
 async def shutdown_event():
     await close_cache()
 
-graphql_app = GraphQLRouter(schema)
+
 app.include_router(graphql_app, prefix="/graphql")
 
 # @app.on_event("startup")
