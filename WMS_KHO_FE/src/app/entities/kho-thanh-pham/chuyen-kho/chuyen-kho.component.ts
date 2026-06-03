@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { ChuyenKhoService } from './service/chuyen-kho.service.component';
+import { PermissionService } from '../../../services/permission.service';
 export interface InternalTransferRequest {
   id: number;
   ma_yc_cknb: string;
@@ -84,12 +85,15 @@ export class ChuyenKhoComponent {
   originalData: any;
   //mobile
   showMobileFilters: boolean = false;
+  canModify = true;
   constructor(
     private router: Router,
     private chuyenKhoService: ChuyenKhoService,
     private cdr: ChangeDetectorRef,
+    private permissionService: PermissionService
   ) { }
   ngOnInit(): void {
+    this.canModify = this.permissionService.canPerformKhoThanhPhamActions();
     this.loadDataChuyenKho();
     this.loadAreaData();
   }

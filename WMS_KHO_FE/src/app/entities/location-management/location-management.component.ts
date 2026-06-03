@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Location } from './models/location.model';
 import { AreaService } from '../area-component/service/area-service.component';
 import { Area } from '../area-component/area-management.component';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'app-location-component',
@@ -39,6 +40,7 @@ import { Area } from '../area-component/area-management.component';
 })
 export class LocationManagementComponent implements OnInit {
   showMobileFilters: boolean = false;
+  canModify = true;
   //filter type
   selectedTypeFilter: string = '';
   originalData: any[] = [];
@@ -78,9 +80,15 @@ export class LocationManagementComponent implements OnInit {
     private locationService: LocationService,
     private snackBar: MatSnackBar,
     private router: Router,
-    private areaService: AreaService
-  ) { }
+    private areaService: AreaService,
+    private permissionService: PermissionService
+  ) {}
+
   ngOnInit(): void {
+    this.canModify = this.permissionService.canModifyAreaLocation();
+    if (!this.canModify) {
+      this.displayedColumns = this.displayedColumns.filter((c) => c !== 'actions');
+    }
     this.loadLocations();
     this.loadAreas();
   }

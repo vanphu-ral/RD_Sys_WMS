@@ -8,7 +8,7 @@
         <span class="page-subtitle">{{ pageSubtitle }}</span>
       </div>
     </div>
-    <button class="btn-add" *ngIf="isCreateMode" (click)="onAddNew()">
+    <button class="btn-add" *ngIf="isCreateMode && canModify" (click)="onAddNew()">
       <span class="material-icons">add_circle_outline</span>
       Thêm mới yêu cầu
     </button>

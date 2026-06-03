@@ -15,7 +15,7 @@
     <div class="cards-container">
 
       <!-- Card 1: Tạo đơn chuyển kho -->
-      <div class="action-card" (click)="navigateToCreate()">
+      <div class="action-card" *ngIf="canModify" (click)="navigateToCreate()">
         <div class="card-icon-wrapper">
           <span class="material-icons card-icon">add_circle_outline</span>
         </div>
@@ -30,7 +30,7 @@
       </div>
 
       <!-- Card 2: Phê duyệt đơn chuyển -->
-      <div class="action-card" (click)="navigateToApprove()">
+      <div class="action-card" *ngIf="canModify" (click)="navigateToApprove()">
         <div class="card-icon-wrapper">
           <span class="material-icons card-icon">check</span>
         </div>
@@ -38,6 +38,21 @@
         <p class="card-description">
           Kiểm soát và xác nhận các lệnh điều<br />
           chuyển vật tư trong hệ thống.
+        </p>
+        <div class="card-arrow">
+          <span class="material-icons">chevron_right</span>
+        </div>
+      </div>
+
+      <!-- Chỉ xem: vào danh sách -->
+      <div class="action-card" *ngIf="!canModify" (click)="navigateToViewList()">
+        <div class="card-icon-wrapper">
+          <span class="material-icons card-icon">list</span>
+        </div>
+        <h2 class="card-title">Xem danh sách đơn</h2>
+        <p class="card-description">
+          Tra cứu danh sách đơn luân chuyển kho<br />
+          (chế độ chỉ xem).
         </p>
         <div class="card-arrow">
           <span class="material-icons">chevron_right</span>

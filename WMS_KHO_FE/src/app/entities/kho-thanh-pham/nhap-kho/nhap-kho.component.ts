@@ -3,6 +3,7 @@ import { KhoThanhPhamModule } from '../kho-thanh-pham.module';
 import { Router } from '@angular/router';
 import { NhapKhoService } from './service/nhap-kho.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { PermissionService } from '../../../services/permission.service';
 import { BarcodeFormat } from '@zxing/library';
 import { CameraDevice, Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 export interface NhapKhoItem {
@@ -36,6 +37,7 @@ export interface NhapKhoItem {
 })
 export class NhapKhoComponent {
   showMobileFilters: boolean = false;
+  canModify = true;
   displayedColumns: string[] = [
     // 'id',
     'stt',
@@ -121,9 +123,11 @@ export class NhapKhoComponent {
 
   constructor(private router: Router, private nhapKhoService: NhapKhoService,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private permissionService: PermissionService
   ) { }
   ngOnInit(): void {
+    this.canModify = this.permissionService.canPerformKhoThanhPhamActions();
     this.checkIfMobile();
     this.loadDanhSachNhapKho();
   }

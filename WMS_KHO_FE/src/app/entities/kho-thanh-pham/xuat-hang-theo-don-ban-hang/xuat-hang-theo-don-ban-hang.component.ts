@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component } from '@angular/core';
 import { KhoThanhPhamModule } from '../kho-thanh-pham.module';
 import { Router } from '@angular/router';
 import { XuatHangTheoDonBanService } from './service/xuat-hang-theo-don-ban.service.component';
+import { PermissionService } from '../../../services/permission.service';
 export interface SalesExportRequest {
   id: number;
   ma_yc_xk: string;
@@ -89,12 +90,15 @@ export class XuatHangTheoDonBanHangComponent {
   //mobile
   pagedTransfers: SalesExportRequest[] = [];
   showMobileFilters: boolean = false;
+  canModify = true;
   constructor(
     private router: Router,
     private xuatDonBanService: XuatHangTheoDonBanService,
     private cdr: ChangeDetectorRef,
+    private permissionService: PermissionService
   ) { }
   ngOnInit(): void {
+    this.canModify = this.permissionService.canPerformKhoThanhPhamActions();
     this.xuatDonBanService.getAreas().subscribe({
       next: (res) => {
         this.areas = res.data;

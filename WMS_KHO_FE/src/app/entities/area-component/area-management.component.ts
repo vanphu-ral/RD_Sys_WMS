@@ -13,6 +13,7 @@ import { Router, RouterLinkWithHref } from '@angular/router';
 import { AreaService } from './service/area-service.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UrlEncoderService } from '../encoded-redirect/services/url-encoder.service';
+import { PermissionService } from '../../services/permission.service';
 export interface Area {
   id: number;
   code: string;
@@ -44,8 +45,9 @@ export interface Area {
   templateUrl: './area-management.component.html',
   styleUrl: './area-management.component.scss',
 })
-export class AreaManagementComponent {
+export class AreaManagementComponent implements OnInit {
   showMobileFilters: boolean = false;
+  canModify = true;
 
   //total item
   totalItems: number = 0;
@@ -94,9 +96,15 @@ export class AreaManagementComponent {
     private areaService: AreaService,
     private snackBar: MatSnackBar,
     private encoder: UrlEncoderService,
-    private router: Router
+    private router: Router,
+    private permissionService: PermissionService
   ) {}
+
   ngOnInit(): void {
+    this.canModify = this.permissionService.canModifyAreaLocation();
+    if (!this.canModify) {
+      this.displayedColumns = this.displayedColumns.filter((c) => c !== 'actions');
+    }
     this.loadData();
   }
   loadData(): void {

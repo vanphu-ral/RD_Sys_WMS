@@ -7,7 +7,7 @@
                 <p class="subtitle">Internal warehouse transfer management</p>
             </div>
         </div>
-        <button mat-raised-button color="primary" class="add-btn" (click)="onAddNew()">
+        <button mat-raised-button color="primary" class="add-btn" *ngIf="canModify" (click)="onAddNew()">
             <mat-icon>add</mat-icon>
             Thêm mới yêu cầu
         </button>

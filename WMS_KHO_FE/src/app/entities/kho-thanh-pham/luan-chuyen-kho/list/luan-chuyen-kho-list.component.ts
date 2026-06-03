@@ -8,6 +8,7 @@ import {
   WarehouseTransferRequirement,
 } from '../service/luan-chuyen-kho.service';
 import { forkJoin } from 'rxjs';
+import { PermissionService } from '../../../../services/permission.service';
 
 export interface ChuyenKhoItem {
     id: number;
@@ -34,6 +35,7 @@ export class LuanChuyenKhoListComponent implements OnInit {
     /** true  = vào từ "Tạo đơn chuyển kho"
      *  false = vào từ "Phê duyệt đơn chuyển" */
     isCreateMode = true;
+    canModify = true;
 
     // ── Dynamic labels ──────────────────────────────────────────────────────────
     get pageTitle(): string {
@@ -88,10 +90,12 @@ export class LuanChuyenKhoListComponent implements OnInit {
     constructor(
       private route: ActivatedRoute,
       private router: Router,
-      private luanChuyenKhoService: LuanChuyenKhoService
+      private luanChuyenKhoService: LuanChuyenKhoService,
+      private permissionService: PermissionService
     ) { }
 
     ngOnInit(): void {
+        this.canModify = this.permissionService.canPerformKhoThanhPhamActions();
         // Đọc query param ?mode=approve để phân biệt luồng
         // Mặc định là create nếu không có param
         const mode = this.route.snapshot.queryParamMap.get('mode');

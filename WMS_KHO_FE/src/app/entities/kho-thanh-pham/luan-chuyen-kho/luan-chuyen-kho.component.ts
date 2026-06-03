@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { PermissionService } from '../../../services/permission.service';
 
 @Component({
     selector: 'app-luan-chuyen-kho',
@@ -9,7 +10,14 @@ import { CommonModule } from '@angular/common';
     styleUrls: ['./luan-chuyen-kho.component.scss'],
 })
 export class LuanChuyenKhoComponent {
-    constructor(private router: Router) { }
+    canModify = true;
+
+    constructor(
+        private router: Router,
+        private permissionService: PermissionService
+    ) {
+        this.canModify = this.permissionService.canPerformKhoThanhPhamActions();
+    }
 
     navigateToCreate(): void {
         this.router.navigate(['kho-thanh-pham/luan-chuyen-kho/list']);
@@ -19,5 +27,9 @@ export class LuanChuyenKhoComponent {
         this.router.navigate(['kho-thanh-pham/luan-chuyen-kho/list'], {
             queryParams: { mode: 'approve' }
         });
+    }
+
+    navigateToViewList(): void {
+        this.router.navigate(['kho-thanh-pham/luan-chuyen-kho/list']);
     }
 }

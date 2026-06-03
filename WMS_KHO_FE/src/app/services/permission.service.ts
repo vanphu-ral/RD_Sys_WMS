@@ -47,4 +47,28 @@ export class PermissionService {
   getRoles(): string[] {
     return this.getUserRoles();
   }
+
+  /** Quản lý kho / vị trí: chỉ WMS_RD_VIEW → không được tạo/sửa/vô hiệu hóa */
+  canModifyAreaLocation(): boolean {
+    const roles = this.getUserRoles();
+    if (roles.includes('WMS_RD_ADMIN') || roles.includes('WMS_RD_AREALOC')) {
+      return true;
+    }
+    return !roles.includes('WMS_RD_VIEW');
+  }
+
+  /** Kho thành phẩm: chỉ WMS_RD_VIEW → ẩn nút tạo đơn / phê duyệt trên list */
+  canPerformKhoThanhPhamActions(): boolean {
+    const roles = this.getUserRoles();
+    const writeRoles = [
+      'WMS_RD_ADMIN',
+      'WMS_RD_APPROVEIO',
+      'WMS_RD_STOCKOPS',
+      'WMS_RD_PUTAWAY',
+    ];
+    if (writeRoles.some((r) => roles.includes(r))) {
+      return true;
+    }
+    return !roles.includes('WMS_RD_VIEW');
+  }
 }

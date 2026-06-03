@@ -8,7 +8,7 @@
                 <p class="subtitle">Locations Management</p>
             </div>
         </div>
-        <button mat-raised-button color="primary" class="add-btn" [routerLink]="'/location/add-new'">
+        <button mat-raised-button color="primary" class="add-btn" *ngIf="canModify" [routerLink]="'/location/add-new'">
             <mat-icon>add</mat-icon>
             Thêm mới vị trí
         </button>
@@ -145,30 +145,20 @@
                 </ng-container>
 
                 <!-- Actions Column -->
-                <ng-container matColumnDef="actions">
+                <ng-container matColumnDef="actions" *ngIf="canModify">
                     <th mat-header-cell *matHeaderCellDef class="text-center">Tuỳ chọn</th>
                     <td mat-cell *matCellDef="let location" class="text-center">
-                        <!-- Nút chỉnh sửa -->
                         <button mat-mini-fab class="action-btn edit-btn" (click)="onEdit(location)"
                             matTooltip="Chỉnh sửa Location">
                             <mat-icon>edit</mat-icon>
                         </button>
-
-                        <!-- Nút kích hoạt / vô hiệu hóa -->
                         <button mat-mini-fab class="action-btn"
                             [ngClass]="location.is_active ? 'delete-btn' : 'approve-btn'"
                             (click)="onChangeStatus(location)"
                             [matTooltip]="location.is_active ? 'Vô hiệu hóa Location' : 'Kích hoạt Location'">
                             <mat-icon>{{ location.is_active ? 'block' : 'check_circle' }}</mat-icon>
                         </button>
-
-                        <!-- Nút xóa -->
-                        <!-- <button mat-mini-fab class="action-btn delete-btn" (click)="onDelete(location)"
-                            matTooltip="Xóa Location">
-                            <mat-icon>delete</mat-icon>
-                        </button> -->
                     </td>
-
                 </ng-container>
 
                 <!-- Table Rows -->
@@ -293,7 +283,7 @@
                 </div>
 
                 <!-- Card Actions -->
-                <div class="card-actions">
+                <div class="card-actions" *ngIf="canModify">
                     <button mat-raised-button class="edit-btn" (click)="onEdit(location)">
                         <mat-icon>edit</mat-icon>
                         Chỉnh sửa
@@ -303,10 +293,6 @@
                         [matTooltip]="location.is_active ? 'Vô hiệu hóa Location' : 'Kích hoạt Location'">
                         <mat-icon>{{ location.is_active ? 'block' : 'check_circle' }}</mat-icon>
                     </button>
-                    <!-- <button mat-stroked-button class="delete-btn" (click)="onDelete(location)">
-                        <mat-icon>delete</mat-icon>
-                        Xóa
-                    </button> -->
                 </div>
             </div>
         </div>
