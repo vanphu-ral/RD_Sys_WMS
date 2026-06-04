@@ -21,27 +21,39 @@
             <div class="form-grid">
                 <div class="form-field">
                     <label class="field-label">Nhà máy nhận</label>
-                    <input class="field-input" type="text" [(ngModel)]="form.khoGui"
-                        placeholder="Tìm và chọn mã kho" list="warehouse-options" />
+                    <input class="field-input" type="text" [(ngModel)]="nhaMayNhanInput"
+                        (input)="onTenantInput($event)" [matAutocomplete]="tenantAuto"
+                        placeholder="Tìm và chọn nhà máy" />
+                    <mat-autocomplete #tenantAuto="matAutocomplete"
+                        (optionSelected)="onTenantSelected($event.option.value)">
+                        <mat-option *ngFor="let tenant of filteredTenants" [value]="tenant">
+                            {{ getTenantLabel(tenant) }}
+                        </mat-option>
+                    </mat-autocomplete>
+                    <small class="field-meta">&nbsp;</small>
                 </div>
                 <div class="form-field">
                     <label class="field-label">Kho nhận</label>
-                    <input class="field-input" type="text" [(ngModel)]="form.khoNhan"
-                        placeholder="Tìm và chọn mã kho" list="warehouse-options" />
+                    <input class="field-input" type="text" [(ngModel)]="khoNhanInput"
+                        (input)="onKhoNhanInput($event)" [matAutocomplete]="khoAuto"
+                        [disabled]="!selectedTenant" placeholder="Chọn nhà máy trước" />
+                    <mat-autocomplete #khoAuto="matAutocomplete"
+                        (optionSelected)="onKhoNhanSelected($event.option.value)">
+                        <mat-option *ngFor="let warehouse of filteredWarehouses" [value]="warehouse">
+                            {{ warehouse.label }}
+                        </mat-option>
+                    </mat-autocomplete>
+                    <small class="field-meta">&nbsp;</small>
                 </div>
-                <datalist id="warehouse-options">
-                    <option *ngFor="let location of locations" [value]="location.code">
-                        {{ location.code }} - {{ location.id }}
-                    </option>
-                </datalist>
                 <div class="form-field">
                     <label class="field-label">Người tạo</label>
                     <input class="field-input" type="text" [(ngModel)]="form.nguoiTao" readonly />
+                    <small class="field-meta">&nbsp;</small>
                 </div>
                 <div class="form-field">
                     <label class="field-label">Ngày tạo</label>
                     <input class="field-input" type="date" [(ngModel)]="form.ngayTao" />
-                    <small>Giờ tạo tự động: {{ currentTime }}</small>
+                    <small class="field-meta">Giờ tạo tự động: {{ currentTime }}</small>
                 </div>
             </div>
             <div class="form-field full-width">

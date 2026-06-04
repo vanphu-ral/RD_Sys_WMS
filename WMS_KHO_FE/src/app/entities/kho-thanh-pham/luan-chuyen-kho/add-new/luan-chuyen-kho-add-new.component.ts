@@ -5,8 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin, Observable, of } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { AuthService } from '../../../../services/auth.service';
 import { ConfirmDialogComponent } from '../../chuyen-kho/dialog/confirm-dialog.component';
+import { AreaService, TenantOption } from '../../../area-component/service/area-service.component';
+import { Area } from '../../../area-component/area-management.component';
 import {
   LuanChuyenKhoService,
   MinimalLocation,
@@ -22,6 +25,7 @@ export interface ScannedItem {
   apiScanId?: number;
   scanType: 'pallet' | 'thung';
   refId?: number;
+  locationId?: number;
   maHangHoa: string;
   tenHangHoa: string;
   serialPallet: string;
@@ -32,17 +36,24 @@ export interface ScannedItem {
 }
 
 export interface TransferForm {
-  khoGui: string;
-  khoNhan: string;
   nguoiTao: string;
   ngayTao: string;
   ghiChu: string;
 }
 
+export interface WarehouseOption {
+  id: number;
+  label: string;
+}
+
 @Component({
     selector: 'app-luan-chuyen-kho-add-new',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatAutocompleteModule,
+    ],
     templateUrl: './luan-chuyen-kho-add-new.component.html',
     styleUrls: ['./luan-chuyen-kho-add-new.component.scss'],
 })
@@ -54,12 +65,28 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
   createdRequirementId?: number;
   requirementCode?: string;
   locations: MinimalLocation[] = [];
+  tenants: TenantOption[] = [];
+  filteredTenants: TenantOption[] = [];
+  nhaMayNhanInput = '';
+  selectedTenant: TenantOption | null = null;
+
+  allAreas: Area[] = [];
+  warehouseOptions: WarehouseOption[] = [];
+  filteredWarehouses: WarehouseOption[] = [];
+  khoNhanInput = '';
+  selectedKhoNhanId: number | null = null;
+
+  /** Tạm hardcode map nhà máy → id kho (chờ API filter theo tenant) */
+  private readonly warehouseLabelFallback: Record<number, string> = {
+    2: 'RD01 - Kho thành phẩm XK',
+    3: 'RD02 - Kho sản phẩm thường',
+    6: 'VC - Kho Vcoil',
+  };
+
   currentTime = '';
   activeScanRequests = 0;
 
   form: TransferForm = {
-    khoGui: '',
-    khoNhan: '',
     nguoiTao: '',
     ngayTao: '',
     ghiChu: '',
@@ -119,6 +146,7 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private luanChuyenKhoService: LuanChuyenKhoService,
+    private areaService: AreaService,
     private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
@@ -130,6 +158,8 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
     this.form.ngayTao = this.getTodayForInput();
     this.currentTime = this.getCurrentTime();
     this.loadMinimalLocations();
+    this.loadTenants();
+    this.loadAreas();
   }
 
   ngOnDestroy(): void {
@@ -200,18 +230,126 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
     });
   }
 
-  private mapLocationInputToId(value: string): string {
-    const raw = (value || '').trim();
-    if (!raw) {
-      return '';
+  private loadTenants(): void {
+    this.areaService.getTenants().subscribe({
+      next: (tenants) => {
+        this.tenants = tenants || [];
+        this.filteredTenants = [...this.tenants];
+      },
+      error: (err) => {
+        console.error('[LuanChuyenKhoAddNew] Lỗi lấy danh sách nhà máy:', err);
+        this.tenants = [];
+        this.filteredTenants = [];
+      },
+    });
+  }
+
+  private loadAreas(): void {
+    this.areaService.getAreas().subscribe({
+      next: (res) => {
+        this.allAreas = res.data || [];
+        if (this.selectedTenant) {
+          this.updateWarehouseOptions();
+        }
+      },
+      error: (err) => {
+        console.error('[LuanChuyenKhoAddNew] Lỗi lấy danh sách kho:', err);
+        this.allAreas = [];
+      },
+    });
+  }
+
+  getTenantLabel(tenant: TenantOption): string {
+    const factory = tenant.factory?.trim();
+    return factory ? `${tenant.company_name} - ${factory}` : tenant.company_name;
+  }
+
+  onTenantInput(event: Event): void {
+    const input = (event.target as HTMLInputElement).value.toLowerCase().trim();
+    this.filteredTenants = this.tenants.filter((t) => {
+      const label = this.getTenantLabel(t).toLowerCase();
+      return label.includes(input);
+    });
+    if (this.selectedTenant && this.getTenantLabel(this.selectedTenant).toLowerCase() !== input) {
+      this.selectedTenant = null;
+      this.resetKhoNhanSelection();
     }
-    const found = this.locations.find((loc) => loc.code.toLowerCase() === raw.toLowerCase());
-    return found ? String(found.id) : raw;
+  }
+
+  onTenantSelected(tenant: TenantOption): void {
+    this.selectedTenant = tenant;
+    this.nhaMayNhanInput = this.getTenantLabel(tenant);
+    this.resetKhoNhanSelection();
+    this.updateWarehouseOptions();
+  }
+
+  private resetKhoNhanSelection(): void {
+    this.khoNhanInput = '';
+    this.selectedKhoNhanId = null;
+    this.warehouseOptions = [];
+    this.filteredWarehouses = [];
+  }
+
+  /** Tạm hardcode — sau này filter getAreas theo tenant_id */
+  private getHardcodedWarehouseIds(tenant: TenantOption): number[] {
+    const text = `${tenant.company_name} ${tenant.factory}`.toLowerCase();
+    if (text.includes('vcoil')) {
+      return [6];
+    }
+    if (text.includes('rạng đông') || text.includes('rang dong') || text.includes('rangdong')) {
+      return [3, 2];
+    }
+    return [];
+  }
+
+  private updateWarehouseOptions(): void {
+    if (!this.selectedTenant) {
+      this.warehouseOptions = [];
+      this.filteredWarehouses = [];
+      return;
+    }
+    const ids = this.getHardcodedWarehouseIds(this.selectedTenant);
+    this.warehouseOptions = ids.map((id) => {
+      const area = this.allAreas.find((a) => Number(a.id) === id);
+      const label = area
+        ? `${area.code} - ${area.name}`
+        : this.warehouseLabelFallback[id] || String(id);
+      return { id, label };
+    });
+    this.filteredWarehouses = [...this.warehouseOptions];
+  }
+
+  onKhoNhanInput(event: Event): void {
+    const input = (event.target as HTMLInputElement).value.toLowerCase().trim();
+    this.filteredWarehouses = this.warehouseOptions.filter((w) =>
+      w.label.toLowerCase().includes(input)
+    );
+    if (
+      this.selectedKhoNhanId != null &&
+      !this.warehouseOptions.some(
+        (w) => w.id === this.selectedKhoNhanId && w.label.toLowerCase() === input
+      )
+    ) {
+      this.selectedKhoNhanId = null;
+    }
+  }
+
+  onKhoNhanSelected(warehouse: WarehouseOption): void {
+    this.selectedKhoNhanId = warehouse.id;
+    this.khoNhanInput = warehouse.label;
   }
 
   private getLocationCodeById(locationId: number): string {
     const found = this.locations.find((loc) => Number(loc.id) === Number(locationId));
     return found?.code || '';
+  }
+
+  private resolveSourceWarehouseId(): string | number {
+    const firstWithLocation = this.scannedList.find((item) => item.locationId != null);
+    if (firstWithLocation?.locationId != null) {
+      return firstWithLocation.locationId;
+    }
+    return '';
   }
 
   private generateRequirementCode(): string {
@@ -234,8 +372,8 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
       number_of_box: numberOfBox,
       total_quantity: totalQuantity,
       status,
-      source_warehouse: this.mapLocationInputToId(this.form.khoGui),
-      destination_warehouse: this.mapLocationInputToId(this.form.khoNhan),
+      source_warehouse: this.resolveSourceWarehouseId(),
+      destination_warehouse: this.selectedKhoNhanId ?? '',
       note: this.form.ghiChu || '',
     };
   }
@@ -292,12 +430,13 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
         const newItem: ScannedItem = {
           scanType: this.scanMode,
           refId,
+          locationId: scanRef.locationId != null ? Number(scanRef.locationId) : undefined,
           maHangHoa: scanRef.sapCode || '---',
           tenHangHoa: scanRef.name || '---',
           serialPallet: scanRef.serialPallet || (this.scanMode === 'pallet' ? value : '---'),
           serialThung: scanRef.inventoryIdentifier || (this.scanMode === 'thung' ? value : '---'),
           soLuong: scanRef.quantity || 0,
-          kho: this.getLocationCodeById(Number(scanRef.locationId)) || this.form.khoGui,
+          kho: this.getLocationCodeById(Number(scanRef.locationId)) || '---',
           thoiDiemScan: formatted,
         };
         this.scannedList = [newItem, ...this.scannedList];
