@@ -27,7 +27,7 @@ export interface AreaPayload {
 })
 export class AreaService {
   private apiUrl = `${environment.apiUrl}/areas`;
-  // private apiUrl = `http://192.168.10.99:9030/api/areas`;
+  // private apiUrlTest = `http://192.168.10.99:9030/api/areas`;
   private tenantUrl = `${environment.apiUrl}/auth/tenant`;
   // private tenantUrl = `http://192.168.10.99:9030/api/auth/tenant`;
 
@@ -38,6 +38,27 @@ export class AreaService {
       map((res) => {
         const raw = Array.isArray(res) ? res : (res as { data?: TenantOption[] })?.data ?? [res as TenantOption];
         return (raw || []).filter((item) => item?.id && item?.company_name);
+      })
+    );
+  }
+
+  /** Danh sách toàn bộ kho (không phân trang) — dùng cho autocomplete theo tenant */
+  getAreasFull(): Observable<Area[]> {
+    return this.http.get<any[] | { data: any[] }>(`${this.apiUrl}/full`).pipe(
+      map((res) => {
+        const items = Array.isArray(res) ? res : res?.data ?? [];
+        return items.map((item: any) => ({
+          id: item.id,
+          code: item.code,
+          name: item.name,
+          company: item.company ?? '',
+          factory: item.factory ?? '',
+          tenant_id: item.tenant_id ?? '',
+          storekeeper: item.thu_kho,
+          description: item.description,
+          address: item.address,
+          is_active: item.is_active,
+        }));
       })
     );
   }

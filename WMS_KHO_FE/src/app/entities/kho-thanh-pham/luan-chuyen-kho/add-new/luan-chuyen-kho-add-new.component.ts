@@ -76,13 +76,6 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
   khoNhanInput = '';
   selectedKhoNhanId: number | null = null;
 
-  /** Tạm hardcode map nhà máy → id kho (chờ API filter theo tenant) */
-  private readonly warehouseLabelFallback: Record<number, string> = {
-    2: 'RD01 - Kho thành phẩm XK',
-    3: 'RD02 - Kho sản phẩm thường',
-    6: 'VC - Kho Vcoil',
-  };
-
   currentTime = '';
   activeScanRequests = 0;
 
@@ -245,9 +238,9 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
   }
 
   private loadAreas(): void {
-    this.areaService.getAreas().subscribe({
-      next: (res) => {
-        this.allAreas = res.data || [];
+    this.areaService.getAreasFull().subscribe({
+      next: (areas) => {
+        this.allAreas = areas || [];
         if (this.selectedTenant) {
           this.updateWarehouseOptions();
         }
@@ -290,16 +283,8 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
     this.filteredWarehouses = [];
   }
 
-  /** Tạm hardcode — sau này filter getAreas theo tenant_id */
-  private getHardcodedWarehouseIds(tenant: TenantOption): number[] {
-    const text = `${tenant.company_name} ${tenant.factory}`.toLowerCase();
-    if (text.includes('vcoil')) {
-      return [6];
-    }
-    if (text.includes('rạng đông') || text.includes('rang dong') || text.includes('rangdong')) {
-      return [3, 2];
-    }
-    return [];
+  private normalizeTenantKey(value: string): string {
+    return (value || '').trim().toLowerCase();
   }
 
   private updateWarehouseOptions(): void {
@@ -308,14 +293,17 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
       this.filteredWarehouses = [];
       return;
     }
-    const ids = this.getHardcodedWarehouseIds(this.selectedTenant);
-    this.warehouseOptions = ids.map((id) => {
-      const area = this.allAreas.find((a) => Number(a.id) === id);
-      const label = area
-        ? `${area.code} - ${area.name}`
-        : this.warehouseLabelFallback[id] || String(id);
-      return { id, label };
-    });
+    const tenantKey = this.normalizeTenantKey(this.selectedTenant.id);
+    this.warehouseOptions = this.allAreas
+      .filter(
+        (area) =>
+          area.is_active !== false &&
+          this.normalizeTenantKey(area.tenant_id) === tenantKey
+      )
+      .map((area) => ({
+        id: Number(area.id),
+        label: `${area.code} - ${area.name}`,
+      }));
     this.filteredWarehouses = [...this.warehouseOptions];
   }
 
