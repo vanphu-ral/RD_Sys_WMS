@@ -692,6 +692,8 @@ class AreaService:
             for area in areas:
                 await db.refresh(area)
             return areas
+        
+
 class LocationService:
 
     @staticmethod
@@ -1774,6 +1776,7 @@ class WarehouseImportService:
             # Step 1: Extract general_info and list_pallet
             general_info = import_data.get('general_info', {})
             list_pallet = general_info.pop('list_pallet', [])
+            tenant_id = import_data.get('tenant_id')
             
             # Step 2: Create warehouse_import_requirements record
             warehouse_import_data = {
@@ -1796,7 +1799,8 @@ class WarehouseImportService:
                 'pallet_note_creation_session_id': general_info.get('pallet_note_creation_id'),
                 'item_no_sku': general_info.get('item_no_sku'),
                 'created_by': general_info.get('created_by'),
-                'updated_by': general_info.get('created_by')
+                'updated_by': general_info.get('created_by'),
+                'tenant_id': tenant_id,
             }
             
             warehouse_import = WarehouseImportRequirement(**warehouse_import_data)
@@ -3004,9 +3008,14 @@ class ContainerInventoryService:
 class UIService:
 
     @staticmethod
-    def get_ui_areas(db: Session) -> List[dict]:
-        result = db.execute(select(Area.id, Area.code, Area.name,Area.thu_kho, Area.description,Area.address ,Area.is_active))
-        return [{"id": area.id, "code": area.code, "name": area.name,"thu_kho": area.thu_kho,"description": area.description,"address": area.address, "is_active": area.is_active} for area in result]
+    async def get_ui_areas(db: AsyncSession) -> List[Area]:
+        query = (
+                select(Area)
+                .where(Area.is_active == True)
+            )
+
+        result = await db.execute(query)
+        return result.scalars().all()
 
     @staticmethod
     def get_ui_locations(db: Session) -> List[dict]:

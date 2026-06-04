@@ -175,9 +175,11 @@ async def create_wms_import_requirement(
     request: WMSImportRequest,
     db: AsyncSession = Depends(get_db),
     # #current_user: str = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     try:
         import_data = request.model_dump()
+        import_data["tenant_id"] = current_user.get("factory") 
         result = await WarehouseImportService.create_wms_import_with_nested_data(db, import_data)
         
         return WMSImportResponse(

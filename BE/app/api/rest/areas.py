@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.modules.inventory.service import AreaService
+from app.modules.inventory.service import AreaService, UIService
 from app.modules.inventory.schemas import AreaListResponse, AreaResponse, AreaUpdate, AreaCreate
 from app.modules.users.schemas import UserCurrent
 
@@ -64,6 +64,10 @@ async def update_area_status(
 ):
     return await AreaService.update_area_status(db, area_id, bool(is_active))
 
+@router.get("/full", response_model=List[AreaResponse])
+async def get_full_area(
+    db: AsyncSession = Depends(get_db)
+): return await UIService.get_ui_areas(db)
 
 @router.patch("/{area_id}", response_model=AreaResponse)
 async def update_area(

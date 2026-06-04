@@ -115,7 +115,7 @@ class AreaResponse(BaseModel):
     tenant_id: Optional[str] = None
     is_active: bool
     updated_by: Optional[str] = None
-    updated_date: datetime = None
+    updated_date: Optional[datetime] = None
 
     class Config:
         from_attributes = True
