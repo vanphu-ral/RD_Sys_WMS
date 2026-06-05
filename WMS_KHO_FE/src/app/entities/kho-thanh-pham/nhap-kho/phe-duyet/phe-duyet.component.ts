@@ -122,7 +122,10 @@ export class PheDuyetComponent implements OnInit {
 
   currentPageBox: number = 1;
   pageSizeBox: number = 10;
+  totalBoxItems: number = 0;
+  totalBoxPages: number = 0;
 
+  boxList: BoxItem[] = [];
   pagedBoxList: BoxItem[] = [];
 
   detailList: DetailItem[] = [];
@@ -197,22 +200,25 @@ export class PheDuyetComponent implements OnInit {
 
         // reset danh sách
         this.detailList = [];
+        this.boxList = [];
         this.pagedBoxList = [];
 
-        // Map pallets -> detailList hoặc pagedBoxList
+        // Map pallets -> detailList (tab pallet) và boxList (tab thùng từ list_box)
         pallets.forEach((p: any, index: number) => {
           const itemsPerBox = Number(p.quantity_per_box ?? p.quantityPerBox ?? 0);
+          const listBox = Array.isArray(p.list_box)
+            ? p.list_box
+            : Array.isArray(p.listBox)
+              ? p.listBox
+              : [];
           const boxesInPallet = Number(
-            p.num_box_per_pallet ?? p.numBoxPerPallet ??
-            (Array.isArray(p.list_box) ? p.list_box.length :
-              (Array.isArray(p.listBox) ? p.listBox.length : 0))
+            p.num_box_per_pallet ?? p.numBoxPerPallet ?? listBox.length
           );
-          const totalItems = Number(p.total_quantity ?? p.totalQuantity ?? (boxesInPallet * itemsPerBox));
+          const totalItems = Number(p.total_quantity ?? p.totalQuantity ?? boxesInPallet * itemsPerBox);
 
-          const serialPallet = p.serial_pallet ?? p.serialPallet ?? '';
+          const serialPallet = (p.serial_pallet ?? p.serialPallet ?? '').trim();
 
-          if (serialPallet && serialPallet.trim() !== '') {
-            // có mã pallet -> đưa vào detailList (tab pallet)
+          if (serialPallet) {
             const mapped: DetailItem = {
               id: Number(p.id ?? index),
               warehouse_import_requirement_id: undefined,
@@ -230,32 +236,23 @@ export class PheDuyetComponent implements OnInit {
               note: p.note ?? '',
               confirmed: p.confirmed,
               scanStatus: p.scan_status ? 'Đã scan' : 'Chưa scan',
-              listBox: Array.isArray(p.list_box) ? p.list_box : []
+              listBox,
             };
             this.detailList.push(mapped);
-          } else if (Array.isArray(p.list_box) && p.list_box.length > 0) {
-            // không có mã pallet nhưng có box -> đưa từng box vào pagedBoxList (tab thùng)
-            p.list_box.forEach((b: any) => {
-              const boxItem: BoxItem = {
-                id: b.id,
-                boxCode: b.box_code ?? '',
-                quantity: Number(b.quantity ?? b.quantity_per_box ?? 0),
-                note: b.note ?? '',
-                importPalletId: Number(b.import_pallet_id ?? p.id ?? 0),
-                confirm: Boolean(b.confirmed),
-                scanBy: b.scan_by ?? '',
-                timeChecked: b.time_checked ?? '',
-                listSerialItem: b.list_serial_items ?? ''
-              };
-              this.pagedBoxList.push(boxItem);
-            });
           }
+
+          listBox.forEach((b: any) => {
+            this.boxList.push(this.mapBoxItem(b, p));
+          });
         });
 
         this.totalItems = this.detailList.length;
-        this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+        this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
+        this.totalBoxItems = this.boxList.length;
+        this.totalBoxPages = Math.ceil(this.totalBoxItems / this.pageSizeBox) || 1;
 
         this.setPagedData();
+        this.setPagedBoxData();
       },
       error: (err) => {
         console.error('[loadData] Lỗi khi lấy dữ liệu nhập kho:', err);
@@ -281,13 +278,30 @@ export class PheDuyetComponent implements OnInit {
     });
   }
   formatDate(dateStr: string): string {
+    if (!dateStr) return '';
     const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
     const hh = String(d.getHours()).padStart(2, '0');
     const min = String(d.getMinutes()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+    return `${yyyy}/${mm}/${dd} ${hh}:${min}`;
+  }
+
+  private mapBoxItem(b: any, pallet?: any): BoxItem {
+    const rawTime = b.time_checked ?? b.timeChecked ?? '';
+    return {
+      id: b.id,
+      boxCode: b.box_code ?? b.boxCode ?? '',
+      quantity: Number(b.quantity ?? b.quantity_per_box ?? 0),
+      note: b.note ?? '',
+      importPalletId: Number(b.import_pallet_id ?? b.importPalletId ?? pallet?.id ?? 0),
+      confirm: Boolean(b.confirmed ?? b.confirm),
+      scanBy: b.scan_by ?? b.scanBy ?? '',
+      timeChecked: rawTime ? this.formatDate(rawTime) : '-',
+      listSerialItem: b.list_serial_items ?? b.listSerialItems ?? '',
+    };
   }
 
 
@@ -350,10 +364,22 @@ export class PheDuyetComponent implements OnInit {
     this.pagedDetailList = this.detailList.slice(startIndex, endIndex);
   }
 
+  setPagedBoxData(): void {
+    const startIndex = (this.currentPageBox - 1) * this.pageSizeBox;
+    const endIndex = startIndex + this.pageSizeBox;
+    this.pagedBoxList = this.boxList.slice(startIndex, endIndex);
+  }
+
   onPageChange(page: number): void {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
     this.setPagedData();
+  }
+
+  onPageChangeBox(page: number): void {
+    if (page < 1 || page > this.totalBoxPages) return;
+    this.currentPageBox = page;
+    this.setPagedBoxData();
   }
 
   onCancel(): void {
@@ -388,7 +414,7 @@ export class PheDuyetComponent implements OnInit {
       return listBox.some((b: any) => !this.isBoxScanned(b));
     });
 
-    const boxNotScanned = (this.pagedBoxList || []).some((b: any) => !this.isBoxScanned(b));
+    const boxNotScanned = (this.boxList || []).some((b: any) => !this.isBoxScanned(b));
 
     // if (palletNotScanned || boxNotScanned) {
     //   this.snackBar.open('Vui lòng scan tất cả pallet/thùng trước khi phê duyệt', 'Đóng', {
@@ -401,7 +427,7 @@ export class PheDuyetComponent implements OnInit {
     // Kiểm tra nếu tất cả đã confirmed rồi -> thông báo và dừng
     const allPalletsConfirmed = (this.detailList || []).every((p: any) => p.confirmed === true);
     // pagedBoxList có thể chứa các box độc lập; nếu không có pagedBoxList thì coi là true
-    const allBoxesConfirmed = (this.pagedBoxList || []).every((b: any) => b.confirmed === true);
+    const allBoxesConfirmed = (this.boxList || []).every((b: any) => b.confirm === true || b.confirmed === true);
 
     // Nếu trong detailList có pallet chứa list_box, cũng kiểm tra các box trong đó
     const nestedBoxesConfirmed = (this.detailList || []).every((p: any) => {
@@ -442,12 +468,12 @@ export class PheDuyetComponent implements OnInit {
     this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']);
   }
   private isBoxScanned(box: any): boolean {
-    // Box được coi là đã scan nếu có time_checked (không null/empty) hoặc scan_status true hoặc confirmed true
     if (!box) return false;
-    const hasTimeChecked = !!(box.time_checked || box.timeChecked); // hỗ trợ nhiều tên trường
+    const rawTime = box.time_checked ?? box.timeChecked;
+    if (rawTime && rawTime !== '-') return true;
     const scanStatus = box.scan_status === true || box.scanStatus === true;
     const confirmed = box.confirmed === true || box.confirm === true;
-    return hasTimeChecked;
+    return scanStatus || confirmed;
   }
 
   private computeBoxScanProgress(): number {
@@ -462,7 +488,8 @@ export class PheDuyetComponent implements OnInit {
 
     const isBoxTimeChecked = (b: any): boolean => {
       if (!b) return false;
-      return !!(b.time_checked ?? b.timeChecked);
+      const rawTime = b.time_checked ?? b.timeChecked;
+      return !!rawTime && rawTime !== '-';
     };
 
     // 1) Mỗi pallet có 1 box đi kèm → chỉ cộng nếu pallet đã scan
@@ -472,11 +499,12 @@ export class PheDuyetComponent implements OnInit {
       }
     }
 
-    // 2) Box độc lập (không thuộc pallet) → chỉ cộng nếu có time_checked
-    for (const b of this.pagedBoxList || []) {
-      const belongsToPallet =
-        !!(b.importPalletId);
-      if (!belongsToPallet && isBoxTimeChecked(b)) {
+    const palletIdsInDetailList = new Set((this.detailList || []).map((p: any) => p.id));
+
+    // 2) Thùng không thuộc pallet có mã (pallet không có serial) → cộng nếu có time_checked
+    for (const b of this.boxList || []) {
+      const belongsToDetailPallet = palletIdsInDetailList.has(b.importPalletId);
+      if (!belongsToDetailPallet && isBoxTimeChecked(b)) {
         count += 1;
       }
     }
@@ -509,9 +537,16 @@ export class PheDuyetComponent implements OnInit {
         confirmed: true
       }));
 
-    // Box độc lập
-    const boxesToConfirmFromPaged = (this.pagedBoxList || [])
-      .filter((b: any) => this.isBoxScanned(b) && b.confirmed !== true)
+    const palletIdsInDetailList = new Set((this.detailList || []).map((p: any) => p.id));
+
+    // Thùng thuộc pallet không có mã serial (không nằm trong detailList)
+    const boxesToConfirmFromPaged = (this.boxList || [])
+      .filter(
+        (b: any) =>
+          !palletIdsInDetailList.has(b.importPalletId) &&
+          this.isBoxScanned(b) &&
+          b.confirm !== true
+      )
       .map((b: any) => ({
         id: b.id,
         box_code: b.box_code ?? b.boxCode,

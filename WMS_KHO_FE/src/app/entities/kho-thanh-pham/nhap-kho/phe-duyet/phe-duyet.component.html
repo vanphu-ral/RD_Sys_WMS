@@ -316,7 +316,7 @@
             </div>
 
             <!-- Empty state -->
-            <div class="empty-state" *ngIf="pagedBoxList.length === 0">
+            <div class="empty-state" *ngIf="boxList.length === 0">
                 <mat-icon>inbox</mat-icon>
                 <p>Chưa có dữ liệu thùng</p>
             </div>
@@ -449,10 +449,18 @@
         </div>
 
         <!-- Pagination -->
-        <div class="pagination">
+        <div class="pagination" *ngIf="selectedTabIndex === 0 && totalPages > 1">
             <div class="pagination-numbers">
                 <button mat-button *ngFor="let page of [].constructor(totalPages); let i = index"
                     [class.active]="currentPage === (i+1)" (click)="onPageChange(i+1)">
+                    {{ i+1 }}
+                </button>
+            </div>
+        </div>
+        <div class="pagination" *ngIf="selectedTabIndex === 1 && totalBoxPages > 1">
+            <div class="pagination-numbers">
+                <button mat-button *ngFor="let page of [].constructor(totalBoxPages); let i = index"
+                    [class.active]="currentPageBox === (i+1)" (click)="onPageChangeBox(i+1)">
                     {{ i+1 }}
                 </button>
             </div>

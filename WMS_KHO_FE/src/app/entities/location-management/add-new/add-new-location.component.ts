@@ -20,6 +20,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import * as XLSX from 'xlsx';
 import * as FileSaver from 'file-saver';
 import { AuthService } from '../../../services/auth.service';
+import { resolveEntitySaveErrorMessage } from '../../../services/api-error-message.util';
 import { UserInfoComponent } from '../../../user/user-info.component';
 
 @Component({
@@ -370,14 +371,23 @@ export class AddNewLocationComponentComponent implements OnInit {
 
   onSave(): void {
     const username = this.authService.getUsername();
+    const locationCode = (this.location.code || '').trim();
+
+    if (!locationCode) {
+      this.snackBar.open('Mã vị trí không được để trống.', 'Đóng', {
+        duration: 3000,
+        panelClass: ['snackbar-error'],
+      });
+      return;
+    }
 
     const area = this.areaList.find((a) => a.id === this.selectedAreaId);
     const areaCode = (area?.code || '').replace(/\s+/g, '');
     const isMulti = this.location.is_multi_location;
 
     const payload: Location = {
-      code: this.location.code,
-      name: this.location.code,
+      code: locationCode,
+      name: locationCode,
       area_id: this.selectedAreaId || 0,
       address: this.location.address,
       description: this.location.description,
@@ -454,10 +464,10 @@ export class AddNewLocationComponentComponent implements OnInit {
               error: (err) => {
                 console.error('Lỗi khi tạo sub-location:', err);
                 this.snackBar.open(
-                  `${this.isEditMode ? 'Cập nhật' : 'Tạo'} location thất bại!`,
+                  resolveEntitySaveErrorMessage(err, 'location', this.isEditMode),
                   'Đóng',
                   {
-                    duration: 3000,
+                    duration: 4000,
                     panelClass: ['snackbar-error'],
                   }
                 );
@@ -468,10 +478,10 @@ export class AddNewLocationComponentComponent implements OnInit {
       error: (err) => {
         console.error('Lỗi khi lưu vị trí:', err);
         this.snackBar.open(
-          `${this.isEditMode ? 'Cập nhật' : 'Tạo'} vị trí thất bại!`,
+          resolveEntitySaveErrorMessage(err, 'location', this.isEditMode),
           'Đóng',
           {
-            duration: 3000,
+            duration: 4000,
             panelClass: ['snackbar-error'],
           }
         );

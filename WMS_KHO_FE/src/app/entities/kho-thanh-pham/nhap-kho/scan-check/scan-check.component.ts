@@ -6,7 +6,7 @@ import { AuthService } from '../../../../services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AlertDialogComponent } from '../dialog/alert-dialog.component';
 import { BarcodeFormat } from '@zxing/library';
-import { forkJoin } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 import { ZXingScannerComponent } from '@zxing/ngx-scanner';
 import { CameraDevice, Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 
@@ -179,8 +179,7 @@ export class ScanCheckComponent implements OnInit {
     });
 
     if (this.requestId) {
-      this.loadLocationCode();
-      this.loadImportRequirementInfo();
+      this.loadScanPageData();
     }
     // this.initCamera();
   }
@@ -191,48 +190,43 @@ export class ScanCheckComponent implements OnInit {
     ) || window.innerWidth <= 768;
   }
 
-  loadLocationCode(): void {
-    this.nhapKhoService.getMinimalLocations().subscribe({
-      next: (res) => {
-        this.locations = res;
-      },
-      error: (err) => {
-        console.error('Lỗi khi load locations:', err);
-        this.snackBar.open('Không thể tải danh sách location!', 'Đóng', { duration: 3000 });
-      }
-    });
-  }
-
-  getLocationCode(locationId: number): string {
-    const loc = this.locations.find(l => l.id === locationId);
-    return loc ? loc.code : 'N/A';
-  }
-
-  loadImportRequirementInfo(): void {
+  /** Tải locations trước rồi mới map dữ liệu đã scan — tránh hiển thị kho N/A. */
+  private loadScanPageData(): void {
     if (!this.requestId) return;
 
     this.isLoading = true;
-    this.nhapKhoService.getImportRequirement(this.requestId).subscribe({
-      next: (res) => {
-        this.importRequirementInfo = res.general_info || res.data?.general_info;
+    forkJoin({
+      locations: this.nhapKhoService.getMinimalLocations().pipe(
+        catchError((err) => {
+          console.error('Lỗi khi load locations:', err);
+          this.snackBar.open('Không thể tải danh sách location!', 'Đóng', { duration: 3000 });
+          return of([] as { id: number; code: string }[]);
+        })
+      ),
+      importReq: this.nhapKhoService.getImportRequirement(this.requestId),
+    }).subscribe({
+      next: ({ locations, importReq }) => {
+        this.locations = locations || [];
+        this.importRequirementInfo = importReq?.general_info || importReq?.data?.general_info;
 
         if (!this.importRequirementInfo) {
           this.snackBar.open('Không tìm thấy thông tin yêu cầu nhập!', 'Đóng', { duration: 3000 });
           this.router.navigate(['/kho-thanh-pham/nhap-kho-sx']);
+          this.isLoading = false;
           return;
         }
 
         const pallets = this.importRequirementInfo.list_pallet || [];
 
-        // Build allowed codes
         if (this.scanMode === 'single' && this.targetPalletCode) {
           const targetPallet = pallets.find((p: any) => p.serial_pallet === this.targetPalletCode);
           if (!targetPallet) {
             this.snackBar.open('Không tìm thấy pallet cần scan!', 'Đóng', { duration: 3000 });
             this.router.navigate(['/kho-thanh-pham/nhap-kho-sx/phe-duyet', this.requestId]);
+            this.isLoading = false;
             return;
           }
-          this.allowedPalletCodes = [targetPallet.serial_pallet].filter(c => c);
+          this.allowedPalletCodes = [targetPallet.serial_pallet].filter((c) => c);
           this.allowedBoxCodes = (targetPallet.list_box || []).map((b: any) => b.box_code);
         } else {
           this.allowedPalletCodes = pallets
@@ -243,26 +237,98 @@ export class ScanCheckComponent implements OnInit {
           );
         }
 
-        // Load scanned items (nếu có trong DB)
         this.loadScannedItemsFromAPI(pallets);
 
-        // Hiển thị thông báo nếu có dữ liệu đã scan
         if (this.scannedPallets.length > 0 || this.scannedBoxes.length > 0) {
           const message = `Đã tải ${this.scannedPallets.length} pallet và ${this.scannedBoxes.length} thùng đã scan`;
           this.snackBar.open(message, '', {
             duration: 3000,
-            panelClass: ['snackbar-success']
+            panelClass: ['snackbar-success'],
           });
         }
 
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Lỗi khi tải thông tin:', err);
+        console.error('Lỗi khi tải thông tin scan:', err);
         this.snackBar.open('Không thể tải thông tin!', 'Đóng', { duration: 3000 });
         this.isLoading = false;
       },
     });
+  }
+
+  /** Tra cứu location từ danh sách minimal theo mã vừa quét (không phân biệt hoa thường). */
+  private findLocationByScannedCode(
+    scanned: string
+  ): { id: number; code: string } | null {
+    const normalized = (scanned || '').trim().toUpperCase();
+    if (!normalized) {
+      return null;
+    }
+    const loc = this.locations.find(
+      (l) => (l.code || '').trim().toUpperCase() === normalized
+    );
+    if (!loc) {
+      return null;
+    }
+    return {
+      id: Number(loc.id),
+      code: (loc.code || '').trim(),
+    };
+  }
+
+  getLocationCode(locationId: number | string | null | undefined): string {
+    const id = Number(locationId);
+    if (!id || Number.isNaN(id)) {
+      return '';
+    }
+    const loc = this.locations.find((l) => Number(l.id) === id);
+    return loc?.code ?? '';
+  }
+
+  /** Hiển thị cột Kho: ưu tiên mã đã gán khi scan, fallback tra minimal theo id. */
+  displayLocationCode(item: {
+    locationId?: number | string | null;
+    locationCode?: string;
+  }): string {
+    const storedCode = (item.locationCode || '').trim();
+    if (storedCode) {
+      return storedCode;
+    }
+    const fromMinimal = this.getLocationCode(item.locationId);
+    return fromMinimal || '-';
+  }
+
+  private resolveLocationCode(
+    locationId: number | string | null | undefined,
+    fallbackCode?: string
+  ): string {
+    const fromId = this.getLocationCode(locationId);
+    if (fromId) {
+      return fromId;
+    }
+    return (fallbackCode ?? '').trim();
+  }
+
+  /** Location hợp lệ chỉ khi id tồn tại trong minimal và map được ra mã kho. */
+  private hasValidScanLocation(item: {
+    locationId?: number | string | null;
+    locationCode?: string;
+  }): boolean {
+    const locationId = Number(item.locationId);
+    if (!locationId || Number.isNaN(locationId)) {
+      return false;
+    }
+    const codeFromMinimal = this.getLocationCode(locationId);
+    return !!codeFromMinimal;
+  }
+
+  private applyScannedLocation(
+    item: { locationId: number; locationCode?: string },
+    location: { id: number; code: string }
+  ): void {
+    item.locationId = Number(location.id);
+    item.locationCode = location.code;
   }
 
   loadScannedItemsFromAPI(pallets: any[]): void {
@@ -323,28 +389,30 @@ export class ScanCheckComponent implements OnInit {
         const boxScanStatus = box.scan_status ?? box.scanStatus;
         const timeCheckedRaw = box.time_checked ?? box.timeChecked ?? box.scan_time ?? box.updated_date ?? box.timeCheckedAt;
         const isBoxScanned =
-          box.confirmed === true ||
           boxScanStatus === true ||
-          (typeof boxScanStatus === 'string' && boxScanStatus.toString().toLowerCase().includes('đã')) ||
+          (typeof boxScanStatus === 'string' &&
+            boxScanStatus.toString().toLowerCase().includes('đã')) ||
           Boolean(timeCheckedRaw);
 
         if (isBoxScanned) {
-          // chuyển location_id (có thể là string) về number và lấy code kho
           const rawLocationId = box.location_id ?? box.locationId ?? null;
-          const locationIdNumber = rawLocationId !== null && rawLocationId !== undefined
-            ? Number(rawLocationId)
-            : 0;
-          const locationCode = locationIdNumber && !isNaN(locationIdNumber)
-            ? this.getLocationCode(locationIdNumber)
-            : (box.location_code ?? box.locationCode ?? '');
+          const locationIdNumber =
+            rawLocationId !== null && rawLocationId !== undefined
+              ? Number(rawLocationId)
+              : 0;
+          const codeFromMinimal = this.getLocationCode(locationIdNumber);
+          const locationId = codeFromMinimal ? locationIdNumber : 0;
+          const locationCode = codeFromMinimal
+            ? codeFromMinimal
+            : this.resolveLocationCode(0, box.location_code ?? box.locationCode);
 
           const scannedBox: ScannedBox = {
             id: box.id,
             boxCode: box.box_code ?? box.boxCode ?? '',
             quantity: box.quantity || 0,
             quantityImported: box.quantity_imported || box.quantity || 0,
-            locationId: locationIdNumber || 0,
-            locationCode: locationCode || '',
+            locationId,
+            locationCode,
             note: box.note || '',
             serialPallet: palletSerial,
             isLooseBox: isLoosePallet,
@@ -746,19 +814,23 @@ export class ScanCheckComponent implements OnInit {
   performScan(): void {
     const scannedCode = this.scanPallet.trim().toUpperCase();
     const username = this.authService.getUsername();
-    const locationCode = this.scanLocation.trim().toUpperCase();
-    const location = this.locations.find(l => l.code.toUpperCase() === locationCode);
+    const resolvedLocation = this.findLocationByScannedCode(this.scanLocation);
 
-    if (!location) {
+    if (!resolvedLocation) {
       this.playAudio('assets/audio/beep_warning.mp3');
-      this.dialog.open(AlertDialogComponent, { data: 'Location không tồn tại!' });
+      this.dialog.open(AlertDialogComponent, { data: 'Mã kho không tồn tại trong danh sách location!' });
       this.resetScanInputs();
       return;
     }
-    const locationId = location.id;
+    const locationId = resolvedLocation.id;
+    const locationCode = resolvedLocation.code;
 
-    const isPalletAllowed = this.allowedPalletCodes.includes(scannedCode);
-    const isBoxAllowed = this.allowedBoxCodes.includes(scannedCode);
+    const isPalletAllowed = this.allowedPalletCodes.some(
+      (c) => (c || '').trim().toUpperCase() === scannedCode
+    );
+    const isBoxAllowed = this.allowedBoxCodes.some(
+      (c) => (c || '').trim().toUpperCase() === scannedCode
+    );
 
     if (!isPalletAllowed && !isBoxAllowed) {
       this.playAudio('assets/audio/beep_warning.mp3');
@@ -795,24 +867,40 @@ export class ScanCheckComponent implements OnInit {
     );
 
     if (existing) {
+      const existingLocId = Number(existing.locationId) || 0;
+      const newLocId = Number(locationId);
+      const existingLocCode = this.displayLocationCode(existing);
+      const hasValidExistingLocation = this.hasValidScanLocation(existing);
+
+      if (!hasValidExistingLocation) {
+        this.applyScannedLocation(existing, { id: locationId, code: locationCode });
+        existing.timeChecked = new Date().toISOString();
+        existing.scanBy = username;
+        existing.confirmed = false;
+        this.updatePalletPagination();
+        this.playAudio('assets/audio/successed-295058.mp3');
+        this.snackBar.open('✓ Scan pallet thành công!', '', { duration: 2000 });
+        this.resetScanInputs();
+        return;
+      }
+
       this.playAudio('assets/audio/beep_warning.mp3');
 
-      // Cho phép cập nhật location nếu khác
-      if (existing.locationId !== locationId) {
-        const dialogRef = this.dialog.open(AlertDialogComponent, {
-          data: `Pallet này đã được scan vào kho ${existing.locationCode}`
-        });
-
-        dialogRef.afterClosed().subscribe(result => {
-          if (result) {
-            existing.locationId = locationId;
-            existing.locationCode = locationCode;
-            existing.timeChecked = new Date().toISOString();
-            this.snackBar.open('✓ Đã cập nhật location cho pallet!', '', { duration: 2000 });
-          }
+      if (existingLocId === newLocId) {
+        this.dialog.open(AlertDialogComponent, {
+          data: `Pallet này đã được scan vào kho ${existingLocCode}.`,
         });
       } else {
-        this.dialog.open(AlertDialogComponent, { data: 'Pallet này đã được scan!' });
+        this.applyScannedLocation(existing, { id: locationId, code: locationCode });
+        existing.timeChecked = new Date().toISOString();
+        existing.scanBy = username;
+        existing.confirmed = false;
+        this.updatePalletPagination();
+        this.snackBar.open(
+          `✓ Đã cập nhật kho từ ${existingLocCode} sang ${locationCode}!`,
+          '',
+          { duration: 2500 }
+        );
       }
 
       this.resetScanInputs();
@@ -891,7 +979,9 @@ export class ScanCheckComponent implements OnInit {
       : pallets;
 
     for (const pallet of palletsToSearch) {
-      const box = (pallet.list_box || []).find((b: any) => b.box_code === code);
+      const box = (pallet.list_box || []).find(
+        (b: any) => (b.box_code || '').trim().toUpperCase() === code
+      );
       if (box) {
         palletInfo = pallet;
         boxInfo = box;
@@ -915,23 +1005,40 @@ export class ScanCheckComponent implements OnInit {
     );
 
     if (existing) {
+      const existingLocId = Number(existing.locationId) || 0;
+      const newLocId = Number(locationId);
+      const existingLocCode = this.displayLocationCode(existing);
+      const hasValidExistingLocation = this.hasValidScanLocation(existing);
+
+      if (!hasValidExistingLocation) {
+        this.applyScannedLocation(existing, { id: locationId, code: locationCode });
+        existing.timeChecked = new Date().toISOString();
+        existing.scanBy = username;
+        existing.confirmed = false;
+        this.updateBoxPagination();
+        this.playAudio('assets/audio/successed-295058.mp3');
+        this.snackBar.open('✓ Scan thùng thành công!', '', { duration: 2000 });
+        this.resetScanInputs();
+        return;
+      }
+
       this.playAudio('assets/audio/beep_warning.mp3');
 
-      if (existing.locationId !== locationId) {
-        const dialogRef = this.dialog.open(AlertDialogComponent, {
-          data: `Thùng này đã được scan vào kho ${existing.locationCode}.`
-        });
-
-        dialogRef.afterClosed().subscribe(result => {
-          if (result) {
-            existing.locationId = locationId;
-            existing.locationCode = locationCode;
-            existing.timeChecked = new Date().toISOString();
-            this.snackBar.open('✓ Đã cập nhật location cho thùng!', '', { duration: 2000 });
-          }
+      if (existingLocId === newLocId) {
+        this.dialog.open(AlertDialogComponent, {
+          data: `Thùng này đã được scan vào kho ${existingLocCode}.`,
         });
       } else {
-        this.dialog.open(AlertDialogComponent, { data: 'Thùng này đã được scan!' });
+        this.applyScannedLocation(existing, { id: locationId, code: locationCode });
+        existing.timeChecked = new Date().toISOString();
+        existing.scanBy = username;
+        existing.confirmed = false;
+        this.updateBoxPagination();
+        this.snackBar.open(
+          `✓ Đã cập nhật kho từ ${existingLocCode} sang ${locationCode}!`,
+          '',
+          { duration: 2500 }
+        );
       }
 
       this.resetScanInputs();
@@ -1010,6 +1117,17 @@ export class ScanCheckComponent implements OnInit {
       return;
     }
 
+    const invalidPallets = this.scannedPallets.filter((item) => !this.hasValidScanLocation(item));
+    const invalidBoxes = this.scannedBoxes.filter((item) => !this.hasValidScanLocation(item));
+    if (invalidPallets.length > 0 || invalidBoxes.length > 0) {
+      this.snackBar.open(
+        'Có mục chưa có kho hợp lệ. Vui lòng scan lại mã kho từ danh sách location.',
+        'Đóng',
+        { duration: 4000, panelClass: ['snackbar-error'] }
+      );
+      return;
+    }
+
     const username = this.authService.getUsername();
     const apiCalls: any[] = [];
 
@@ -1030,7 +1148,7 @@ export class ScanCheckComponent implements OnInit {
           item_no_sku: item.itemNoSku || '',
           date_code: item.dateCode || '',
           note: item.note || '',
-          location_id: item.locationId,
+          location_id: Number(item.locationId),
           scan_by: username,
           scan_time: new Date().toISOString(),
           scan_status: true,
@@ -1053,7 +1171,7 @@ export class ScanCheckComponent implements OnInit {
           id: item.id,
           inventory_identifier: item.boxCode,
           quantity_imported: item.quantityImported,
-          location_id: item.locationId,
+          location_id: Number(item.locationId),
           confirmed: false,
           scan_status: true,
           scan_by: username,
@@ -1177,6 +1295,9 @@ export class ScanCheckComponent implements OnInit {
     // Xác định confirmed
     const confirmed = pallet.confirmed === true || scanStatus === 'Đã scan';
 
+    const rawLocationId = Number(pallet.location_id) || 0;
+    const codeFromMinimal = this.getLocationCode(rawLocationId);
+
     return {
       id: pallet.id,
       serialPallet: pallet.serial_pallet,
@@ -1185,8 +1306,8 @@ export class ScanCheckComponent implements OnInit {
       quantityPerBox: pallet.quantity_per_box || 0,
       // Ưu tiên quantity_imported từ API, fallback về total_quantity
       quantityImported: pallet.quantity_imported || pallet.total_quantity || 0,
-      locationId: pallet.location_id || 0,
-      locationCode: pallet.location_code || '',
+      locationId: codeFromMinimal ? rawLocationId : 0,
+      locationCode: codeFromMinimal || this.resolveLocationCode(0, pallet.location_code),
       poNumber: pallet.po_number || '',
       customerName: pallet.customer_name || '',
       itemNoSku: pallet.item_no_sku || '',

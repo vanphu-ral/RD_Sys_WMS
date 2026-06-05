@@ -154,7 +154,7 @@
                             <!-- Kho -->
                             <ng-container matColumnDef="locationId">
                                 <th mat-header-cell *matHeaderCellDef>Kho</th>
-                                <td mat-cell *matCellDef="let item">{{ getLocationCode(item.locationId) }}</td>
+                                <td mat-cell *matCellDef="let item">{{ displayLocationCode(item) }}</td>
                             </ng-container>
 
                             <!-- Trạng thái -->
@@ -286,7 +286,7 @@
                                         Vị trí kho
                                     </span>
                                     <span class="info-value location-badge">
-                                        {{ item.locationCode || getLocationCode(item.locationId) }}
+                                        {{ displayLocationCode(item) }}
                                     </span>
                                 </div>
                             </div>
@@ -383,7 +383,7 @@
                             <!-- Kho -->
                             <ng-container matColumnDef="locationId">
                                 <th mat-header-cell *matHeaderCellDef>Kho</th>
-                                <td mat-cell *matCellDef="let item">{{ getLocationCode(item.locationId) }}</td>
+                                <td mat-cell *matCellDef="let item">{{ displayLocationCode(item) }}</td>
                             </ng-container>
 
                             <!-- Trạng thái -->
@@ -506,7 +506,7 @@
                                         Vị trí kho
                                     </span>
                                     <span class="info-value location-badge">
-                                        {{ item.locationCode || getLocationCode(item.locationId) }}
+                                        {{ displayLocationCode(item) }}
                                     </span>
                                 </div>
 

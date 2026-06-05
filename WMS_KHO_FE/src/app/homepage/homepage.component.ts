@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
+import { PermissionService } from '../services/permission.service';
 import { take } from 'rxjs';
 
 interface MenuItem {
@@ -117,21 +118,20 @@ export class HomepageComponent implements OnInit {
     private route: ActivatedRoute,
     private http: HttpClient,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private permissionService: PermissionService
   ) { }
 
-  /** Lọc menu theo factory (cùng rule với sidebar.service.ts). */
+  /** Lọc menu theo factory (cùng rule với sidebar.service.ts); admin thấy đủ menu. */
   private refreshMenuItems(): void {
-    const factory = this.authService.getFactory()?.toLowerCase();
-    this.menuItems = this.allMenuItems.filter(item => {
-      if (!item.factories?.length) {
-        return true;
-      }
-      if (!factory) {
-        return false;
-      }
-      return item.factories.some(f => f.toLowerCase() === factory);
-    });
+    if (this.permissionService.isWmsAdmin()) {
+      this.menuItems = [...this.allMenuItems];
+      return;
+    }
+
+    this.menuItems = this.allMenuItems.filter((item) =>
+      this.permissionService.canAccessByFactory(item.factories)
+    );
   }
 
   async ngOnInit(): Promise<void> {
@@ -214,7 +214,7 @@ export class HomepageComponent implements OnInit {
 
     this.http
       .post(
-        'https://ssosys.rangdong.com.vn:9002/realms/rangdong/protocol/openid-connect/token',
+        'http://192.168.68.90:8080/auth/realms/WMS_KHO/protocol/openid-connect/token',
         body.toString(),
         {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -255,7 +255,7 @@ export class HomepageComponent implements OnInit {
   getUserInfo(accessToken: string): void {
     this.http
       .get(
-        'https://ssosys.rangdong.com.vn:9002/realms/rangdong/protocol/openid-connect/userinfo',
+        'http://192.168.68.90:8080/auth/realms/WMS_KHO/protocol/openid-connect/userinfo',
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -281,7 +281,7 @@ export class HomepageComponent implements OnInit {
     const clientId = 'RD_KHO';
     const realm = 'rangdong';
     const redirectUri = encodeURIComponent(window.location.origin + '/home');
-    const loginUrl = `https://ssosys.rangdong.com.vn:9002/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
+    const loginUrl = `http://192.168.68.90:8080/realms/${realm}/protocol/openid-connect/auth?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=openid`;
 
     console.log('[HomePage] Redirecting to login:', loginUrl);
     window.location.href = loginUrl;

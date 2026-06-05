@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AuthService } from '../services/auth.service';
+import { PermissionService } from '../services/permission.service';
 export interface SidebarSubMenu {
   title: string;
   link: string;
@@ -83,7 +83,7 @@ export class SidebarService {
       ]
     },
   ];
-  constructor(private auth: AuthService) {}
+  constructor(private permission: PermissionService) {}
 
   toggle() {
     this.toggled = !this.toggled;
@@ -98,15 +98,19 @@ export class SidebarService {
   }
 
   getMenuList(): SidebarMenu[] {
-    const factory = this.auth.getFactory()?.toLowerCase() ?? '';
+    if (this.permission.isWmsAdmin()) {
+      return this.allMenus.map((menu) => ({
+        ...menu,
+        submenus: menu.submenus ? [...menu.submenus] : undefined,
+      }));
+    }
+
     return this.allMenus.map((menu) => {
       if (!menu.submenus) return { ...menu };
       return {
         ...menu,
-        submenus: menu.submenus.filter(
-          (sm) =>
-            !sm.factories?.length ||
-            (!!factory && sm.factories.some((f) => f.toLowerCase() === factory))
+        submenus: menu.submenus.filter((sm) =>
+          this.permission.canAccessByFactory(sm.factories)
         ),
       };
     });

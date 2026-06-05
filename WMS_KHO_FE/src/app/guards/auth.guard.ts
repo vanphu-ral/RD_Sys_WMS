@@ -83,10 +83,20 @@ export class AuthGuard implements CanActivate {
     if (requiredFactories.length === 0) {
       return true;
     }
+
+    if (this.authService.getUserRoles().includes('WMS_RD_ADMIN')) {
+      return true;
+    }
+
     const factory = this.authService.getFactory();
-    const ok = factory && requiredFactories.some(f => f.toLowerCase() === factory.toLowerCase());
+    const ok =
+      !!factory &&
+      requiredFactories.some((f) => f.toLowerCase() === factory.toLowerCase());
     if (!ok) {
-      console.warn('[AuthGuard] Factory denied:', { userFactory: factory, required: requiredFactories });
+      console.warn('[AuthGuard] Factory denied:', {
+        userFactory: factory,
+        required: requiredFactories,
+      });
       this.router.navigate(['/unauthorized']);
       return false;
     }

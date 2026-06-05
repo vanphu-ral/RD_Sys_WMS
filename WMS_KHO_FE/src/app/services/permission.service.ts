@@ -7,14 +7,34 @@ import { AuthService } from './auth.service';
 export class PermissionService {
   
   constructor(private authService: AuthService) {
-    console.log('[PermissionService] Initialized');
+    // console.log('[PermissionService] Initialized');
   }
 
   // Lấy roles trực tiếp từ AuthService
   getUserRoles(): string[] {
     const roles = this.authService.getUserRoles();
-    console.log('[PermissionService] Current user roles:', roles);
+    // console.log('[PermissionService] Current user roles:', roles);
     return roles;
+  }
+
+  /** Admin Keycloak thường không có factory — bỏ qua lọc menu/route theo factory. */
+  isWmsAdmin(): boolean {
+    return this.getUserRoles().includes('WMS_RD_ADMIN');
+  }
+
+  /** Kiểm tra factory trên menu/route; admin luôn được phép. */
+  canAccessByFactory(requiredFactories?: string[]): boolean {
+    if (!requiredFactories?.length) {
+      return true;
+    }
+    if (this.isWmsAdmin()) {
+      return true;
+    }
+    const factory = this.authService.getFactory()?.toLowerCase();
+    if (!factory) {
+      return false;
+    }
+    return requiredFactories.some((f) => f.toLowerCase() === factory);
   }
 
   hasRole(roles: string | string[]): boolean {
@@ -24,11 +44,11 @@ export class PermissionService {
     const requiredRoles = Array.isArray(roles) ? roles : [roles];
     const hasAccess = requiredRoles.some(role => userRoles.includes(role));
     
-    console.log('[PermissionService] Checking roles:', {
-      required: requiredRoles,
-      userHas: userRoles,
-      result: hasAccess
-    });
+    // console.log('[PermissionService] Checking roles:', {
+    //   required: requiredRoles,
+    //   userHas: userRoles,
+    //   result: hasAccess
+    // });
     
     return hasAccess;
   }

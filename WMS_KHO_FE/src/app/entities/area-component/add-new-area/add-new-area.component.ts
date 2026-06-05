@@ -13,6 +13,7 @@ import { ActivatedRoute, Router, RouterLinkWithHref } from '@angular/router';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AreaService, AreaPayload, TenantOption } from '../service/area-service.component';
+import { resolveEntitySaveErrorMessage } from '../../../services/api-error-message.util';
 import { UserInfoComponent } from '../../../user/user-info.component';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
@@ -296,8 +297,8 @@ export class AddNewAreaComponentComponent implements OnInit {
         },
         error: (err) => {
           console.error('Lỗi khi cập nhật kho:', err);
-          this.snackBar.open('Cập nhật thất bại!', 'Đóng', {
-            duration: 3000,
+          this.snackBar.open(resolveEntitySaveErrorMessage(err, 'area', true), 'Đóng', {
+            duration: 4000,
             horizontalPosition: 'right',
             verticalPosition: 'bottom',
             panelClass: ['snackbar-error', 'snackbar-position'],
@@ -318,8 +319,8 @@ export class AddNewAreaComponentComponent implements OnInit {
         },
         error: (err) => {
           console.error('Lỗi khi lưu kho:', err);
-          this.snackBar.open('Lưu thất bại!', 'Đóng', {
-            duration: 3000,
+          this.snackBar.open(resolveEntitySaveErrorMessage(err, 'area', false), 'Đóng', {
+            duration: 4000,
             horizontalPosition: 'right',
             verticalPosition: 'bottom',
             panelClass: ['snackbar-error', 'snackbar-position'],
@@ -334,8 +335,8 @@ export class AddNewAreaComponentComponent implements OnInit {
     if (!tenant) return null;
 
     return {
-      code: this.area.code,
-      name: this.area.name,
+      code: (this.area.code || '').trim(),
+      name: (this.area.name || '').trim(),
       company: tenant.company_name,
       factory: tenant.factory,
       tenant_id: tenant.id,
