@@ -7,10 +7,12 @@ import { NhapKhoService } from '../service/nhap-kho.service';
 import { BoxListDialogComponent } from '../dialog/box-list-dialog.component';
 import { StringLengthRule } from 'devextreme/common';
 import { ConfirmDialogComponent } from '../../chuyen-kho/dialog/confirm-dialog.component';
-import { forkJoin, Observable, of, switchMap } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import { AuthService } from '../../../../services/auth.service';
 import { PermissionService } from '../../../../services/permission.service';
 import { HasRoleDirective } from '../../../../services/has-role.directive';
+import { resolveApiErrorMessage } from '../../../../services/api-error-message.util';
 export interface DetailItem {
   id: number;
   // nếu không có trường warehouse_import_requirement_id trong API mới, có thể để optional
@@ -30,6 +32,7 @@ export interface DetailItem {
   scanStatus: 'Đã scan' | 'Chưa scan';
   listBox?: any[];             // giữ list_box nếu cần hiển thị chi tiết hộp
   confirmed?: boolean;
+  locationId?: number;
 }
 
 export interface BoxItem {
@@ -42,6 +45,7 @@ export interface BoxItem {
   scanBy: string;
   timeChecked: string;
   listSerialItem: string;
+  locationId?: number;
 }
 
 export interface MainInfo {
@@ -236,6 +240,7 @@ export class PheDuyetComponent implements OnInit {
               note: p.note ?? '',
               confirmed: p.confirmed,
               scanStatus: p.scan_status ? 'Đã scan' : 'Chưa scan',
+              locationId: this.parseLocationId(p.location_id ?? p.locationId),
               listBox,
             };
             this.detailList.push(mapped);
@@ -301,7 +306,92 @@ export class PheDuyetComponent implements OnInit {
       scanBy: b.scan_by ?? b.scanBy ?? '',
       timeChecked: rawTime ? this.formatDate(rawTime) : '-',
       listSerialItem: b.list_serial_items ?? b.listSerialItems ?? '',
+      locationId: this.parseLocationId(b.location_id ?? b.locationId),
     };
+  }
+
+  private parseLocationId(value: unknown): number | undefined {
+    const id = Number(value);
+    return id && !Number.isNaN(id) ? id : undefined;
+  }
+
+  private isPalletScannedForApprove(p: DetailItem | any): boolean {
+    return (
+      p.scan_status === true ||
+      ((p.scanStatus ?? '').toString().toLowerCase().includes('đã'))
+    );
+  }
+
+  /** Các mục sẽ confirm — location_id phải tồn tại trong GET /locations/minimal. */
+  private findItemsWithInvalidLocation(
+    validLocationIds: Set<number>
+  ): { code: string; kind: 'pallet' | 'thùng' }[] {
+    const invalid: { code: string; kind: 'pallet' | 'thùng' }[] = [];
+    const palletIdsInDetailList = new Set((this.detailList || []).map((p) => p.id));
+
+    for (const p of this.detailList || []) {
+      if (!this.isPalletScannedForApprove(p) || p.confirmed === true) {
+        continue;
+      }
+      const locId = this.parseLocationId(p.locationId ?? (p as any).location_id);
+      if (!locId || !validLocationIds.has(locId)) {
+        invalid.push({ code: p.palletCode || `Pallet #${p.id}`, kind: 'pallet' });
+      }
+    }
+
+    for (const b of this.boxList || []) {
+      if (
+        palletIdsInDetailList.has(b.importPalletId) ||
+        !this.isBoxScanned(b) ||
+        b.confirm === true
+      ) {
+        continue;
+      }
+      const locId = this.parseLocationId(b.locationId);
+      if (!locId || !validLocationIds.has(locId)) {
+        invalid.push({ code: b.boxCode || `Thùng #${b.id}`, kind: 'thùng' });
+      }
+    }
+
+    for (const p of this.detailList || []) {
+      if (!this.isPalletScannedForApprove(p)) {
+        continue;
+      }
+      const listBox = Array.isArray(p.listBox) ? p.listBox : [];
+      for (const b of listBox) {
+        if (!this.isBoxScanned(b) || b.confirmed === true) {
+          continue;
+        }
+        const locId = this.parseLocationId(b.location_id ?? b.locationId);
+        if (!locId || !validLocationIds.has(locId)) {
+          const code = b.box_code ?? b.boxCode ?? `Thùng #${b.id}`;
+          if (!invalid.some((item) => item.code === code && item.kind === 'thùng')) {
+            invalid.push({ code, kind: 'thùng' });
+          }
+        }
+      }
+    }
+
+    return invalid;
+  }
+
+  private openApproveConfirmDialog(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '420px',
+      data: {
+        title: 'Xác nhận phê duyệt',
+        message:
+          'Bạn có chắc chắn muốn phê duyệt yêu cầu nhập kho này? Hành động sẽ không thể hoàn tác.',
+        confirmText: 'Phê duyệt',
+        cancelText: 'Hủy',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.executeApprove();
+      }
+    });
   }
 
 
@@ -443,21 +533,46 @@ export class PheDuyetComponent implements OnInit {
     //   return;
     // }
 
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '420px',
-      data: {
-        title: 'Xác nhận phê duyệt',
-        message: 'Bạn có chắc chắn muốn phê duyệt yêu cầu nhập kho này? Hành động sẽ không thể hoàn tác.',
-        confirmText: 'Phê duyệt',
-        cancelText: 'Hủy'
-      }
-    });
+    this.nhapKhoService
+      .getMinimalLocations()
+      .pipe(
+        catchError((err) => {
+          console.error('[onConfirm] Lỗi tải danh sách location:', err);
+          this.snackBar.open(
+            'Không tải được danh sách kho. Vui lòng thử lại.',
+            'Đóng',
+            { duration: 4000, panelClass: ['snackbar-error'] }
+          );
+          return of(null);
+        })
+      )
+      .subscribe((locations) => {
+        if (!locations) {
+          return;
+        }
 
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed) {
-        this.executeApprove();
-      }
-    });
+        const validIds = new Set(
+          (locations || []).map((loc) => Number(loc.id)).filter((id) => !Number.isNaN(id))
+        );
+        const invalidItems = this.findItemsWithInvalidLocation(validIds);
+
+        if (invalidItems.length > 0) {
+          const preview = invalidItems
+            .slice(0, 3)
+            .map((item) => `${item.kind} ${item.code}`)
+            .join(', ');
+          const more =
+            invalidItems.length > 3 ? ` và ${invalidItems.length - 3} mục khác` : '';
+          this.snackBar.open(
+            `${preview}${more} chưa gán kho hợp lệ. Vui lòng bấm "Scan danh sách" để quét mã kho trước khi phê duyệt.`,
+            'Đóng',
+            { duration: 9000, panelClass: ['snackbar-error'] }
+          );
+          return;
+        }
+
+        this.openApproveConfirmDialog();
+      });
   }
 
 
@@ -621,11 +736,23 @@ export class PheDuyetComponent implements OnInit {
       apiCalls.push(this.nhapKhoService.updateContainerInventories(boxPayload));
     }
 
-    // Thực hiện patch progress -> confirm items -> update status
-    this.nhapKhoService.patchImportRequirement(this.importId, { box_scan_progress: progress })
+    // 1) Xác nhận pallet/thùng (confirmed) — phải thành công trước
+    // 2) Cập nhật box_scan_progress
+    // 3) Cập nhật trạng thái đơn phê duyệt
+    const confirmStep$: Observable<unknown> = apiCalls.length
+      ? forkJoin(apiCalls)
+      : of(undefined);
+
+    confirmStep$
       .pipe(
-        switchMap(() => apiCalls.length ? forkJoin(apiCalls) : of(null)),
-        switchMap(() => this.nhapKhoService.updateStatus(this.importId!, true, username))
+        switchMap(() =>
+          this.nhapKhoService.patchImportRequirement(this.importId!, {
+            box_scan_progress: progress,
+          })
+        ),
+        switchMap(() =>
+          this.nhapKhoService.updateStatus(this.importId!, true, username)
+        )
       )
       .subscribe({
         next: () => {
@@ -636,53 +763,15 @@ export class PheDuyetComponent implements OnInit {
           });
           this.loadData(this.importId!);
         },
-        error: (err) => {
+        error: (err: unknown) => {
           this.isProcessingApprove = false;
-          console.error('Lỗi khi phê duyệt hoặc cập nhật:', err);
-
-          const status = err?.status;
-          const errBody = err?.error;
-
-          // Nếu backend trả validation array (pydantic)
-          if (Array.isArray(errBody?.detail)) {
-            const messages = errBody.detail.map((d: any) => {
-              const loc = Array.isArray(d.loc) ? d.loc.join('.') : d.loc;
-              return loc ? `${loc}: ${d.msg}` : d.msg || JSON.stringify(d);
-            });
-            const userMsg = `Lỗi server (${status || '??'}): ${messages.join('; ')}`;
-            this.snackBar.open(userMsg, 'Đóng', { duration: 8000, panelClass: ['snackbar-error'] });
-            return;
-          }
-
-          // Kiểm tra duplicate/unique violation
-          const raw = JSON.stringify(errBody || err?.message || err);
-          if (raw.toLowerCase().includes('duplicate') || raw.toLowerCase().includes('unique') || raw.toLowerCase().includes('inventories_identifier_key')) {
-            this.snackBar.open('Phê duyệt thất bại: phát hiện mã trùng trong kho (identifier đã tồn tại). Vui lòng kiểm tra pallet/thùng.', 'Đóng', {
-              duration: 8000,
-              panelClass: ['snackbar-error'],
-            });
-            return;
-          }
-
-          // Các xử lý lỗi khác
-          if (typeof errBody?.detail === 'string' && errBody.detail.trim()) {
-            this.snackBar.open(`Lỗi server: ${errBody.detail}`, 'Đóng', { duration: 6000, panelClass: ['snackbar-error'] });
-            return;
-          }
-          if (typeof errBody?.message === 'string' && errBody.message.trim()) {
-            this.snackBar.open(`Lỗi server: ${errBody.message}`, 'Đóng', { duration: 6000, panelClass: ['snackbar-error'] });
-            return;
-          }
-          if (errBody && typeof errBody === 'object') {
-            const keys = Object.keys(errBody);
-            const firstVal = errBody[keys[0]];
-            const text = typeof firstVal === 'string' ? firstVal : JSON.stringify(firstVal);
-            this.snackBar.open(`Lỗi server (${status || '??'}): ${text}`, 'Đóng', { duration: 6000, panelClass: ['snackbar-error'] });
-            return;
-          }
-          const fallback = err?.message || `Phê duyệt thất bại (status ${status || '??'})`;
-          this.snackBar.open(fallback, 'Đóng', { duration: 6000, panelClass: ['snackbar-error'] });
-        }
+          console.error('Lỗi khi phê duyệt:', err);
+          this.snackBar.open(
+            resolveApiErrorMessage(err, 'Phê duyệt thất bại'),
+            'Đóng',
+            { duration: 8000, panelClass: ['snackbar-error'] }
+          );
+        },
       });
   }
 

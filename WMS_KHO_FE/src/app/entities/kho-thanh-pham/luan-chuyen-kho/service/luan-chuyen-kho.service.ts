@@ -93,9 +93,15 @@ export class LuanChuyenKhoService {
     return this.http.put<WarehouseTransferRequirement>(url, payload, this.withAuth());
   }
 
-  /** POST /warehouse-transfer/approvals/ — gửi phê duyệt đơn nháp */
-  submitForApproval(payload: WarehouseTransferRequirementPayload): Observable<WarehouseTransferRequirement> {
-    return this.http.post<WarehouseTransferRequirement>(this.approvalsUrl, payload, this.withAuth());
+  /** POST /warehouse-transfer/approvals/{id} — gửi phê duyệt đơn nháp */
+  submitForApproval(
+    payload: WarehouseTransferRequirementPayload & { id: number }
+  ): Observable<WarehouseTransferRequirement> {
+    return this.http.post<WarehouseTransferRequirement>(
+      `${this.approvalsUrl}${payload.id}`,
+      payload,
+      this.withAuth()
+    );
   }
 
   addScannedInventory(payload: WarehouseTransferInventoryPayload): Observable<any> {
@@ -132,9 +138,16 @@ export class LuanChuyenKhoService {
     );
   }
 
-  /** PUT /warehouse-transfer/approvals/ */
-  updateApproval(payload: WarehouseTransferRequirementPayload): Observable<WarehouseTransferRequirement> {
-    return this.http.put<WarehouseTransferRequirement>(this.approvalsUrl, payload, this.withAuth());
+  /** PUT /warehouse-transfer/approvals/{id} */
+  updateApproval(
+    requirementId: number,
+    payload: WarehouseTransferRequirementPayload
+  ): Observable<WarehouseTransferRequirement> {
+    return this.http.put<WarehouseTransferRequirement>(
+      `${this.approvalsUrl}${requirementId}`,
+      payload,
+      this.withAuth()
+    );
   }
 
   // ─── Scan tra cứu ───────────────────────────────────────────────────────────

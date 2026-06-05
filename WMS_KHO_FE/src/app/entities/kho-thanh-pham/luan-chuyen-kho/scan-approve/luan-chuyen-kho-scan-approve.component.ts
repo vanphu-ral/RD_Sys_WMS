@@ -381,7 +381,7 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
       destination_warehouse: this.rawRequirement.destination_warehouse,
       note: this.rawRequirement.note || '',
     };
-    this.luanChuyenKhoService.updateApproval(payload).subscribe({
+    this.luanChuyenKhoService.updateApproval(this.requirementId, payload).subscribe({
       next: () => {
         this.snackBar.open('Đã xác nhận phê duyệt đơn.', 'Đóng', { duration: 3000 });
         this.router.navigate(['../../list'], {
