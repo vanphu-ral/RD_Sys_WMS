@@ -95,10 +95,11 @@ export class LuanChuyenKhoService {
 
   /** POST /warehouse-transfer/approvals/{id} — gửi phê duyệt đơn nháp */
   submitForApproval(
-    payload: WarehouseTransferRequirementPayload & { id: number }
+    requirementId: number,
+    payload: WarehouseTransferRequirementPayload
   ): Observable<WarehouseTransferRequirement> {
     return this.http.post<WarehouseTransferRequirement>(
-      `${this.approvalsUrl}${payload.id}`,
+      `${this.approvalsUrl}${requirementId}`,
       payload,
       this.withAuth()
     );

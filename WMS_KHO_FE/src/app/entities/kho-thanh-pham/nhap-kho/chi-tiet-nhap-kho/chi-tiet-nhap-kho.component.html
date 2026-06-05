@@ -172,21 +172,20 @@
                         <!-- Boxes in pallet -->
                         <ng-container matColumnDef="boxesInPallet">
                             <th mat-header-cell *matHeaderCellDef>Số thùng</th>
-                            <td mat-cell *matCellDef="let item">{{ item.boxesInPallet ?? (item.listBox?.length ?? 0) }}
+                            <td mat-cell *matCellDef="let item">{{ item.boxesInPallet || item.listBox?.length || 0 }}
                             </td>
                         </ng-container>
 
                         <!-- Items per box -->
                         <ng-container matColumnDef="itemsPerBox">
                             <th mat-header-cell *matHeaderCellDef>Số sp/thùng</th>
-                            <td mat-cell *matCellDef="let item">{{ item.itemsPerBox ?? '-' }}</td>
+                            <td mat-cell *matCellDef="let item">{{ item.itemsPerBox || '-' }}</td>
                         </ng-container>
 
                         <!-- Total items -->
                         <ng-container matColumnDef="totalItems">
                             <th mat-header-cell *matHeaderCellDef>Tổng số SP</th>
-                            <td mat-cell *matCellDef="let item">{{ item.totalItems ?? ( (item.boxesInPallet ?? 0) *
-                                (item.itemsPerBox ?? 0) ) }}</td>
+                            <td mat-cell *matCellDef="let item">{{ item.totalItems || (item.boxesInPallet * item.itemsPerBox) }}</td>
                         </ng-container>
 
                         <!-- Item no / SKU -->
@@ -316,7 +315,7 @@
             </div>
 
             <!-- Empty state -->
-            <div class="empty-state" *ngIf="pagedBoxList.length === 0">
+            <div class="empty-state" *ngIf="boxList.length === 0">
                 <mat-icon>inbox</mat-icon>
                 <p>Chưa có dữ liệu thùng</p>
             </div>
@@ -350,7 +349,7 @@
                             <mat-icon>inventory_2</mat-icon>
                             Số Thùng
                         </div>
-                        <div class="code-value">{{ item.boxesInPallet ?? (item.listBox?.length ?? 0) }}</div>
+                        <div class="code-value">{{ item.boxesInPallet || item.listBox?.length || 0 }}</div>
                     </div>
                 </div>
 
@@ -381,11 +380,11 @@
                 <div class="pallet-info-row">
                     <div>
                         <strong>Số sp/thùng</strong>
-                        <span>{{ item.itemsPerBox ?? '-' }}</span>
+                        <span>{{ item.itemsPerBox || '-' }}</span>
                     </div>
                     <div>
                         <strong>Tổng SP</strong>
-                        <span>{{ item.totalItems ?? ((item.boxesInPallet ?? 0) * (item.itemsPerBox ?? 0)) }}</span>
+                        <span>{{ item.totalItems || (item.boxesInPallet * item.itemsPerBox) }}</span>
                     </div>
                 </div>
 
@@ -449,10 +448,18 @@
         </div>
 
         <!-- Pagination -->
-        <div class="pagination">
+        <div class="pagination" *ngIf="selectedTabIndex === 0 && totalPages > 1">
             <div class="pagination-numbers">
                 <button mat-button *ngFor="let page of [].constructor(totalPages); let i = index"
                     [class.active]="currentPage === (i+1)" (click)="onPageChange(i+1)">
+                    {{ i+1 }}
+                </button>
+            </div>
+        </div>
+        <div class="pagination" *ngIf="selectedTabIndex === 1 && totalBoxPages > 1">
+            <div class="pagination-numbers">
+                <button mat-button *ngFor="let page of [].constructor(totalBoxPages); let i = index"
+                    [class.active]="currentPageBox === (i+1)" (click)="onPageChangeBox(i+1)">
                     {{ i+1 }}
                 </button>
             </div>

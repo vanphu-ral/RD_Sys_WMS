@@ -26,6 +26,7 @@ export interface DetailItem {
 }
 
 export interface BoxItem {
+  id?: number;
   boxCode: string;
   quantity: number;
   note: string;
@@ -114,7 +115,10 @@ selectedTabIndex: number = 0;
 
   currentPageBox: number = 1;
   pageSizeBox: number = 10;
+  totalBoxItems: number = 0;
+  totalBoxPages: number = 0;
 
+  boxList: BoxItem[] = [];
   pagedBoxList: BoxItem[] = [];
 
   detailList: DetailItem[] = [];
@@ -184,22 +188,25 @@ selectedTabIndex: number = 0;
 
         // reset danh sách
         this.detailList = [];
+        this.boxList = [];
         this.pagedBoxList = [];
 
-        // Map pallets -> detailList hoặc pagedBoxList
+        // Map pallets -> detailList (tab pallet) và boxList (tab thùng từ list_box)
         pallets.forEach((p: any, index: number) => {
           const itemsPerBox = Number(p.quantity_per_box ?? p.quantityPerBox ?? 0);
+          const listBox = Array.isArray(p.list_box)
+            ? p.list_box
+            : Array.isArray(p.listBox)
+              ? p.listBox
+              : [];
           const boxesInPallet = Number(
-            p.num_box_per_pallet ?? p.numBoxPerPallet ??
-            (Array.isArray(p.list_box) ? p.list_box.length :
-              (Array.isArray(p.listBox) ? p.listBox.length : 0))
+            p.num_box_per_pallet ?? p.numBoxPerPallet ?? listBox.length
           );
-          const totalItems = Number(p.total_quantity ?? p.totalQuantity ?? (boxesInPallet * itemsPerBox));
+          const totalItems = Number(p.total_quantity ?? p.totalQuantity ?? boxesInPallet * itemsPerBox);
 
-          const serialPallet = p.serial_pallet ?? p.serialPallet ?? '';
+          const serialPallet = (p.serial_pallet ?? p.serialPallet ?? '').trim();
 
-          if (serialPallet && serialPallet.trim() !== '') {
-            // có mã pallet -> đưa vào detailList (tab pallet)
+          if (serialPallet) {
             const mapped: DetailItem = {
               id: Number(p.id ?? index),
               warehouse_import_requirement_id: undefined,
@@ -216,31 +223,23 @@ selectedTabIndex: number = 0;
               productionTeam: (info.production_team ?? '').toString().trim(),
               note: p.note ?? '',
               scanStatus: p.scan_status ? 'Đã scan' : 'Chưa scan',
-              listBox: Array.isArray(p.list_box) ? p.list_box : []
+              listBox,
             };
             this.detailList.push(mapped);
-          } else if (Array.isArray(p.list_box) && p.list_box.length > 0) {
-            // không có mã pallet nhưng có box -> đưa từng box vào pagedBoxList (tab thùng)
-            p.list_box.forEach((b: any) => {
-              const boxItem: BoxItem = {
-                boxCode: b.box_code ?? '',
-                quantity: Number(b.quantity ?? b.quantity_per_box ?? 0),
-                note: b.note ?? '',
-                importPalletId: Number(b.import_pallet_id ?? p.id ?? 0),
-                confirm: Boolean(b.confirmed),
-                scanBy: b.scan_by ?? '',
-                timeChecked: b.time_checked ?? '',
-                listSerialItem: b.list_serial_items ?? ''
-              };
-              this.pagedBoxList.push(boxItem);
-            });
           }
+
+          listBox.forEach((b: any) => {
+            this.boxList.push(this.mapBoxItem(b, p));
+          });
         });
 
         this.totalItems = this.detailList.length;
-        this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+        this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
+        this.totalBoxItems = this.boxList.length;
+        this.totalBoxPages = Math.ceil(this.totalBoxItems / this.pageSizeBox) || 1;
 
         this.setPagedData();
+        this.setPagedBoxData();
       },
       error: (err) => {
         console.error('[loadData] Lỗi khi lấy dữ liệu nhập kho:', err);
@@ -249,13 +248,30 @@ selectedTabIndex: number = 0;
   }
 
   formatDate(dateStr: string): string {
+    if (!dateStr) return '';
     const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
     const hh = String(d.getHours()).padStart(2, '0');
     const min = String(d.getMinutes()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+    return `${yyyy}/${mm}/${dd} ${hh}:${min}`;
+  }
+
+  private mapBoxItem(b: any, pallet?: any): BoxItem {
+    const rawTime = b.time_checked ?? b.timeChecked ?? '';
+    return {
+      id: b.id,
+      boxCode: b.box_code ?? b.boxCode ?? '',
+      quantity: Number(b.quantity ?? b.quantity_per_box ?? 0),
+      note: b.note ?? '',
+      importPalletId: Number(b.import_pallet_id ?? b.importPalletId ?? pallet?.id ?? 0),
+      confirm: Boolean(b.confirmed ?? b.confirm),
+      scanBy: b.scan_by ?? b.scanBy ?? '',
+      timeChecked: rawTime ? this.formatDate(rawTime) : '-',
+      listSerialItem: b.list_serial_items ?? b.listSerialItems ?? '',
+    };
   }
 
 
@@ -299,10 +315,22 @@ selectedTabIndex: number = 0;
     this.pagedDetailList = this.detailList.slice(startIndex, endIndex);
   }
 
+  setPagedBoxData(): void {
+    const startIndex = (this.currentPageBox - 1) * this.pageSizeBox;
+    const endIndex = startIndex + this.pageSizeBox;
+    this.pagedBoxList = this.boxList.slice(startIndex, endIndex);
+  }
+
   onPageChange(page: number): void {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
     this.setPagedData();
+  }
+
+  onPageChangeBox(page: number): void {
+    if (page < 1 || page > this.totalBoxPages) return;
+    this.currentPageBox = page;
+    this.setPagedBoxData();
   }
 
   onCancel(): void {

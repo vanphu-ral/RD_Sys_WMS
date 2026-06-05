@@ -9,7 +9,6 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
-import { RouterLinkWithHref } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -67,7 +66,6 @@ export interface Workshop {
     FormsModule,
     MatSelectModule,
     CommonModule,
-    RouterLinkWithHref,
     MatDatepickerModule,
     MatNativeDateModule,
   ],

@@ -1,3 +1,6 @@
+@use 'sass:color';
+@use '../luan-chuyen-kho-mobile' as *;
+
 // ─── Variables ───────────────────────────────────────────────────────────────
 $primary: #7c3aed;
 $primary-light: #ede9fe;
@@ -177,7 +180,7 @@ $row-hover: #f5f3ff;
     padding: 11px 12px;
     text-align: center;
     color: $text-muted;
-    border-bottom: 1px solid lighten($border-color, 3%);
+    border-bottom: 1px solid color.adjust($border-color, $lightness: 3%);
     white-space: nowrap;
 
     &.col-bold {
@@ -316,8 +319,6 @@ $row-hover: #f5f3ff;
   font-style: italic;
   font-size: 13px;
 }
-
-@import '../_luan-chuyen-kho-mobile.scss';
 
 @media (max-width: 768px) {
   .empty-row {
