@@ -20,6 +20,7 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { QuanLyKhoService } from '../service/quan-ly-kho.service.component';
+import { AuthService } from '../../../../services/auth.service';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { CameraDevice, Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -124,7 +125,8 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private snackBar: MatSnackBar,
     private http: HttpClient,
-    private quanLyKhoService: QuanLyKhoService
+    private quanLyKhoService: QuanLyKhoService,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
@@ -465,7 +467,7 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
           capNhatBoi: res.updated_by,
           tenSanPham: res.material_name,
           location: `Location #${res.location_id}`,
-          scanBoi: res.updated_by,
+          scanBoi: this.authService.getUsername(),
           tenKhachHang: '',
           area: '',
           soLuongGoc: res.initial_quantity?.toString(),
@@ -525,7 +527,7 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
     const payload = {
       available_quantity: this.updatedQuantity,
       inventory_identifier: this.palletScan,
-      updated_by: 'admin',
+      updated_by: this.authService.getUsername(),
     };
 
     this.quanLyKhoService.updateInventoryQuantity(payload).subscribe({
@@ -578,8 +580,8 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
           console.log(`Đã chuyển kho cho ${item.code}`);
         },
         error: (err) => {
-          console.error(`Lỗi chuyển kho cho ${item.code}:`, err);
-          this.snackBar.open(`Lỗi chuyển kho cho ${item.code}`, 'Đóng', {
+          console.error(`Lỗi chuyển vị trí cho ${item.code}:`, err);
+          this.snackBar.open(`Lỗi chuyển vị trí cho ${item.code}`, 'Đóng', {
             duration: 3000,
             panelClass: ['snackbar-error'],
           });
@@ -587,7 +589,7 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
       });
     }
 
-    this.snackBar.open('Đã gửi yêu cầu chuyển kho!', 'Đóng', {
+    this.snackBar.open('Chuyển vị trí thành công!', 'Đóng', {
       duration: 3000,
       panelClass: ['snackbar-success'],
     });
@@ -627,7 +629,7 @@ export class ScanCheckDialogComponent implements OnInit, OnDestroy {
         quantity: this.productInfo.soLuongHienTai || '',
         location: this.locationScan,
         scannedAt: new Date().toLocaleString(),
-        scannedBy: 'Admin',
+        scannedBy: this.authService.getUsername(),
       };
 
       this.scannedItems.push(newItem);

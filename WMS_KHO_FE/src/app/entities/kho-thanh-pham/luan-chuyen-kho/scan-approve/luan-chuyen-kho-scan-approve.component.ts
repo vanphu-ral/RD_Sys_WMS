@@ -16,6 +16,7 @@ import {
   toDisplayScannedItem,
 } from '../service/luan-chuyen-kho-scan.mapper';
 import { forkJoin, Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ConfirmDialogComponent } from '../../chuyen-kho/dialog/confirm-dialog.component';
 import {
   isMobileViewport,
@@ -119,6 +120,26 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
   goToPage(page: number): void {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
+  }
+
+  get verifiedCount(): number {
+    return this.scannedList.filter((item) => item.verified).length;
+  }
+
+  get totalScanItems(): number {
+    return this.scannedList.length;
+  }
+
+  /** Chỉ cho phê duyệt khi đã scan xác nhận đủ mọi mã trong danh sách */
+  get canApprove(): boolean {
+    return this.totalScanItems > 0 && this.verifiedCount === this.totalScanItems;
+  }
+
+  get approveProgressLabel(): string {
+    if (this.totalScanItems === 0) {
+      return 'Chưa có mã cần xác nhận';
+    }
+    return `Đã xác nhận ${this.verifiedCount}/${this.totalScanItems} mã`;
   }
 
   // ── Scan ────────────────────────────────────────────────────────────────────
@@ -293,15 +314,23 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
 
     if (this.tryMarkVerifiedBySerial(value, this.scanMode)) {
       this.scanValue = '';
+      this.snackBar.open('✓ Đã xác nhận mã trong danh sách.', '', { duration: 2000 });
       return;
     }
 
     this.activeScanRequests++;
     this.resolveScanReference(value, this.scanMode).subscribe({
       next: (scanRef) => {
-        this.tryMarkVerifiedByRef(scanRef, this.scanMode);
+        const verified = this.tryMarkVerifiedByRef(scanRef, this.scanMode);
         this.scanValue = '';
         this.activeScanRequests = Math.max(0, this.activeScanRequests - 1);
+        if (verified) {
+          this.snackBar.open('✓ Đã xác nhận mã trong danh sách.', '', { duration: 2000 });
+        } else {
+          this.snackBar.open('Mã không có trong danh sách đơn hoặc đã được xác nhận.', 'Đóng', {
+            duration: 3000,
+          });
+        }
       },
       error: (err) => {
         console.error('[LuanChuyenKhoScanApprove] Lỗi tra cứu mã scan:', err);
@@ -366,11 +395,19 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
   }
 
   onApprove(): void {
+    if (!this.canApprove) {
+      this.snackBar.open(
+        `Vui lòng scan xác nhận đủ tất cả mã (${this.verifiedCount}/${this.totalScanItems}).`,
+        'Đóng',
+        { duration: 4000 }
+      );
+      return;
+    }
     if (!this.requirementId || !this.rawRequirement) {
       this.snackBar.open('Không xác định được đơn để phê duyệt.', 'Đóng', { duration: 3000 });
       return;
     }
-    const payload: WarehouseTransferRequirementPayload = {
+    const syncPayload: WarehouseTransferRequirementPayload = {
       id: this.requirementId,
       requirement_code: this.rawRequirement.requirement_code,
       number_of_pallet: this.rawRequirement.number_of_pallet,
@@ -381,22 +418,38 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
       destination_warehouse: this.rawRequirement.destination_warehouse,
       note: this.rawRequirement.note || '',
     };
-    this.luanChuyenKhoService.updateApproval(this.requirementId, payload).subscribe({
-      next: () => {
-        this.snackBar.open('Đã xác nhận phê duyệt đơn.', 'Đóng', { duration: 3000 });
-        this.router.navigate(['../../list'], {
-          relativeTo: this.route,
-          queryParams: { mode: 'approve' },
-        });
-      },
-      error: (err) => {
-        console.error('[LuanChuyenKhoScanApprove] Lỗi phê duyệt đơn:', err);
-        this.snackBar.open('Không thể phê duyệt đơn.', 'Đóng', { duration: 3000 });
-      },
-    });
+
+    this.luanChuyenKhoService
+      .updateApproval(this.requirementId, syncPayload)
+      .pipe(
+        switchMap(() =>
+          this.luanChuyenKhoService.updateRequirementById(this.requirementId!, syncPayload)
+        )
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Đã xác nhận phê duyệt đơn.', 'Đóng', { duration: 3000 });
+          this.router.navigate(['../../list'], {
+            relativeTo: this.route,
+            queryParams: { mode: 'approve' },
+          });
+        },
+        error: (err) => {
+          console.error('[LuanChuyenKhoScanApprove] Lỗi phê duyệt đơn:', err);
+          this.snackBar.open('Không thể phê duyệt đơn.', 'Đóng', { duration: 3000 });
+        },
+      });
   }
 
   confirmAndApprove(): void {
+    if (!this.canApprove) {
+      this.snackBar.open(
+        `Vui lòng scan xác nhận đủ tất cả mã trong danh sách (${this.verifiedCount}/${this.totalScanItems}).`,
+        'Đóng',
+        { duration: 4000 }
+      );
+      return;
+    }
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '420px',
       data: { message: 'Bạn có chắc chắn muốn xác nhận phê duyệt đơn này không?' },

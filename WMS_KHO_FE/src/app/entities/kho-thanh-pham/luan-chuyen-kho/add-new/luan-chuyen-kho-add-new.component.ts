@@ -526,7 +526,7 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
               ...this.buildPayload('Chờ duyệt'),
               id: draftRes.id,
             };
-            this.luanChuyenKhoService.submitForApproval(draftRes.id, approvePayload).subscribe({
+            this.luanChuyenKhoService.submitForApproval(approvePayload).subscribe({
               next: () => {
                 this.snackBar.open('Đã gửi đơn chuyển kho để phê duyệt.', 'Đóng', { duration: 3000 });
                 this.router.navigate(['../list'], { relativeTo: this.route });

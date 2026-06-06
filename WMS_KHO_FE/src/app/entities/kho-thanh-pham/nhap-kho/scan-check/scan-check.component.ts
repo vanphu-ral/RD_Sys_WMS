@@ -143,6 +143,7 @@ export class ScanCheckComponent implements OnInit {
   @ViewChild(ZXingScannerComponent) scanner!: ZXingScannerComponent;
 
   locations: { id: number; code: string }[] = [];
+  private locationsLoaded = false;
   availableDevices: MediaDeviceInfo[] = [];
   currentStream: MediaStream | null = null;
   formats: BarcodeFormat[] = [
@@ -168,19 +169,22 @@ export class ScanCheckComponent implements OnInit {
   ngOnInit(): void {
     this.checkIfMobile();
 
-    this.route.params.subscribe((params) => {
-      this.requestId = +params['id'];
-    });
-
     this.route.queryParams.subscribe((queryParams) => {
       this.scanMode = queryParams['mode'] || 'all';
       this.targetPalletId = queryParams['palletId'] ? +queryParams['palletId'] : undefined;
       this.targetPalletCode = queryParams['palletCode'] || '';
     });
 
-    if (this.requestId) {
+    this.route.params.subscribe((params) => {
+      const nextId = +(params['id'] || 0);
+      if (!nextId) return;
+      const isNewPage = this.requestId !== nextId;
+      this.requestId = nextId;
+      if (isNewPage) {
+        this.locationsLoaded = false;
+      }
       this.loadScanPageData();
-    }
+    });
     // this.initCamera();
   }
 
@@ -195,18 +199,23 @@ export class ScanCheckComponent implements OnInit {
     if (!this.requestId) return;
 
     this.isLoading = true;
+    const locations$ = this.locationsLoaded
+      ? of(this.locations)
+      : this.nhapKhoService.getMinimalLocations().pipe(
+          catchError((err) => {
+            console.error('Lỗi khi load locations:', err);
+            this.snackBar.open('Không thể tải danh sách location!', 'Đóng', { duration: 3000 });
+            return of([] as { id: number; code: string }[]);
+          })
+        );
+
     forkJoin({
-      locations: this.nhapKhoService.getMinimalLocations().pipe(
-        catchError((err) => {
-          console.error('Lỗi khi load locations:', err);
-          this.snackBar.open('Không thể tải danh sách location!', 'Đóng', { duration: 3000 });
-          return of([] as { id: number; code: string }[]);
-        })
-      ),
+      locations: locations$,
       importReq: this.nhapKhoService.getImportRequirement(this.requestId),
     }).subscribe({
       next: ({ locations, importReq }) => {
         this.locations = locations || [];
+        this.locationsLoaded = true;
         this.importRequirementInfo = importReq?.general_info || importReq?.data?.general_info;
 
         if (!this.importRequirementInfo) {
@@ -809,6 +818,7 @@ export class ScanCheckComponent implements OnInit {
 
   ngOnDestroy(): void {
     this.stopScanning();
+    this.locationsLoaded = false;
   }
 
   performScan(): void {

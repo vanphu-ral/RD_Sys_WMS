@@ -7,7 +7,8 @@
             </button>
             <h1 class="page-title">Xác nhận phê duyệt đơn</h1>
         </div>
-        <button class="btn-submit" (click)="confirmAndApprove()">
+        <button class="btn-submit" [disabled]="!canApprove" [title]="approveProgressLabel"
+            (click)="confirmAndApprove()">
             <span class="material-icons">check</span>
             Xác nhận phê duyệt
         </button>
@@ -89,6 +90,7 @@
             <div class="section-header">
                 <span class="material-icons section-icon">grid_view</span>
                 <h2 class="section-title">Danh sách đã scan</h2>
+                <span class="verify-progress" [class.verify-progress--done]="canApprove">{{ approveProgressLabel }}</span>
             </div>
             <div class="section-divider"></div>
 

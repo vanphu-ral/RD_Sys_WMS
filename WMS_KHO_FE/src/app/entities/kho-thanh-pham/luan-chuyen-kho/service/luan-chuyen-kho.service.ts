@@ -93,13 +93,24 @@ export class LuanChuyenKhoService {
     return this.http.put<WarehouseTransferRequirement>(url, payload, this.withAuth());
   }
 
-  /** POST /warehouse-transfer/approvals/{id} — gửi phê duyệt đơn nháp */
-  submitForApproval(
+  /** PUT /warehouse-transfer/{id} — cập nhật đơn luân chuyển gốc theo id */
+  updateRequirementById(
     requirementId: number,
+    payload: Partial<WarehouseTransferRequirementPayload>
+  ): Observable<WarehouseTransferRequirement> {
+    return this.http.put<WarehouseTransferRequirement>(
+      `${this.baseUrl}${requirementId}`,
+      payload,
+      this.withAuth()
+    );
+  }
+
+  /** POST /warehouse-transfer/approvals/ — tạo đơn phê duyệt (truyền cùng id đơn vừa tạo trong body) */
+  submitForApproval(
     payload: WarehouseTransferRequirementPayload
   ): Observable<WarehouseTransferRequirement> {
     return this.http.post<WarehouseTransferRequirement>(
-      `${this.approvalsUrl}${requirementId}`,
+      this.approvalsUrl,
       payload,
       this.withAuth()
     );
