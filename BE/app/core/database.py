@@ -38,8 +38,15 @@ Base = declarative_base()
 # HÀM GET_DB BẤT ĐỒNG BỘ (Main WMS Database)
 async def get_db():
     async with AsyncSessionLocal() as db:
-        yield db
+        try:
+            yield db
+        except Exception:
 
+            await db.rollback()
+            raise
+        finally:
+
+            await db.close()
 
 # HÀM GET_ASYNC_DB (Alias for get_db)
 async def get_async_db():

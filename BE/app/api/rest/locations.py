@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from pydantic import ValidationError
 # from sqlalchemy.orm import Session
 
+from app.core.exceptions import NotFoundException
 from app.core.database import get_db
 from app.core.security import get_current_user
 
@@ -56,33 +57,19 @@ async def get_locations(
 async def create_location(
     location_data: dict = Body(..., description="Location data for creation"),
     db: AsyncSession = Depends(get_db),
-    #current_user: str = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
-    """Create a new location with validation"""
     try:
+        # Validate required fields before calling service
         required_fields = ["code", "name", "area_id", "barcode", "updated_by"]
-        missing_fields = []
-        
-        for field in required_fields:
-            if not location_data.get(field):
-                missing_fields.append(field)
-        
+        missing_fields = [field for field in required_fields if not location_data.get(field)]
         if missing_fields:
             raise HTTPException(
                 status_code=400,
                 detail=f"Missing required fields: {', '.join(missing_fields)}"
             )
         
-        location_dict = location_data.copy()
-        
-        if "is_active" not in location_dict:
-            location_dict["is_active"] = True
-        
-
-        if "parent_location_id" not in location_dict:
-            location_dict["parent_location_id"] = None
-        
-        location = await LocationService.create_location_async(db, location_dict)
+        location = await LocationService.create_location_async(db, location_data)
         return location
     except ValidationError as e:
         # Convert Pydantic validation errors to readable format

@@ -746,16 +746,22 @@ class LocationService:
         """Create new location (async version)"""
         try:
             async with db.begin():
-                # Validate that area_id exists if provided
                 area_id = location_data.get('area_id')
                 if area_id is not None:
                     try:
-                        await AreaService.get_area_by_id(db, area_id)
+                        area = await AreaService.get_area_by_id(db, area_id)
+                        location_data["tenant_id"] = area.tenant_id
                     except NotFoundException:
                         raise HTTPException(
                             status_code=400,
                             detail=f"Area with ID {area_id} does not exist"
                         )
+                
+                if "is_active" not in location_data:
+                    location_data["is_active"] = True
+                
+                if "parent_location_id" not in location_data:
+                    location_data["parent_location_id"] = None
                 
                 location = Location(**location_data)
                 db.add(location)
@@ -763,11 +769,10 @@ class LocationService:
                 await db.refresh(location)
                 return location
         except Exception as e:
-            # Ensure we always provide a meaningful error message
             if isinstance(e, HTTPException):
                 raise
             else:
-                error_msg = str(e) if str(e).strip() else f"Database error while creating location"
+                error_msg = str(e) if str(e).strip() else "Database error while creating location"
                 raise HTTPException(status_code=400, detail=error_msg)
 
     @staticmethod
