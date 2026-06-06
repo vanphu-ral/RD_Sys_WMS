@@ -504,7 +504,7 @@ async def create_requirement_approval(
 #     )
 #     return requirements
 
-@router.get("/approvals/{requirement_approval_id}", response_model=WarehouseTransferApproval)
+@router.get("/approvals/{requirement_id}", response_model=WarehouseTransferApproval)
 async def read_requirement_approval(
     requirement_id: int = Path(..., gt=0, description="ID của requirement"),
     db: AsyncSession = Depends(get_db),
