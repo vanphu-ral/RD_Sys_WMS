@@ -1,4 +1,6 @@
+from http.client import HTTPException
 from typing import List, Optional
+from app.modules.inventory.service import AreaService
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, select, func
@@ -10,6 +12,8 @@ from app.modules.warehouse_transfer.schemas import (
     WarehouseTransferInventoryCreate, WarehouseTransferInventoryUpdate, WarehouseTransferApprovalBase, WarehouseTransferApprovalCreate, WarehouseTransferApprovalUpdate
 )
 from app.modules.inventory.models import Inventory, ImportPalletInfo
+
+from app.core.exceptions import NotFoundException, HTTPException
 
 async def get_requirement(
     db: AsyncSession, 
@@ -513,13 +517,21 @@ async def delete_inventory(
 async def create_requirement_approval(
     db: AsyncSession, 
     requirement: WarehouseTransferApprovalCreate,
-    tenant_id: str,
     created_by: str
 ) -> WarehouseTransferGCRequirementApprove:
-    """Tạo requirement mới, tự động fill tenant_id và created_by từ auth"""
+
+    area_id = requirement.get('destination_warehouse')
+    if area_id is not None:
+        try:
+            area = await AreaService.get_area_by_id(db, area_id)
+            requirement["tenant_id"] = area.tenant_id
+        except NotFoundException:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Area with ID {area_id} does not exist"
+            )
     db_requirement = WarehouseTransferGCRequirementApprove(
         **requirement.dict(),
-        tenant_id=tenant_id,
         created_by=created_by
     )
     db.add(db_requirement)

@@ -475,38 +475,34 @@ async def create_requirement_approval(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Tạo mới warehouse transfer requirement approval.
-    Yêu cầu authentication.
-    Tự động gán tenant_id, created_by từ user hiện tại.
-    """
-    tenant_id = current_user.get("branch") or "admin"
+
+    # tenant_id = requirement.tenant_id
     created_by = current_user.get("preferred_username")
     return await crud.create_requirement_approval(
         db=db,
         requirement=requirement,
-        tenant_id=tenant_id,
+        # tenant_id=tenant_id,
         created_by=created_by
     )
 
 
-@router.get("/approvals/{requirement_approval_id}", response_model=WarehouseTransferApproval)
-async def read_requirement_approval(
-    requirement_id: int = Path(..., gt=0, description="ID của requirement"),
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
+# @router.get("/approvals/{requirement_approval_id}", response_model=WarehouseTransferApproval)
+# async def read_requirement_approval(
+#     requirement_id: int = Path(..., gt=0, description="ID của requirement"),
+#     db: AsyncSession = Depends(get_db),
+#     current_user: User = Depends(get_current_user)
+# ):
     
-    requirements = await crud.get_requirement_approvals(
-        db=db,
-        # tenant_id = current_user.get("branch"),
-        skip=skip,
-        limit=limit,
-        status=status,
-        source_warehouse=source_warehouse,
-        destination_warehouse=destination_warehouse
-    )
-    return requirements
+#     requirements = await crud.get_requirement_approvals(
+#         db=db,
+#         # tenant_id = current_user.get("branch"),
+#         skip=skip,
+#         limit=limit,
+#         status=status,
+#         source_warehouse=source_warehouse,
+#         destination_warehouse=destination_warehouse
+#     )
+#     return requirements
 
 @router.get("/approvals/{requirement_approval_id}", response_model=WarehouseTransferApproval)
 async def read_requirement_approval(
