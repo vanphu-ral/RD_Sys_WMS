@@ -34,6 +34,7 @@ async def get_requirement(
 
 async def get_requirements(
     db: AsyncSession,
+    tenant_id: str,
     skip: int = 0,
     limit: int = 100,
     status: Optional[str] = None,
@@ -42,8 +43,8 @@ async def get_requirements(
 ) -> List[WarehouseTransferGCRequirement]:
     """Lấy danh sách requirements bằng cú pháp Async chuẩn mã nguồn SQLAlchemy"""
     statement = select(WarehouseTransferGCRequirement).where(
-        and_(
-        )
+        WarehouseTransferGCRequirement.tenant_id == tenant_id,
+        WarehouseTransferGCRequirement.deleted_at.is_(None)
     )
     
     if status:
@@ -563,16 +564,18 @@ async def get_requirement_approval(
 
 async def get_requirement_approvals(
     db: AsyncSession,
+    tenant_id: str,
     skip: int = 0,
     limit: int = 100,
     status: Optional[str] = None,
     source_warehouse: Optional[str] = None,
-    destination_warehouse: Optional[str] = None
+    destination_warehouse: Optional[str] = None,
+    
 ) -> List[WarehouseTransferGCRequirementApprove]:
     """Lấy danh sách requirement approvals"""
     statement = select(WarehouseTransferGCRequirementApprove).where(
-        and_(
-        )
+        WarehouseTransferGCRequirementApprove.tenant_id == tenant_id,
+        WarehouseTransferGCRequirementApprove.deleted_at.is_(None)
     )
     
     if status:

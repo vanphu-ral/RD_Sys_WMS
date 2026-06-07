@@ -35,13 +35,13 @@ async def read_requirements(
     status: Optional[str] = Query(None, description="Lọc theo trạng thái"),
     source_warehouse: Optional[str] = Query(None, description="Lọc theo kho nguồn"),
     destination_warehouse: Optional[str] = Query(None, description="Lọc theo kho đích"),
-    db: Session = Depends(get_db)
-    # current_user: User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     
     requirements = await crud.get_requirements(
         db=db,
-        tenant_id=current_user.branch,
+        tenant_id=current_user.get("factory"),
         skip=skip,
         limit=limit,
         status=status,
@@ -360,7 +360,7 @@ async def read_inventory(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     inventory = await crud.get_inventory(
         db=db, 
         inventory_id=inventory_id, 
@@ -385,7 +385,7 @@ async def create_inventory(
     Yêu cầu authentication.
     Tự động gán created_by từ user hiện tại.
     """
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     return await crud.create_inventory(
         db=db,
         inventory=inventory,
