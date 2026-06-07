@@ -132,7 +132,7 @@ async def update_requirement(
         requirement_id=requirement_id,
         requirement_update=requirement_update,
         tenant_id=tenant_id,
-        updated_by=current_user.preferred_username
+        updated_by=current_user.get("preferred_username")
     )
     if not updated_requirement:
         raise HTTPException(
@@ -296,7 +296,7 @@ async def update_pallet(
         pallet_id=pallet_id,
         pallet_update=pallet_update,
         tenant_id=tenant_id,
-        updated_by=current_user.preferred_username
+        updated_by=current_user.get("preferred_username")
     )
     if not updated_pallet:
         raise HTTPException(
@@ -412,7 +412,7 @@ async def update_inventory(
         inventory_id=inventory_id,
         inventory_update=inventory_update,
         tenant_id=tenant_id,
-        updated_by=current_user.preferred_username
+        updated_by=current_user.get("preferred_username")
     )
     if not updated_inventory:
         raise HTTPException(
@@ -542,7 +542,7 @@ async def update_requirement_approval(
         requirement_id=requirement_id,
         requirement_update=requirement_approval_update,
         tenant_id=tenant_id,
-        updated_by=current_user.preferred_username
+        updated_by=current_user.get("preferred_username")
     )
     if not updated_requirement:
         raise HTTPException(
