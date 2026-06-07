@@ -520,18 +520,21 @@ async def create_requirement_approval(
     created_by: str
 ) -> WarehouseTransferGCRequirementApprove:
 
-    area_id = requirement.get('destination_warehouse')
+    requirement_data = requirement.dict()
+    area_id = requirement_data.get('destination_warehouse')
     if area_id is not None:
         try:
             area = await AreaService.get_area_by_id(db, area_id)
-            requirement["tenant_id"] = area.tenant_id
+            requirement_data["tenant_id"] = area.tenant_id
         except NotFoundException:
             raise HTTPException(
                 status_code=400,
                 detail=f"Area with ID {area_id} does not exist"
             )
+    else:
+        requirement_data["tenant_id"] = None
     db_requirement = WarehouseTransferGCRequirementApprove(
-        **requirement.dict(),
+        **requirement_data,
         created_by=created_by
     )
     db.add(db_requirement)

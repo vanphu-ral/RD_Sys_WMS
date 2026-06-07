@@ -41,7 +41,7 @@ async def read_requirements(
     
     requirements = await crud.get_requirements(
         db=db,
-        # tenant_id = current_user.get("branch"),
+        tenant_id=current_user.branch,
         skip=skip,
         limit=limit,
         status=status,
@@ -61,7 +61,7 @@ async def read_requirement(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     requirement = await crud.get_requirement(
         db=db, 
         requirement_id=requirement_id, 
@@ -85,7 +85,7 @@ async def read_detail_requirement(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     requirement = await crud.get_requirement(
         db=db, 
         requirement_id=requirement_id, 
@@ -114,8 +114,8 @@ async def create_requirement(
     return await crud.create_requirement(
         db=db,
         requirement=requirement,
-        tenant_id= current_user.get("branch") or "admin",
-        created_by=current_user.get("preferred_username") 
+        tenant_id= current_user.get("factory"),
+        created_by=current_user.get("preferred_username")
     )
 
 @router.put("/{requirement_id}", response_model=WarehouseTransfer)
@@ -126,13 +126,13 @@ async def update_requirement(
     current_user: User = Depends(get_current_user)
 ):
     
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     updated_requirement = await crud.update_requirement(
         db=db,
         requirement_id=requirement_id,
         requirement_update=requirement_update,
         tenant_id=tenant_id,
-        updated_by=current_user.get("preferred_username")
+        updated_by=current_user.preferred_username
     )
     if not updated_requirement:
         raise HTTPException(
@@ -152,7 +152,7 @@ async def read_requirement_with_details(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     result = await crud.get_requirement_with_details(
         db=db, 
         requirement_id=requirement_id, 
@@ -176,7 +176,7 @@ async def read_requirement_approval_with_details(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     result = await crud.get_requirement_approval_with_details(
         db=db, 
         requirement_id=requirement_id, 
@@ -201,7 +201,7 @@ async def delete_requirement(
     Tự động gán deleted_by từ user hiện tại.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     deleted_requirement = await crud.delete_requirement(
         db=db,
         requirement_id=requirement_id,
@@ -244,7 +244,7 @@ async def read_pallet(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     pallet = await crud.get_pallet(
         db=db, 
         pallet_id=pallet_id, 
@@ -269,7 +269,7 @@ async def create_pallet(
     Yêu cầu authentication.
     Tự động gán created_by từ user hiện tại.
     """
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     return await crud.create_pallet(
         db=db,
         pallet=pallet,
@@ -290,13 +290,13 @@ async def update_pallet(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     updated_pallet = await crud.update_pallet(
         db=db,
         pallet_id=pallet_id,
         pallet_update=pallet_update,
         tenant_id=tenant_id,
-        updated_by=current_user.get("preferred_username")
+        updated_by=current_user.preferred_username
     )
     if not updated_pallet:
         raise HTTPException(
@@ -360,7 +360,7 @@ async def read_inventory(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     inventory = await crud.get_inventory(
         db=db, 
         inventory_id=inventory_id, 
@@ -385,7 +385,7 @@ async def create_inventory(
     Yêu cầu authentication.
     Tự động gán created_by từ user hiện tại.
     """
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     return await crud.create_inventory(
         db=db,
         inventory=inventory,
@@ -406,13 +406,13 @@ async def update_inventory(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     updated_inventory = await crud.update_inventory(
         db=db,
         inventory_id=inventory_id,
         inventory_update=inventory_update,
         tenant_id=tenant_id,
-        updated_by=current_user.get("preferred_username")
+        updated_by=current_user.preferred_username
     )
     if not updated_inventory:
         raise HTTPException(
@@ -433,7 +433,7 @@ async def delete_inventory(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     deleted_inventory = await crud.delete_inventory(
         db=db,
         inventory_id=inventory_id
@@ -454,12 +454,12 @@ async def read_requirement_approvals(
     source_warehouse: Optional[str] = Query(None, description="Lọc theo kho nguồn"),
     destination_warehouse: Optional[str] = Query(None, description="Lọc theo kho đích"),
     db: AsyncSession = Depends(get_db),
-    # current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     
     requirements = await crud.get_requirement_approvals(
         db=db,
-        # tenant_id = current_user.get("branch"),
+        tenant_id=current_user.get("factory"),
         skip=skip,
         limit=limit,
         status=status,
@@ -495,7 +495,7 @@ async def create_requirement_approval(
     
 #     requirements = await crud.get_requirement_approvals(
 #         db=db,
-#         # tenant_id = current_user.get("branch"),
+#         # tenant_id = current_user.branch,
 #         skip=skip,
 #         limit=limit,
 #         status=status,
@@ -515,7 +515,7 @@ async def read_requirement_approval(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     requirement = await crud.get_requirement_approval(
         db=db, 
         requirement_id=requirement_id, 
@@ -536,13 +536,13 @@ async def update_requirement_approval(
     current_user: User = Depends(get_current_user)
 ):
     
-    tenant_id = current_user.get("branch")
+    tenant_id = current_user.branch
     updated_requirement = await crud.update_requirement_approval(
         db=db,
         requirement_id=requirement_id,
         requirement_update=requirement_approval_update,
         tenant_id=tenant_id,
-        updated_by=current_user.get("preferred_username")
+        updated_by=current_user.preferred_username
     )
     if not updated_requirement:
         raise HTTPException(

@@ -198,9 +198,16 @@ class WarehouseTransferApprovalBase(BaseModel):
     destination_warehouse: int = Field(..., gt=0)
     note: Optional[str] = Field(None, max_length=255)
 
-class WarehouseTransferApprovalCreate(WarehouseTransferApprovalBase):
-    # Không bao gồm created_by, updated_by, tenant_id - sẽ được fill từ auth
-    pass
+class WarehouseTransferApprovalCreate(BaseModel):
+    id: int
+    requirement_code: str = Field(..., max_length=30)
+    number_of_pallet: int = Field(..., ge=0)
+    number_of_box: int = Field(..., ge=0)
+    total_quantity: int = Field(..., ge=0)
+    status: str = Field(..., max_length=50)
+    source_warehouse: int = Field(..., gt=0)
+    destination_warehouse: int = Field(..., gt=0)
+    note: Optional[str] = Field(None, max_length=255)
 
 class WarehouseTransferApprovalUpdate(BaseModel):
     requirement_code: Optional[str] = Field(None, max_length=30)
