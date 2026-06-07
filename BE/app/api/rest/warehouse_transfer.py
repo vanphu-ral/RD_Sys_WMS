@@ -61,7 +61,7 @@ async def read_requirement(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     requirement = await crud.get_requirement(
         db=db, 
         requirement_id=requirement_id, 
@@ -85,7 +85,7 @@ async def read_detail_requirement(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     requirement = await crud.get_requirement(
         db=db, 
         requirement_id=requirement_id, 
@@ -126,7 +126,7 @@ async def update_requirement(
     current_user: User = Depends(get_current_user)
 ):
     
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     updated_requirement = await crud.update_requirement(
         db=db,
         requirement_id=requirement_id,
@@ -152,7 +152,7 @@ async def read_requirement_with_details(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     result = await crud.get_requirement_with_details(
         db=db, 
         requirement_id=requirement_id, 
@@ -176,7 +176,7 @@ async def read_requirement_approval_with_details(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     result = await crud.get_requirement_approval_with_details(
         db=db, 
         requirement_id=requirement_id, 
@@ -201,7 +201,7 @@ async def delete_requirement(
     Tự động gán deleted_by từ user hiện tại.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     deleted_requirement = await crud.delete_requirement(
         db=db,
         requirement_id=requirement_id,
@@ -244,7 +244,7 @@ async def read_pallet(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     pallet = await crud.get_pallet(
         db=db, 
         pallet_id=pallet_id, 
@@ -269,7 +269,7 @@ async def create_pallet(
     Yêu cầu authentication.
     Tự động gán created_by từ user hiện tại.
     """
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     return await crud.create_pallet(
         db=db,
         pallet=pallet,
@@ -290,7 +290,7 @@ async def update_pallet(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     updated_pallet = await crud.update_pallet(
         db=db,
         pallet_id=pallet_id,
@@ -406,7 +406,7 @@ async def update_inventory(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     updated_inventory = await crud.update_inventory(
         db=db,
         inventory_id=inventory_id,
@@ -433,7 +433,7 @@ async def delete_inventory(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     deleted_inventory = await crud.delete_inventory(
         db=db,
         inventory_id=inventory_id
@@ -495,7 +495,7 @@ async def create_requirement_approval(
     
 #     requirements = await crud.get_requirement_approvals(
 #         db=db,
-#         # tenant_id = current_user.branch,
+#         # tenant_id = current_user.get("factory"),
 #         skip=skip,
 #         limit=limit,
 #         status=status,
@@ -515,7 +515,7 @@ async def read_requirement_approval(
     Yêu cầu authentication.
     Kiểm tra quyền truy cập (tenant_id phải khớp).
     """
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     requirement = await crud.get_requirement_approval(
         db=db, 
         requirement_id=requirement_id, 
@@ -536,7 +536,7 @@ async def update_requirement_approval(
     current_user: User = Depends(get_current_user)
 ):
     
-    tenant_id = current_user.branch
+    tenant_id = current_user.get("factory")
     updated_requirement = await crud.update_requirement_approval(
         db=db,
         requirement_id=requirement_id,
