@@ -93,7 +93,7 @@ export class HomepageComponent implements OnInit {
       route: '/kho-thanh-pham/luan-chuyen-kho',
       description: 'Luân chuyển kho gia công',
       roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
-      factories: ['vcoil gia công'],
+      factories: ['VCOIL'],
       color: '#3F51B5'
     },
     {

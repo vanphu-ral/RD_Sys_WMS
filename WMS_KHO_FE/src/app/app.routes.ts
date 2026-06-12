@@ -311,8 +311,8 @@ export const routes: Routes = [
     component: LuanChuyenKhoDetailComponent,
     canActivate: [AuthGuard],
     data: {
-      tabLabel: 'Luân chuyển kho - Chi tiết tạo đơn',
-      roles: [],
+      // tabLabel: 'Luân chuyển kho - Chi tiết tạo đơn',
+      // roles: [],
       factories: ['VCOIL']
     }
   },

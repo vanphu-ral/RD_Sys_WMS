@@ -62,7 +62,7 @@ export class SidebarService {
         {
           title: 'Luân chuyển kho gia công',
           link: '/kho-thanh-pham/luan-chuyen-kho',
-          factories: ['vcoil gia công'],
+          factories: ['VCOIL'],
         },
       ]
     },
