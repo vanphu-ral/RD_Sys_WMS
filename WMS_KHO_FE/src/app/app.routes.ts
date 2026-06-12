@@ -172,6 +172,7 @@ export const routes: Routes = [
     data: {
       tabLabel: 'Nhập kho sản xuất',
       roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+      // roles: []
     }
   },
   {
@@ -181,6 +182,7 @@ export const routes: Routes = [
     data: {
       tabLabel: 'Phê duyệt nhập kho',
       roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN']
+      // roles: []
     }
   },
   {
@@ -190,6 +192,7 @@ export const routes: Routes = [
     data: {
       tabLabel: 'Chi tiết nhập kho',
       roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+      // roles: []
     }
   },
   {
@@ -199,6 +202,7 @@ export const routes: Routes = [
     data: {
       tabLabel: 'Quét mã nhập kho',
       roles: ['WMS_RD_PUTAWAY', 'WMS_RD_ADMIN']
+      // roles: []
     }
   },
    {
@@ -208,6 +212,7 @@ export const routes: Routes = [
     data: {
       tabLabel: 'Quét mã nhập kho',
       roles: ['WMS_RD_PUTAWAY', 'WMS_RD_ADMIN']
+      // roles: []
     }
   },
   // {
@@ -234,8 +239,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     data: {
       tabLabel: 'Quản lý kho',
-      roles: []
-      // roles: ['WMS_RD_STOCKOPS', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
+      // roles: []
+      roles: ['WMS_RD_STOCKOPS', 'WMS_RD_ADMIN', 'WMS_RD_VIEW']
     }
   },
   {
@@ -276,7 +281,7 @@ export const routes: Routes = [
       tabLabel: 'Luân chuyển kho',
       roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
       // roles: [],
-      factories: ['vcoil gia công']
+      factories: ['VCOIL']
     }
   },
   {
@@ -287,7 +292,7 @@ export const routes: Routes = [
       tabLabel: 'Luân chuyển kho - Danh sách',
       roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
       // roles: [],
-      factories: ['vcoil gia công']
+      factories: ['VCOIL']
     }
   },
   {
@@ -298,7 +303,7 @@ export const routes: Routes = [
       tabLabel: 'Luân chuyển kho - Tạo mới',
       roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
       // roles: [],
-      factories: ['vcoil gia công']
+      factories: ['VCOIL']
     }
   },
   {
@@ -308,7 +313,7 @@ export const routes: Routes = [
     data: {
       tabLabel: 'Luân chuyển kho - Chi tiết tạo đơn',
       roles: [],
-      factories: ['vcoil gia công']
+      factories: ['VCOIL']
     }
   },
   {
@@ -319,7 +324,7 @@ export const routes: Routes = [
       tabLabel: 'Luân chuyển kho - Phê duyệt',
       roles: ['WMS_RD_APPROVEIO', 'WMS_RD_ADMIN', 'WMS_RD_VIEW'],
       // roles: [],
-      factories: ['vcoil gia công']
+      factories: ['VCOIL']
     }
   },
   {

@@ -16,7 +16,6 @@ import {
   toDisplayScannedItem,
 } from '../service/luan-chuyen-kho-scan.mapper';
 import { forkJoin, Observable } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
 import { ConfirmDialogComponent } from '../../chuyen-kho/dialog/confirm-dialog.component';
 import {
   isMobileViewport,
@@ -407,7 +406,7 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
       this.snackBar.open('Không xác định được đơn để phê duyệt.', 'Đóng', { duration: 3000 });
       return;
     }
-    const syncPayload: WarehouseTransferRequirementPayload = {
+    const approvePayload: WarehouseTransferRequirementPayload = {
       id: this.requirementId,
       requirement_code: this.rawRequirement.requirement_code,
       number_of_pallet: this.rawRequirement.number_of_pallet,
@@ -419,14 +418,7 @@ export class LuanChuyenKhoScanApproveComponent implements OnInit, OnDestroy {
       note: this.rawRequirement.note || '',
     };
 
-    this.luanChuyenKhoService
-      .updateApproval(this.requirementId, syncPayload)
-      .pipe(
-        switchMap(() =>
-          this.luanChuyenKhoService.updateRequirementById(this.requirementId!, syncPayload)
-        )
-      )
-      .subscribe({
+    this.luanChuyenKhoService.updateApproval(this.requirementId, approvePayload).subscribe({
         next: () => {
           this.snackBar.open('Đã xác nhận phê duyệt đơn.', 'Đóng', { duration: 3000 });
           this.router.navigate(['../../list'], {
