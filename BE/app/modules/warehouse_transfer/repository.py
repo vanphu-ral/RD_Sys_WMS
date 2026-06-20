@@ -40,7 +40,7 @@ async def get_requirements(
     status: Optional[str] = None,
     source_warehouse: Optional[str] = None,
     destination_warehouse: Optional[str] = None
-) -> List[WarehouseTransferGCRequirement]:
+) -> tuple[List[WarehouseTransferGCRequirement], int]:
     """Lấy danh sách requirements bằng cú pháp Async chuẩn mã nguồn SQLAlchemy"""
     statement = select(WarehouseTransferGCRequirement).where(
         WarehouseTransferGCRequirement.tenant_id == tenant_id,
@@ -54,10 +54,15 @@ async def get_requirements(
     if destination_warehouse:
         statement = statement.where(WarehouseTransferGCRequirement.destination_warehouse == destination_warehouse)
         
+    # Get total count
+    count_statement = select(func.count()).select_from(statement.subquery())
+    count_result = await db.execute(count_statement)
+    total_items = count_result.scalar() or 0
+    
     statement = statement.offset(skip).limit(limit)
     result = await db.execute(statement)
     
-    return list(result.scalars().all())
+    return list(result.scalars().all()), total_items
 
 async def create_requirement(
     db: AsyncSession, 
@@ -571,7 +576,7 @@ async def get_requirement_approvals(
     source_warehouse: Optional[str] = None,
     destination_warehouse: Optional[str] = None,
     
-) -> List[WarehouseTransferGCRequirementApprove]:
+) -> tuple[List[WarehouseTransferGCRequirementApprove], int]:
     """Lấy danh sách requirement approvals"""
     statement = select(WarehouseTransferGCRequirementApprove).where(
         WarehouseTransferGCRequirementApprove.tenant_id == tenant_id,
@@ -584,11 +589,16 @@ async def get_requirement_approvals(
         statement = statement.where(WarehouseTransferGCRequirementApprove.source_warehouse == source_warehouse)
     if destination_warehouse:
         statement = statement.where(WarehouseTransferGCRequirementApprove.destination_warehouse == destination_warehouse)
+    
+    # Get total count
+    count_statement = select(func.count()).select_from(statement.subquery())
+    count_result = await db.execute(count_statement)
+    total_items = count_result.scalar() or 0
         
     statement = statement.offset(skip).limit(limit)
     result = await db.execute(statement)
     
-    return list(result.scalars().all())
+    return list(result.scalars().all()), total_items
 
 
 async def update_requirement_approval(

@@ -61,16 +61,13 @@ class InventoryDashboardGroupItem:
     total_available_quantity: int
     total_initial_quantity: int
     item_count: int 
-    
+
     total_unique_products: int
     total_clients: int
     total_pos: int
     total_pallets: int
     total_containers: int
     total_locations: int
-    
-    last_updated: Optional[str]
-    last_received: Optional[str]
 
 
 @strawberry.type
@@ -267,9 +264,15 @@ class DashboardQuery:
         location_id: Optional[int] = None,
         area_id: Optional[int] = None,
         status: Optional[str] = None,
-        updated_by: Optional[str] = None
+        updated_by: Optional[str] = None,
+        tenant_id: Optional[str] = None
     ) -> InventoryDashboardGroupResponse:
         from app.core.database import AsyncSessionLocal
+
+        tenant_id = None
+        if info.context and info.context.get("user"):
+            tenant_id = info.context["user"].get("factory")
+
         async with AsyncSessionLocal() as db:
             result = await InventoryService.get_inventory_dashboard_grouped(
                 db=db,
@@ -277,14 +280,15 @@ class DashboardQuery:
                 page=page,
                 size=size,
                 name=name,
-                client_id=client_id,
+                # client_id=client_id,
                 serial_pallet=serial_pallet,
                 identifier=identifier,
                 po=po,
                 location_id=location_id,
                 area_id=area_id,
                 status=status,
-                updated_by=updated_by
+                updated_by=updated_by,
+                tenant_id=tenant_id
             )
 
         data = [
@@ -294,17 +298,13 @@ class DashboardQuery:
                 total_available_quantity=group["total_available_quantity"],
                 total_initial_quantity=group["total_initial_quantity"],
                 item_count=group["item_count"],
-                
 
-                total_unique_products=group["total_clients"],
+                total_unique_products=group["total_unique_products"],
                 total_clients=group["total_clients"],
                 total_pos=group["total_pos"],
                 total_pallets=group["total_pallets"],
                 total_containers=group["total_containers"],
-                total_locations=group["total_locations"],
-                last_updated=group["last_updated"],
-                last_received=group["last_received"],
-                
+                total_locations=group["total_locations"]
             )
             for group in result["data"]
         ]

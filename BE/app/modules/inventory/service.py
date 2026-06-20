@@ -211,10 +211,7 @@ class InventoryService:
                 "location_id": row.location_id,
                 "area_code": row.area_code,
                 "area_name": row.area_name,
-                "status": "available" if row.available_quantity > 0 else "unavailable",
-                "updated_by": row.updated_by,
-                "received_date": row.received_date.isoformat() if row.received_date else None,
-                "updated_date": row.updated_date.isoformat() if row.updated_date else None
+                "status": "available" if row.available_quantity > 0 else "unavailable"
             })
 
         total_pages = (total_items + size - 1) // size if total_items > 0 else 1
@@ -236,65 +233,49 @@ class InventoryService:
         page: int = 1,
         size: int = 20,
         name: Optional[str] = None,
-        client_id: Optional[int] = None,
         serial_pallet: Optional[str] = None,
         identifier: Optional[str] = None,
         po: Optional[str] = None,
         location_id: Optional[int] = None,
         area_id: Optional[int] = None,
         status: Optional[str] = None,
-        updated_by: Optional[str] = None
+        updated_by: Optional[str] = None,
+        tenant_id: Optional[str] = None
     ) -> dict:
-        from sqlalchemy import and_, or_, func, text, distinct
+        from sqlalchemy import and_, func, distinct, select
 
-        base_query = select(
-            Inventory.id,
-            Inventory.name,
-            WarehouseImportRequirement.po_number.label("po_number"),
-            WarehouseImportRequirement.client_id,
-            Inventory.serial_pallet,
-            Inventory.identifier,
-            Inventory.po,
-            Inventory.available_quantity,
-            Inventory.initial_quantity,
-            Inventory.location_id,
-            Area.code.label("area_code"),
-            Area.name.label("area_name"),
-            Inventory.calculated_status.label("status"),
-            Inventory.updated_by,
-            Inventory.received_date,
-            Inventory.updated_date
-        ).select_from(
-            Inventory
-        ).join(
-            Location, Inventory.location_id == Location.id
-        ).join(
-            Area, Location.area_id == Area.id
-        ).outerjoin(
-            ContainerInventory, ContainerInventory.inventory_identifier == Inventory.identifier
-        ).outerjoin(
-            WarehouseImportContainer, WarehouseImportContainer.id == ContainerInventory.import_container_id
-        ).outerjoin(
-            WarehouseImportRequirement, WarehouseImportRequirement.id == WarehouseImportContainer.warehouse_import_requirement_id
-        )
+        # 1. Xác định group_key hiển thị ở GraphQL đầu ra
+        if group_by == "area":
+            group_key = "area_code"
+        elif group_by == "po":
+            group_key = "po"
+        elif group_by == "client":
+            group_key = "client_id"
+        elif group_by == "sap_code":
+            group_key = "sap_code"
+        else:
+            group_key = "area_code"
 
-        # Apply filters
+        # 2. Xây dựng các điều kiện lọc (Filters)
         filters = []
-
+        # SỬA ĐỔI CHIẾN LƯỢC: Lọc tenant_id trực tiếp trên bảng Inventory gốc để cô lập dữ liệu chuẩn xác
+        if tenant_id:
+            filters.append(Inventory.tenant_id == tenant_id)
+        if area_id:
+            filters.append(Area.id == area_id)
+        if location_id:
+            filters.append(Inventory.location_id == location_id)
         if name:
             filters.append(Inventory.name.ilike(f"%{name}%"))
-        if client_id:
-            filters.append(WarehouseImportRequirement.client_id == client_id)
         if serial_pallet:
             filters.append(Inventory.serial_pallet.ilike(f"%{serial_pallet}%"))
         if identifier:
             filters.append(Inventory.identifier.ilike(f"%{identifier}%"))
         if po:
             filters.append(Inventory.po.ilike(f"%{po}%"))
-        if location_id:
-            filters.append(Inventory.location_id == location_id)
-        if area_id:
-            filters.append(Area.id == area_id)
+        if updated_by:
+            filters.append(Inventory.updated_by.ilike(f"%{updated_by}%"))
+
         if status:
             if status.lower() == "available":
                 filters.append(Inventory.available_quantity > 0)
@@ -302,96 +283,90 @@ class InventoryService:
                 filters.append(Inventory.available_quantity == 0)
             else:
                 filters.append(Inventory.calculated_status.ilike(f"%{status}%"))
-        if updated_by:
-            filters.append(Inventory.updated_by.ilike(f"%{updated_by}%"))
 
-        if filters:
-            base_query = base_query.where(and_(*filters))
+        # 3. Tạo một Subquery ánh xạ DUY NHẤT 1 Pallet -> 1 Customer Name đại diện từ ImportPalletInfo
+        pallet_mapping_stmt = select(
+            ImportPalletInfo.serial_pallet.label("serial_pallet"),
+            func.max(func.coalesce(ImportPalletInfo.customer_name, "Unknown")).label("customer_name")
+        ).where(
+            ImportPalletInfo.serial_pallet.isnot(None)
+        ).group_by(
+            ImportPalletInfo.serial_pallet
+        )
+        pallet_mapping_sub = pallet_mapping_stmt.subquery()
 
+        # 4. Xác định cột Động dùng để gom nhóm cuối cùng (GROUP BY)
         if group_by == "area":
             group_column = Area.code
-            group_name_column = Area.name
-            group_key = "area_code"
         elif group_by == "po":
-            group_column = Inventory.po
-            group_name_column = Inventory.po
-            group_key = "po"
+            group_column = func.coalesce(Inventory.po, "Unknown")
         elif group_by == "client":
-            group_column = WarehouseImportRequirement.client_id
-            group_name_column = WarehouseImportRequirement.client_id
-            group_key = "client_id"
+            group_column = func.coalesce(pallet_mapping_sub.c.customer_name, "Unknown")
         elif group_by == "sap_code":
-            group_column = Inventory.sap_code
-            group_name_column = Inventory.name  # Use name as display name for sap_code groups
-            group_key = "sap_code"
+            group_column = func.coalesce(Inventory.sap_code, "Unknown")
         else:
-            # Default to area
             group_column = Area.code
-            group_name_column = Area.name
-            group_key = "area_code"
 
-        base_subquery = base_query.subquery()
-            
-        # Khai báo các cột thống kê mới
-        total_clients = func.count(distinct(base_subquery.c.client_id)).label("total_clients")
-        total_pos = func.count(distinct(base_subquery.c.po)).label("total_pos")
-        total_locations = func.count(distinct(base_subquery.c.location_id)).label("total_locations")
-        total_pallets = func.count(distinct(base_subquery.c.serial_pallet)).label("total_pallets")
-        total_containers = func.count(distinct(base_subquery.c.identifier)).label("total_containers") # coi identifier là thùng/mã duy nhất
-        
-        # Lấy thông tin ngày cập nhật/nhập mới nhất/lớn nhất trong nhóm
-        last_updated = func.max(base_subquery.c.updated_date).label("last_updated")
-        last_received = func.max(base_subquery.c.received_date).label("last_received")
+        # 5. Xây dựng Main Query tuyến tính sạch: Inventory -> Location -> Area
+        main_stmt = select(
+            group_column.label("group_value"),
+            func.sum(Inventory.available_quantity).label("total_available_quantity"),
+            func.sum(Inventory.initial_quantity).label("total_initial_quantity"),
+            func.count(Inventory.id).label("item_count"),
+            func.count(distinct(func.coalesce(pallet_mapping_sub.c.customer_name, "Unknown"))).label("total_clients"),
+            func.count(distinct(func.coalesce(Inventory.po, "Unknown"))).label("total_pos"),
+            func.count(distinct(Inventory.location_id)).label("total_locations"),
+            func.count(distinct(func.coalesce(Inventory.serial_pallet, "Unknown"))).label("total_pallets"),
+            func.count(distinct(Inventory.identifier)).label("total_containers"),
+            func.count(distinct(func.coalesce(Inventory.sap_code, "Unknown"))).label("total_unique_products")
+        ).select_from(
+            Inventory
+        ).join(
+            Location, Inventory.location_id == Location.id
+        ).join(
+            Area, Location.area_id == Area.id
+        ).outerjoin(
+            pallet_mapping_sub, pallet_mapping_sub.c.serial_pallet == Inventory.serial_pallet
+        )
 
-        grouped_query = select(
-                group_column.label("group_value"),
-                func.sum(base_subquery.c.available_quantity).label("total_available_quantity"),
-                func.sum(base_subquery.c.initial_quantity).label("total_initial_quantity"),
-                func.count(base_subquery.c.id).label("item_count"), # Số dòng tồn kho chi tiết
-                
-                # Thống kê mới
-                total_clients,
-                total_pos,
-                total_locations,
-                total_pallets,
-                total_containers,
-                last_updated,
-                last_received,
-                
-            ).select_from(
-                base_subquery
-            ).group_by(
-                group_column
-            ).having(
-                func.sum(base_subquery.c.available_quantity) > 0 # Chỉ lấy nhóm có tồn kho > 0
-            )
+        if filters:
+            main_stmt = main_stmt.where(and_(*filters))
 
-        count_query = select(func.count()).select_from(grouped_query.subquery())
+        # Thực hiện gom nhóm chính xác sau khi đã lọc theo tenant_id
+        main_stmt = main_stmt.group_by(group_column).having(
+            func.sum(Inventory.available_quantity) > 0
+        )
+
+        # 6. Tính toán phân trang chính xác theo tập dữ liệu đã thu gọn
+        count_query = select(func.count()).select_from(main_stmt.subquery())
         count_result = await db.execute(count_query)
         total_items = count_result.scalar() or 0
 
-        grouped_query = grouped_query.order_by(func.sum(base_subquery.c.available_quantity).desc())
+        # Sắp xếp lượng hàng tồn kho khả dụng giảm dần
+        main_stmt = main_stmt.order_by(func.sum(Inventory.available_quantity).desc())
 
-        result = await db.execute(grouped_query)
+        # Phân trang tại tầng DB
+        offset = (page - 1) * size
+        main_stmt = main_stmt.offset(offset).limit(size)
+
+        result = await db.execute(main_stmt)
         rows = result.all()
 
+        # 7. Định dạng dữ liệu đầu ra đồng bộ
         data = []
         for row in rows:
             data.append({
                 "group_key": group_key,
                 "group_value": str(row.group_value) if row.group_value is not None else "Unknown",
-                "total_available_quantity": row.total_available_quantity or 0,
-                "total_initial_quantity": row.total_initial_quantity or 0,
+                "total_available_quantity": int(row.total_available_quantity) if row.total_available_quantity else 0,
+                "total_initial_quantity": int(row.total_initial_quantity) if row.total_initial_quantity else 0,
                 "item_count": row.item_count or 0,
-                
-                # Thêm các trường thống kê mới
-                "total_clients": row.total_clients or 0, # Tổng k.hàng (mã khách hàng duy nhất)
-                "total_pos": row.total_pos or 0, # Số PO (PO duy nhất)
-                "total_pallets": row.total_pallets or 0, # Số pallet (serial_pallet duy nhất)
-                "total_containers": row.total_containers or 0, # Số thùng (identifier duy nhất)
-                "total_locations": row.total_locations or 0, # Số vị trí (location_id duy nhất)
-                "last_updated": row.last_updated.isoformat() if row.last_updated else None, # Ngày cập nhật
-                "last_received": row.last_received.isoformat() if row.last_received else None, # Ngày nhập gần nhất
+                "total_unique_products": row.total_unique_products or 0,
+                "total_clients": row.total_clients or 0,
+                "total_pos": row.total_pos or 0,
+                "total_pallets": row.total_pallets or 0,
+                "total_containers": row.total_containers or 0,
+                "total_locations": row.total_locations or 0,
             })
 
         total_pages = (total_items + size - 1) // size if total_items > 0 else 1
@@ -405,6 +380,7 @@ class InventoryService:
                 "total_pages": total_pages
             }
         }
+
     @staticmethod
     async def get_inventories_paginated(
         db: AsyncSession,

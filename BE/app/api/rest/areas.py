@@ -48,7 +48,9 @@ async def create_areas(
     areas_data: List[AreaCreate],
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(get_current_user)
-):
+):  
+    tenant_id = current_user.get("factory")
+    areas_data = [area.model_copy(update={"tenant_id": tenant_id}) for area in areas_data]
     if len(areas_data) != 1:
         raise HTTPException(status_code=400, detail="Chỉ gửi thông tin 1 kho")
     areas_dict = [area.model_dump(exclude_unset=True) for area in areas_data]

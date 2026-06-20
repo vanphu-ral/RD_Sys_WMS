@@ -21,17 +21,27 @@ from app.modules.warehouse_transfer.schemas import (
     WarehouseTransferInventoryWithDetail,
     WarehouseTransferApproval,
     WarehouseTransferApprovalBase,
-    WarehouseTransferApprovalCreate
+    WarehouseTransferApprovalCreate,
+    WarehouseTransferPaginatedResponse,
+    WarehouseTransferPaginatedMeta,
+    WarehouseTransferApprovalPaginatedResponse,
+    WarehouseTransferApprovalPaginatedMeta,
+    WarehouseTransferApprovalInDB
 )
-from app.core.security import get_db, get_current_user 
+from app.core.security import get_db, get_current_user
 
 
 router = APIRouter()
 
-@router.get("/", response_model=List[WarehouseTransfer])
+
+def _convert_orm_to_schema(orm_list, schema_class):
+    return [schema_class.model_validate(item) for item in orm_list]
+
+
+@router.get("/", response_model=WarehouseTransferPaginatedResponse)
 async def read_requirements(
-    skip: int = Query(0, ge=0, description="Số bản ghi bỏ qua"),
-    limit: int = Query(100, ge=1, le=1000, description="Số bản ghi trả về tối đa"),
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100),
     status: Optional[str] = Query(None, description="Lọc theo trạng thái"),
     source_warehouse: Optional[str] = Query(None, description="Lọc theo kho nguồn"),
     destination_warehouse: Optional[str] = Query(None, description="Lọc theo kho đích"),
@@ -39,16 +49,28 @@ async def read_requirements(
     current_user: User = Depends(get_current_user)
 ):
     
-    requirements = await crud.get_requirements(
+    skip = (page - 1) * size
+    requirements, total_items = await crud.get_requirements(
         db=db,
         tenant_id=current_user.get("factory"),
         skip=skip,
-        limit=limit,
+        limit=size,
         status=status,
         source_warehouse=source_warehouse,
         destination_warehouse=destination_warehouse
     )
-    return requirements
+    
+    total_pages = (total_items + size - 1) // size if total_items > 0 else 1
+    
+    return {
+        "data": _convert_orm_to_schema(requirements, WarehouseTransfer),
+        "meta": {
+            "page": page,
+            "size": size,
+            "total_items": total_items,
+            "total_pages": total_pages
+        }
+    }
 
 @router.get("/{requirement_id}", response_model=WarehouseTransfer)
 async def read_requirement(
@@ -446,10 +468,10 @@ async def delete_inventory(
     return deleted_inventory
 
 
-@router.get("/approvals/", response_model=List[WarehouseTransferApproval])
+@router.get("/approvals/", response_model=WarehouseTransferApprovalPaginatedResponse)
 async def read_requirement_approvals(
-    skip: int = Query(0, ge=0, description="Số bản ghi bỏ qua"),
-    limit: int = Query(100, ge=1, le=1000, description="Số bản ghi trả về tối đa"),
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100),
     status: Optional[str] = Query(None, description="Lọc theo trạng thái"),
     source_warehouse: Optional[str] = Query(None, description="Lọc theo kho nguồn"),
     destination_warehouse: Optional[str] = Query(None, description="Lọc theo kho đích"),
@@ -457,16 +479,28 @@ async def read_requirement_approvals(
     current_user: User = Depends(get_current_user)
 ):
     
-    requirements = await crud.get_requirement_approvals(
+    skip = (page - 1) * size
+    requirements, total_items = await crud.get_requirement_approvals(
         db=db,
         tenant_id=current_user.get("factory"),
         skip=skip,
-        limit=limit,
+        limit=size,
         status=status,
         source_warehouse=source_warehouse,
         destination_warehouse=destination_warehouse
     )
-    return requirements
+    
+    total_pages = (total_items + size - 1) // size if total_items > 0 else 1
+    
+    return {
+        "data": _convert_orm_to_schema(requirements, WarehouseTransferApproval),
+        "meta": {
+            "page": page,
+            "size": size,
+            "total_items": total_items,
+            "total_pages": total_pages
+        }
+    }
 
 
 @router.post("/approvals/", response_model=WarehouseTransferApproval, status_code=status.HTTP_201_CREATED)

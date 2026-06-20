@@ -36,9 +36,10 @@ class WarehouseTransferInDBBase(WarehouseTransferBase):
     deleted_at: Optional[datetime] = None
     deleted_by: Optional[str] = None
     tenant_id: str
-    
+
     class Config:
         orm_mode = True
+        from_attributes = True
 
 class WarehouseTransfer(WarehouseTransferInDBBase):
     pass
@@ -229,12 +230,37 @@ class WarehouseTransferApprovalInDBBase(WarehouseTransferApprovalBase):
     deleted_at: Optional[datetime] = None
     deleted_by: Optional[str] = None
     tenant_id: str
-    
+
     class Config:
         orm_mode = True
+        from_attributes = True
 
 class WarehouseTransferApproval(WarehouseTransferApprovalInDBBase):
     pass
 
 class WarehouseTransferApprovalInDB(WarehouseTransferApprovalInDBBase):
     pass
+
+
+class WarehouseTransferPaginatedMeta(BaseModel):
+    page: int
+    size: int
+    total_items: int
+    total_pages: int
+
+
+class WarehouseTransferPaginatedResponse(BaseModel):
+    data: list[WarehouseTransfer]
+    meta: WarehouseTransferPaginatedMeta
+
+
+class WarehouseTransferApprovalPaginatedMeta(BaseModel):
+    page: int
+    size: int
+    total_items: int
+    total_pages: int
+
+
+class WarehouseTransferApprovalPaginatedResponse(BaseModel):
+    data: list[WarehouseTransferApproval]
+    meta: WarehouseTransferApprovalPaginatedMeta
