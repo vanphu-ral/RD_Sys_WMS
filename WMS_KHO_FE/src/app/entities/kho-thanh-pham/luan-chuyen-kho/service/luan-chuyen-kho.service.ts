@@ -43,6 +43,36 @@ export interface MinimalLocation {
   code: string;
 }
 
+export interface PaginatedMeta {
+  page: number;
+  size: number;
+  total_items: number;
+  total_pages: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginatedMeta;
+}
+
+const EMPTY_PAGINATED_META: PaginatedMeta = {
+  page: 1,
+  size: 20,
+  total_items: 0,
+  total_pages: 0,
+};
+
+function parsePaginatedResponse<T>(res: any): PaginatedResponse<T> {
+  const data = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+  const meta = res?.meta ?? {
+    page: 1,
+    size: data.length || EMPTY_PAGINATED_META.size,
+    total_items: data.length,
+    total_pages: data.length > 0 ? 1 : 0,
+  };
+  return { data, meta };
+}
+
 @Injectable({ providedIn: 'root' })
 export class LuanChuyenKhoService {
   // private readonly apiRoot = 'http://192.168.10.99:9030/api';
@@ -66,12 +96,18 @@ export class LuanChuyenKhoService {
 
   // ─── Đơn luân chuyển (tạo / cập nhật) ───────────────────────────────────────
 
-  getRequirements(page = 1, size = 20, q = ''): Observable<WarehouseTransferRequirement[]> {
-    let params = new HttpParams().set('page', page).set('size', size);
+  getRequirements(
+    page = 1,
+    size = 20,
+    q = ''
+  ): Observable<PaginatedResponse<WarehouseTransferRequirement>> {
+    let params = new HttpParams().set('page', String(page)).set('size', String(size));
     if (q.trim()) {
       params = params.set('q', q.trim());
     }
-    return this.http.get<WarehouseTransferRequirement[]>(`${this.baseUrl}`, { params, ...this.withAuth() });
+    return this.http
+      .get<any>(`${this.apiRoot}/warehouse-transfer`, { params, ...this.withAuth() })
+      .pipe(map((res) => parsePaginatedResponse<WarehouseTransferRequirement>(res)));
   }
 
   /** GET /warehouse-transfer/with-details/{requirement_id} */
@@ -135,10 +171,18 @@ export class LuanChuyenKhoService {
   // ─── Phê duyệt ─────────────────────────────────────────────────────────────
 
   /** GET /warehouse-transfer/approvals/ */
-  getApprovals(): Observable<WarehouseTransferRequirement[]> {
-    return this.http.get<WarehouseTransferRequirement[]>(this.approvalsUrl, this.withAuth()).pipe(
-      map((res: any) => (Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [])),
-      catchError(() => of([]))
+  getApprovals(
+    page = 1,
+    size = 20,
+    q = ''
+  ): Observable<PaginatedResponse<WarehouseTransferRequirement>> {
+    let params = new HttpParams().set('page', String(page)).set('size', String(size));
+    if (q.trim()) {
+      params = params.set('q', q.trim());
+    }
+    return this.http.get<any>(this.approvalsUrl, { params, ...this.withAuth() }).pipe(
+      map((res) => parsePaginatedResponse<WarehouseTransferRequirement>(res)),
+      catchError(() => of({ data: [], meta: { ...EMPTY_PAGINATED_META, size } }))
     );
   }
 

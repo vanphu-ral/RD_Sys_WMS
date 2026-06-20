@@ -25,6 +25,8 @@ export interface ScannedItem {
   apiScanId?: number;
   scanType: 'pallet' | 'thung';
   refId?: number;
+  /** inventory_id các thùng thuộc pallet (chỉ khi scanType === 'pallet') */
+  nestedInventoryIds?: number[];
   locationId?: number;
   maHangHoa: string;
   tenHangHoa: string;
@@ -287,18 +289,45 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
     return (value || '').trim().toLowerCase();
   }
 
+  private tenantMatchKeys(tenant: TenantOption): string[] {
+    return [...new Set(
+      [tenant.id, tenant.company_name, tenant.factory]
+        .map((v) => this.normalizeTenantKey(v))
+        .filter(Boolean)
+    )];
+  }
+
+  private areaTenantKeys(area: Area): string[] {
+    return [...new Set(
+      [area.tenant_id, area.company, area.factory]
+        .map((v) => this.normalizeTenantKey(v))
+        .filter(Boolean)
+    )];
+  }
+
+  /** Khớp tenant (auth/tenant) với area — id có thể khác tenant_id (vd. VCOILS vs VCOIL). */
+  private areaMatchesTenant(area: Area, tenant: TenantOption): boolean {
+    const tenantKeys = this.tenantMatchKeys(tenant);
+    const areaKeys = this.areaTenantKeys(area);
+    return areaKeys.some((areaKey) =>
+      tenantKeys.some(
+        (tenantKey) =>
+          areaKey === tenantKey ||
+          areaKey.startsWith(tenantKey) ||
+          tenantKey.startsWith(areaKey)
+      )
+    );
+  }
+
   private updateWarehouseOptions(): void {
     if (!this.selectedTenant) {
       this.warehouseOptions = [];
       this.filteredWarehouses = [];
       return;
     }
-    const tenantKey = this.normalizeTenantKey(this.selectedTenant.id);
     this.warehouseOptions = this.allAreas
       .filter(
-        (area) =>
-          area.is_active !== false &&
-          this.normalizeTenantKey(area.tenant_id) === tenantKey
+        (area) => area.is_active !== false && this.areaMatchesTenant(area, this.selectedTenant!)
       )
       .map((area) => ({
         id: Number(area.id),
@@ -349,9 +378,21 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
     return `GC${dd}${mm}${yy}${random}`;
   }
 
+  private collectInventoryIdsForPayload(): Set<number> {
+    const ids = new Set<number>();
+    for (const item of this.scannedList) {
+      if (item.scanType === 'thung' && item.refId) {
+        ids.add(Number(item.refId));
+      } else if (item.scanType === 'pallet') {
+        (item.nestedInventoryIds ?? []).forEach((id) => ids.add(Number(id)));
+      }
+    }
+    return ids;
+  }
+
   private buildPayload(status: string): WarehouseTransferRequirementPayload {
     const numberOfPallet = this.scannedList.filter((item) => item.scanType === 'pallet').length;
-    const numberOfBox = this.scannedList.filter((item) => item.scanType === 'thung').length;
+    const numberOfBox = this.collectInventoryIdsForPayload().size;
     const totalQuantity =
       this.scannedList.reduce((sum, item) => sum + (item.soLuong || 0), 0) || this.scannedList.length;
     return {
@@ -418,6 +459,10 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
         const newItem: ScannedItem = {
           scanType: this.scanMode,
           refId,
+          nestedInventoryIds:
+            this.scanMode === 'pallet' && Array.isArray(scanRef.inventoryIds)
+              ? scanRef.inventoryIds.map((id: number) => Number(id)).filter((id: number) => !!id)
+              : undefined,
           locationId: scanRef.locationId != null ? Number(scanRef.locationId) : undefined,
           maHangHoa: scanRef.sapCode || '---',
           tenHangHoa: scanRef.name || '---',
@@ -441,19 +486,42 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
   }
 
   private submitScannedItems(requirementId: number): Observable<any> {
-    const requests = this.scannedList
-      .filter((item) => !!item.refId)
-      .map((item) =>
-        item.scanType === 'thung'
-          ? this.luanChuyenKhoService.addScannedInventory({
-              warehouse_transfer_gc_requirement_id: requirementId,
-              inventory_id: Number(item.refId),
-            })
-          : this.luanChuyenKhoService.addScannedPallet({
-              warehouse_transfer_gc_requirement_id: requirementId,
-              pallet_info_detail_id: Number(item.refId),
-            })
+    const requests: Observable<any>[] = [];
+    const savedInventoryIds = new Set<number>();
+
+    for (const item of this.scannedList.filter((row) => !!row.refId)) {
+      if (item.scanType === 'thung') {
+        const inventoryId = Number(item.refId);
+        if (savedInventoryIds.has(inventoryId)) continue;
+        savedInventoryIds.add(inventoryId);
+        requests.push(
+          this.luanChuyenKhoService.addScannedInventory({
+            warehouse_transfer_gc_requirement_id: requirementId,
+            inventory_id: inventoryId,
+          })
+        );
+        continue;
+      }
+
+      requests.push(
+        this.luanChuyenKhoService.addScannedPallet({
+          warehouse_transfer_gc_requirement_id: requirementId,
+          pallet_info_detail_id: Number(item.refId),
+        })
       );
+
+      for (const nestedId of item.nestedInventoryIds ?? []) {
+        const inventoryId = Number(nestedId);
+        if (!inventoryId || savedInventoryIds.has(inventoryId)) continue;
+        savedInventoryIds.add(inventoryId);
+        requests.push(
+          this.luanChuyenKhoService.addScannedInventory({
+            warehouse_transfer_gc_requirement_id: requirementId,
+            inventory_id: inventoryId,
+          })
+        );
+      }
+    }
 
     return requests.length ? forkJoin(requests) : of([]);
   }
@@ -495,6 +563,7 @@ export class LuanChuyenKhoAddNewComponent implements OnInit, OnDestroy {
             const mapped = mapImportPalletScanResponse(res);
             observer.next({
               palletDetailId: mapped.palletDetailId,
+              inventoryIds: mapped.inventoryIds,
               inventoryIdentifier: mapped.inventoryIdentifier,
               serialPallet: mapped.serialPallet || scannedCode,
               quantity: mapped.quantity,

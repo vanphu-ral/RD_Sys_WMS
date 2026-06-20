@@ -55,6 +55,12 @@ export class LuanChuyenKhoListComponent implements OnInit {
     }
 
     dataList: ChuyenKhoItem[] = [];
+    pageSize = 20;
+    currentPage = 1;
+    totalItems = 0;
+    totalPages = 0;
+    readonly pageSizeOptions = [10, 20, 50];
+
     columnFilters = {
         maYeuCau: '',
         tuKho: '',
@@ -71,6 +77,41 @@ export class LuanChuyenKhoListComponent implements OnInit {
 
     get filteredList(): ChuyenKhoItem[] {
         return this.dataList.filter((item) => this.matchesColumnFilters(item));
+    }
+
+    get paginationFrom(): number {
+        if (this.totalItems === 0) return 0;
+        return (this.currentPage - 1) * this.pageSize + 1;
+    }
+
+    get paginationTo(): number {
+        return Math.min(this.currentPage * this.pageSize, this.totalItems);
+    }
+
+    get visiblePages(): number[] {
+        const total = this.totalPages;
+        const cur = this.currentPage;
+        const pages: number[] = [];
+
+        if (total <= 7) {
+            return Array.from({ length: total }, (_, i) => i + 1);
+        }
+
+        pages.push(1, 2, 3);
+
+        if (cur > 4) pages.push(-1);
+
+        for (let p = Math.max(4, cur - 1); p <= Math.min(total - 2, cur + 1); p++) {
+            if (!pages.includes(p)) pages.push(p);
+        }
+
+        if (cur < total - 3) pages.push(-1);
+
+        [total - 1, total].forEach((p) => {
+            if (!pages.includes(p)) pages.push(p);
+        });
+
+        return pages;
     }
 
     get hasActiveFilters(): boolean {
@@ -146,8 +187,8 @@ export class LuanChuyenKhoListComponent implements OnInit {
 
     private loadRequirements(): void {
       const requirements$ = this.isCreateMode
-        ? this.luanChuyenKhoService.getRequirements(1, 100)
-        : this.luanChuyenKhoService.getApprovals();
+        ? this.luanChuyenKhoService.getRequirements(this.currentPage, this.pageSize)
+        : this.luanChuyenKhoService.getApprovals(this.currentPage, this.pageSize);
 
       forkJoin({
         locations: this.luanChuyenKhoService.getMinimalLocations(),
@@ -155,11 +196,18 @@ export class LuanChuyenKhoListComponent implements OnInit {
       }).subscribe({
         next: ({ locations, requirements }) => {
           this.buildLocationMap(locations);
-          this.dataList = (requirements || []).map((item) => this.mapRequirementToItem(item));
+          const { data, meta } = requirements;
+          this.dataList = (data || []).map((item) => this.mapRequirementToItem(item));
+          this.currentPage = meta.page;
+          this.pageSize = meta.size;
+          this.totalItems = meta.total_items;
+          this.totalPages = meta.total_pages;
         },
         error: (err) => {
           console.error('[LuanChuyenKhoList] Lỗi lấy danh sách đơn:', err);
           this.dataList = [];
+          this.totalItems = 0;
+          this.totalPages = 0;
         }
       });
     }
@@ -177,6 +225,22 @@ export class LuanChuyenKhoListComponent implements OnInit {
         Object.keys(this.columnFilters).forEach((key) => {
             (this.columnFilters as Record<string, string>)[key] = '';
         });
+        this.currentPage = 1;
+    }
+
+    onFilterChange(): void {
+        this.currentPage = 1;
+    }
+
+    onPageSizeChange(): void {
+        this.currentPage = 1;
+        this.loadRequirements();
+    }
+
+    goToPage(page: number): void {
+        if (page < 1 || page > this.totalPages || page === this.currentPage) return;
+        this.currentPage = page;
+        this.loadRequirements();
     }
 
     private matchesColumnFilters(item: ChuyenKhoItem): boolean {

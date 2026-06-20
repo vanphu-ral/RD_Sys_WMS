@@ -85,6 +85,7 @@ export function mapImportPalletScanResponse(res: any): {
   palletDetailId: number;
   serialPallet: string;
   inventoryIdentifier: string;
+  inventoryIds: number[];
   quantity: number;
   locationId?: number;
   sapCode: string;
@@ -106,10 +107,15 @@ export function mapImportPalletScanResponse(res: any): {
     Number(pallet.total_quantity) ||
     inventories.reduce((sum, inv) => sum + Number(inv?.quantity ?? inv?.available_quantity ?? 0), 0);
 
+  const inventoryIds = inventories
+    .map((inv) => Number(inv?.id))
+    .filter((id) => !!id && !Number.isNaN(id));
+
   return {
     palletDetailId,
     serialPallet: pallet.serial_pallet ?? '',
     inventoryIdentifier: firstInv?.identifier ?? '---',
+    inventoryIds,
     quantity: totalQty,
     locationId: pallet.location_id ?? firstInv?.location_id,
     sapCode: firstInv?.sap_code ?? pallet.item_no_sku ?? '',

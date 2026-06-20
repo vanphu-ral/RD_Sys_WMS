@@ -320,6 +320,93 @@ $row-hover: #f5f3ff;
   font-size: 13px;
 }
 
+// ─── Pagination ───────────────────────────────────────────────────────────────
+.list-pagination {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.pagination-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: $text-muted;
+}
+
+.page-size-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  select {
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid $border-color;
+    border-radius: 7px;
+    background: $card-bg;
+    color: $text-dark;
+    font-size: 13px;
+  }
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid $border-color;
+  border-radius: 7px;
+  background: $card-bg;
+  color: $text-muted;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+  .material-icons {
+    font-size: 16px;
+    font-family: 'Material Icons';
+  }
+
+  &:hover:not(:disabled):not(.active) {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+  }
+
+  &.active {
+    background: $blue;
+    color: #fff;
+    border-color: $blue;
+    font-weight: 700;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.page-ellipsis {
+  padding: 0 4px;
+  color: $text-sub;
+  user-select: none;
+}
+
 @media (max-width: 768px) {
   .empty-row {
     display: none;

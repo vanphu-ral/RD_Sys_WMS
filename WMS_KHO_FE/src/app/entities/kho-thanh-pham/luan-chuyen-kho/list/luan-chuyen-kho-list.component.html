@@ -44,34 +44,44 @@
           <tr class="filter-row">
             <th></th>
             <th>
-              <input class="col-filter" type="text" [(ngModel)]="columnFilters.maYeuCau" placeholder="Lọc..." />
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.maYeuCau"
+                (ngModelChange)="onFilterChange()" placeholder="Lọc..." />
             </th>
             <th>
-              <input class="col-filter" type="text" [(ngModel)]="columnFilters.tuKho" placeholder="Lọc..." />
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.tuKho"
+                (ngModelChange)="onFilterChange()" placeholder="Lọc..." />
             </th>
             <th>
-              <input class="col-filter" type="text" [(ngModel)]="columnFilters.denKho" placeholder="Lọc..." />
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.denKho"
+                (ngModelChange)="onFilterChange()" placeholder="Lọc..." />
             </th>
             <th>
-              <input class="col-filter" type="text" [(ngModel)]="columnFilters.nguoiTao" placeholder="Lọc..." />
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.nguoiTao"
+                (ngModelChange)="onFilterChange()" placeholder="Lọc..." />
             </th>
             <th>
-              <input class="col-filter" type="text" [(ngModel)]="columnFilters.ngayTao" placeholder="Lọc..." />
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.ngayTao"
+                (ngModelChange)="onFilterChange()" placeholder="Lọc..." />
             </th>
             <th>
-              <input class="col-filter" type="text" [(ngModel)]="columnFilters.ghiChu" placeholder="Lọc..." />
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.ghiChu"
+                (ngModelChange)="onFilterChange()" placeholder="Lọc..." />
             </th>
             <th>
-              <input class="col-filter" type="text" [(ngModel)]="columnFilters.tongSoLuong" placeholder="Lọc..." />
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.tongSoLuong"
+                (ngModelChange)="onFilterChange()" placeholder="Lọc..." />
             </th>
             <th>
-              <input class="col-filter" type="text" [(ngModel)]="columnFilters.soPallet" placeholder="Lọc..." />
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.soPallet"
+                (ngModelChange)="onFilterChange()" placeholder="Lọc..." />
             </th>
             <th>
-              <input class="col-filter" type="text" [(ngModel)]="columnFilters.soThung" placeholder="Lọc..." />
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.soThung"
+                (ngModelChange)="onFilterChange()" placeholder="Lọc..." />
             </th>
             <th>
-              <input class="col-filter" type="text" [(ngModel)]="columnFilters.trangThai" placeholder="Lọc..." />
+              <input class="col-filter" type="text" [(ngModel)]="columnFilters.trangThai"
+                (ngModelChange)="onFilterChange()" placeholder="Lọc..." />
             </th>
             <th>
               <button type="button" class="btn-clear-filter" *ngIf="hasActiveFilters" (click)="clearColumnFilters()"
@@ -83,7 +93,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let item of filteredList; let i = index">
-            <td>{{ i + 1 }}</td>
+            <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
             <td class="col-bold">{{ item.maYeuCau }}</td>
             <td>{{ item.tuKho }}</td>
             <td>{{ item.denKho }}</td>
@@ -114,11 +124,16 @@
     <!-- Mobile: bộ lọc (cùng logic với bảng desktop) -->
     <div class="mobile-filters" *ngIf="dataList.length > 0">
       <div class="mobile-filter-grid">
-        <input class="col-filter" type="text" [(ngModel)]="columnFilters.maYeuCau" placeholder="Mã yêu cầu" />
-        <input class="col-filter" type="text" [(ngModel)]="columnFilters.tuKho" placeholder="Từ kho" />
-        <input class="col-filter" type="text" [(ngModel)]="columnFilters.denKho" placeholder="Đến kho" />
-        <input class="col-filter" type="text" [(ngModel)]="columnFilters.nguoiTao" placeholder="Người tạo" />
-        <input class="col-filter" type="text" [(ngModel)]="columnFilters.trangThai" placeholder="Trạng thái" />
+        <input class="col-filter" type="text" [(ngModel)]="columnFilters.maYeuCau"
+          (ngModelChange)="onFilterChange()" placeholder="Mã yêu cầu" />
+        <input class="col-filter" type="text" [(ngModel)]="columnFilters.tuKho"
+          (ngModelChange)="onFilterChange()" placeholder="Từ kho" />
+        <input class="col-filter" type="text" [(ngModel)]="columnFilters.denKho"
+          (ngModelChange)="onFilterChange()" placeholder="Đến kho" />
+        <input class="col-filter" type="text" [(ngModel)]="columnFilters.nguoiTao"
+          (ngModelChange)="onFilterChange()" placeholder="Người tạo" />
+        <input class="col-filter" type="text" [(ngModel)]="columnFilters.trangThai"
+          (ngModelChange)="onFilterChange()" placeholder="Trạng thái" />
       </div>
       <button type="button" class="btn-clear-filter-text" *ngIf="hasActiveFilters" (click)="clearColumnFilters()">
         Xóa bộ lọc
@@ -129,7 +144,7 @@
     <div class="mobile-list" *ngIf="filteredList.length > 0">
       <article class="mobile-card" *ngFor="let item of filteredList; let i = index">
         <div class="mobile-card-head">
-          <span class="mobile-card-stt">#{{ i + 1 }}</span>
+          <span class="mobile-card-stt">#{{ (currentPage - 1) * pageSize + i + 1 }}</span>
           <span class="mobile-card-code">{{ item.maYeuCau }}</span>
           <div class="mobile-card-actions">
             <button class="btn-view" (click)="onViewDetail(item)" title="Xem chi tiết" type="button">
@@ -182,5 +197,35 @@
       </article>
     </div>
     <p class="empty-row mobile-only-empty" *ngIf="filteredList.length === 0">{{ emptyMessage }}</p>
+
+    <div class="list-pagination" *ngIf="totalItems > 0">
+      <div class="pagination-meta">
+        <span>Hiển thị {{ paginationFrom }}–{{ paginationTo }} / {{ totalItems }}</span>
+        <label class="page-size-select">
+          <span>Số dòng:</span>
+          <select [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+            <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }}</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn nav-btn" type="button" [disabled]="currentPage === 1"
+          (click)="goToPage(currentPage - 1)">
+          <span class="material-icons">chevron_left</span> Previous
+        </button>
+
+        <ng-container *ngFor="let p of visiblePages">
+          <span *ngIf="p === -1" class="page-ellipsis">...</span>
+          <button *ngIf="p !== -1" type="button" class="page-btn" [class.active]="p === currentPage"
+            (click)="goToPage(p)">{{ p }}</button>
+        </ng-container>
+
+        <button class="page-btn nav-btn" type="button" [disabled]="currentPage === totalPages"
+          (click)="goToPage(currentPage + 1)">
+          Next <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
