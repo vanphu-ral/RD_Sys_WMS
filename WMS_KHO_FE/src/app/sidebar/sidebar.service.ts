@@ -115,4 +115,9 @@ export class SidebarService {
       };
     });
   }
+  // return this.allMenus.map((menu) => ({
+  //   ...menu,
+  //   submenus: menu.submenus ? [...menu.submenus] : undefined,
+  // }));
+// }
 }
