@@ -189,6 +189,25 @@ async def create_wms_import_requirement(
         logger.error(f"Gửi nhập kho WMS thất bại: {str(e)}", exc_info=True)
         raise HTTPException(status_code=400, detail=f"Gửi nhập kho WMS thất bại: {str(e)}")
 
+@router.post("/wms/internal", response_model=WMSImportResponse)
+async def create_wms_import_requirement_internal(
+    request: WMSImportRequest,
+    db: AsyncSession = Depends(get_db),
+    # #current_user: str = Depends(get_current_user)
+    # current_user: dict = Depends(get_current_user)
+):
+    try:
+        import_data = request.model_dump()
+        import_data["tenant_id"] = "RANGDONG" # Hardcoded tenant_id for internal use
+        result = await WarehouseImportService.create_wms_import_with_nested_data(db, import_data)
+        
+        return WMSImportResponse(
+            success=True
+        )
+    except Exception as e:
+        logger.error(f"Gửi nhập kho WMS thất bại: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=400, detail=f"Gửi nhập kho WMS thất bại: {str(e)}")
+
 @router.get("/search/{search_query}", response_model=dict)
 async def search_warehouse_import_requirement(
     search_query: str,
