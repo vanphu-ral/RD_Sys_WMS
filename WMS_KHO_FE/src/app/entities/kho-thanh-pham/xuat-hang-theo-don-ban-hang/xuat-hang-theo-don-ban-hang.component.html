@@ -380,10 +380,23 @@
             </mat-form-field>
 
 
-            <div class="pagination-buttons">
-                <button *ngFor="let page of pageNumbers" mat-stroked-button [class.page-active]="currentPage === page"
-                    (click)="onPageChange(page)">
-                    {{ page }}
+            <div class="pagination-nav">
+                <button mat-icon-button class="page-arrow" [disabled]="currentPage <= 1" (click)="previousPage()"
+                    matTooltip="Trang trước">
+                    <mat-icon>chevron_left</mat-icon>
+                </button>
+
+                <span class="current-page">{{ currentPage }}</span>
+
+                <input class="page-jump-input" type="number" min="1" [max]="totalPages"
+                    [(ngModel)]="pageJumpInput" (keyup.enter)="jumpToPage()"
+                    [attr.aria-label]="'Nhảy tới trang, tối đa ' + totalPages">
+
+                <span class="page-total">/ {{ totalPages }}</span>
+
+                <button mat-icon-button class="page-arrow" [disabled]="currentPage >= totalPages" (click)="nextPage()"
+                    matTooltip="Trang sau">
+                    <mat-icon>chevron_right</mat-icon>
                 </button>
             </div>
 

@@ -166,6 +166,9 @@ interface CustomerChild {
 export class QuanLyKhoComponent implements OnInit {
   pageSize = 10;
   currentPage = 1;
+  totalPages = 1;
+  totalItems = 0;
+  pageJumpInput: number | null = null;
   filterValues: { [key: string]: string } = {};
   filterMode: string = 'constraint';
   displayedColumns: string[] = [];
@@ -339,12 +342,19 @@ export class QuanLyKhoComponent implements OnInit {
   productDataSource: ProductParent[] = [];
   areaDataSource: AreaParent[] = [];
   customerDataSource: CustomerParent[] = [];
-  filteredList: WarehouseItem[] | undefined;
+  filteredList: WarehouseItem[] = [];
+  pagedWarehouseList: WarehouseItem[] = [];
+  pagedPoDataSource: POParent[] = [];
+  pagedProductDataSource: ProductParent[] = [];
+  pagedAreaDataSource: AreaParent[] = [];
+  pagedCustomerDataSource: CustomerParent[] = [];
   constructor(private dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.loadMockData();
+    this.filteredList = [...this.warehouseList];
     this.updateDisplayedColumns();
+    this.updatePagination();
   }
   loadMockData(): void {
     this.warehouseList = [
@@ -601,7 +611,8 @@ export class QuanLyKhoComponent implements OnInit {
   //chon view mode
   onSelectView(viewMode: 'area' | 'po' | 'customer' | 'product'): void {
     this.currentViewMode = viewMode;
-    console.log('Selected view mode:', viewMode);
+    this.currentPage = 1;
+    this.updatePagination();
   }
   toggleRow(item: any): void {
     item.expanded = !item.expanded;
@@ -659,13 +670,15 @@ export class QuanLyKhoComponent implements OnInit {
     this.filteredList = this.warehouseList.filter((item) => {
       const match = item.maSanPham
         .toLowerCase()
-        .includes(maSanPham.toLowerCase());
+        .includes((maSanPham || '').toLowerCase());
       if (filterMode === 'constraint') {
         return match; // lọc bình thường
       } else {
         return !match; // loại bỏ kết quả khớp
       }
     });
+    this.currentPage = 1;
+    this.updatePagination();
   }
   //dialog
   openScanDialog(mode: 'check' | 'update' | 'transfer'): void {
@@ -711,8 +724,78 @@ export class QuanLyKhoComponent implements OnInit {
     return status === 'Có sẵn' ? 'status-available' : 'status-unavailable';
   }
 
+  getCurrentSource(): any[] {
+    switch (this.currentViewMode) {
+      case 'po':
+        return this.poDataSource;
+      case 'product':
+        return this.productDataSource;
+      case 'area':
+        return this.areaDataSource;
+      case 'customer':
+        return this.customerDataSource;
+      default:
+        return this.filteredList;
+    }
+  }
+
+  updatePagination(): void {
+    const source = this.getCurrentSource();
+    this.totalItems = source.length;
+    this.totalPages = Math.max(1, Math.ceil(this.totalItems / this.pageSize) || 1);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+    const start = (this.currentPage - 1) * this.pageSize;
+    const paged = source.slice(start, start + this.pageSize);
+
+    switch (this.currentViewMode) {
+      case 'po':
+        this.pagedPoDataSource = paged;
+        break;
+      case 'product':
+        this.pagedProductDataSource = paged;
+        break;
+      case 'area':
+        this.pagedAreaDataSource = paged;
+        break;
+      case 'customer':
+        this.pagedCustomerDataSource = paged;
+        break;
+      default:
+        this.pagedWarehouseList = paged;
+        break;
+    }
+  }
+
   onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) {
+      return;
+    }
     this.currentPage = page;
-    // Load data for specific page
+    this.updatePagination();
+  }
+
+  previousPage(): void {
+    this.onPageChange(this.currentPage - 1);
+  }
+
+  nextPage(): void {
+    this.onPageChange(this.currentPage + 1);
+  }
+
+  jumpToPage(): void {
+    const page = Number(this.pageJumpInput);
+    if (!Number.isFinite(page) || page < 1 || page > this.totalPages) {
+      this.pageJumpInput = null;
+      return;
+    }
+    this.onPageChange(page);
+    this.pageJumpInput = null;
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.updatePagination();
   }
 }

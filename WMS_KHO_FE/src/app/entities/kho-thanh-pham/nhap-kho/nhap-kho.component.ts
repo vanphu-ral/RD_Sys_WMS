@@ -58,11 +58,13 @@ export class NhapKhoComponent {
 
   nhapKhoList: NhapKhoItem[] = [];
   originalList: NhapKhoItem[] = [];
+  filteredList: NhapKhoItem[] = [];
   searchTerm: string = '';
   totalItems: number = 0;
   pageSize: number = 10;
   currentPage: number = 1;
   totalPages: number = 1;
+  pageJumpInput: number | null = null;
   constructor(private router: Router, private nhapKhoService: NhapKhoService) { }
   ngOnInit(): void {
     this.loadDanhSachNhapKho();
@@ -77,8 +79,10 @@ export class NhapKhoComponent {
         const sorted = [...res].sort((a, b) => b.id - a.id);
 
         this.originalList = sorted;
-        this.nhapKhoList = sorted.slice(0, this.pageSize);
+        this.filteredList = sorted;
         this.totalItems = sorted.length;
+        this.currentPage = 1;
+        this.updatePagination();
       },
       error: (err) => {
         console.error('Lỗi khi lấy danh sách nhập kho:', err);
@@ -140,21 +144,49 @@ export class NhapKhoComponent {
   onDelete(location: Location): void {
     console.log('Delete location:', location);
   }
+  updatePagination(): void {
+    this.totalPages = Math.max(1, Math.ceil(this.totalItems / this.pageSize) || 1);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+    this.slicePage();
+  }
+
   slicePage(): void {
     const start = (this.currentPage - 1) * this.pageSize;
     const end = start + this.pageSize;
-    this.nhapKhoList = this.originalList.slice(start, end);
+    this.nhapKhoList = this.filteredList.slice(start, end);
   }
 
   onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) {
+      return;
+    }
     this.currentPage = page;
     this.slicePage();
   }
 
+  previousPage(): void {
+    this.onPageChange(this.currentPage - 1);
+  }
+
+  nextPage(): void {
+    this.onPageChange(this.currentPage + 1);
+  }
+
+  jumpToPage(): void {
+    const page = Number(this.pageJumpInput);
+    if (!Number.isFinite(page) || page < 1 || page > this.totalPages) {
+      this.pageJumpInput = null;
+      return;
+    }
+    this.onPageChange(page);
+    this.pageJumpInput = null;
+  }
+
   onPageSizeChange(): void {
     this.currentPage = 1;
-    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
-    this.slicePage();
+    this.updatePagination();
   }
 
   applyFilter(): void {
@@ -177,8 +209,10 @@ export class NhapKhoComponent {
       );
     });
 
-    this.nhapKhoList = filtered;
+    this.filteredList = filtered;
     this.totalItems = filtered.length;
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
 

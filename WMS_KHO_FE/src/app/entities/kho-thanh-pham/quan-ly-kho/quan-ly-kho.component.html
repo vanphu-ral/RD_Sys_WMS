@@ -80,7 +80,7 @@
 
         <!-- Table -->
         <div class="table-container">
-            <table mat-table [dataSource]="warehouseList" class="warehouse-table" *ngIf="currentViewMode === 'default'">
+            <table mat-table [dataSource]="pagedWarehouseList" class="warehouse-table" *ngIf="currentViewMode === 'default'">
                 <!-- Duyệt qua tất cả các cột hiển thị -->
                 <ng-container *ngFor="let col of allColumns" [matColumnDef]="col.key">
                     <ng-container *ngIf="col.visible">
@@ -128,7 +128,7 @@
             </table>
 
             <!-- PO View -->
-            <table mat-table [dataSource]="poDataSource" class="warehouse-table expandable-table" multiTemplateDataRows
+            <table mat-table [dataSource]="pagedPoDataSource" class="warehouse-table expandable-table" multiTemplateDataRows
                 *ngIf="currentViewMode === 'po'">
 
                 <!-- Duyệt qua các cột cha -->
@@ -236,7 +236,7 @@
 
 
             <!-- Product View -->
-            <table mat-table [dataSource]="productDataSource" class="warehouse-table expandable-table"
+            <table mat-table [dataSource]="pagedProductDataSource" class="warehouse-table expandable-table"
                 multiTemplateDataRows *ngIf="currentViewMode === 'product'">
 
                 <!-- Cột cha: dùng vòng lặp -->
@@ -337,7 +337,7 @@
 
 
             <!-- Area View -->
-            <table mat-table [dataSource]="areaDataSource" class="warehouse-table expandable-table"
+            <table mat-table [dataSource]="pagedAreaDataSource" class="warehouse-table expandable-table"
                 multiTemplateDataRows *ngIf="currentViewMode === 'area'">
 
                 <!-- Cột cha: dùng vòng lặp -->
@@ -441,7 +441,7 @@
 
 
             <!-- Customer View -->
-            <table mat-table [dataSource]="customerDataSource" class="warehouse-table expandable-table"
+            <table mat-table [dataSource]="pagedCustomerDataSource" class="warehouse-table expandable-table"
                 multiTemplateDataRows *ngIf="currentViewMode === 'customer'">
 
                 <!-- Cột cha: dùng vòng lặp -->
@@ -584,7 +584,7 @@
 
                 <!-- Expandable Cards -->
                 <div class="expandable-cards">
-                    <div class="expandable-card" *ngFor="let item of customerDataSource"
+                    <div class="expandable-card" *ngFor="let item of pagedCustomerDataSource"
                         [class.expanded]="item.expanded">
 
                         <!-- Parent Card -->
@@ -743,7 +743,7 @@
 
         </div>
         <div class="mobile-warehouse-list" *ngIf="currentViewMode === 'default'">
-            <div class="mobile-warehouse-card" *ngFor="let item of warehouseList; let i = index">
+            <div class="mobile-warehouse-card" *ngFor="let item of pagedWarehouseList; let i = index">
                 <div class="card-header">
                     <div class="card-id">
                         <span class="stt">#{{ i + 1 }}</span>
@@ -772,7 +772,7 @@
             </div>
         </div>
         <div class="mobile-warehouse-list view-po" *ngIf="currentViewMode === 'po'">
-            <div class="mobile-expandable-card" *ngFor="let item of poDataSource">
+            <div class="mobile-expandable-card" *ngFor="let item of pagedPoDataSource">
                 <div class="parent-header" (click)="toggleRow(item)">
                     <div class="parent-info">
                         <div class="parent-title">{{ item.po }}</div>
@@ -818,7 +818,7 @@
         <!-- Pagination -->
         <div class="pagination">
             <mat-form-field class="page-size-select" appearance="outline">
-                <mat-select [(value)]="pageSize">
+                <mat-select [(value)]="pageSize" (selectionChange)="onPageSizeChange()">
                     <mat-option [value]="10">10</mat-option>
                     <mat-option [value]="25">25</mat-option>
                     <mat-option [value]="50">50</mat-option>
@@ -826,13 +826,24 @@
                 </mat-select>
             </mat-form-field>
 
-            <div class="pagination-buttons">
-                <button mat-flat-button [class.page-active]="currentPage === 1" (click)="onPageChange(1)">1</button>
-                <button mat-stroked-button (click)="onPageChange(2)">2</button>
-                <button mat-stroked-button (click)="onPageChange(3)">3</button>
-                <span class="page-dots">...</span>
-                <button mat-stroked-button (click)="onPageChange(8)">8</button>
-                <button mat-stroked-button (click)="onPageChange(9)">9</button>
+            <div class="pagination-nav">
+                <button mat-icon-button class="page-arrow" [disabled]="currentPage <= 1" (click)="previousPage()"
+                    matTooltip="Trang trước">
+                    <mat-icon>chevron_left</mat-icon>
+                </button>
+
+                <span class="current-page">{{ currentPage }}</span>
+
+                <input class="page-jump-input" type="number" min="1" [max]="totalPages"
+                    [(ngModel)]="pageJumpInput" (keyup.enter)="jumpToPage()"
+                    [attr.aria-label]="'Nhảy tới trang, tối đa ' + totalPages">
+
+                <span class="page-total">/ {{ totalPages }}</span>
+
+                <button mat-icon-button class="page-arrow" [disabled]="currentPage >= totalPages" (click)="nextPage()"
+                    matTooltip="Trang sau">
+                    <mat-icon>chevron_right</mat-icon>
+                </button>
             </div>
         </div>
     </mat-card>

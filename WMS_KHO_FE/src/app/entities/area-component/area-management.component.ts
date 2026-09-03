@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLinkWithHref } from '@angular/router';
 import { AreaService } from './service/area-service.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { UrlEncoderService } from '../encoded-redirect/services/url-encoder.service';
 export interface Area {
   id: number;
@@ -37,6 +38,7 @@ export interface Area {
     MatSelectModule,
     CommonModule,
     RouterLinkWithHref,
+    MatTooltipModule,
   ],
   templateUrl: './area-management.component.html',
   styleUrl: './area-management.component.scss',
@@ -83,6 +85,7 @@ export class AreaManagementComponent {
   pageSize: number = 10;
   currentPage: number = 1;
   totalPages: number = 1;
+  pageJumpInput: number | null = null;
 
   constructor(
     private areaService: AreaService,
@@ -177,13 +180,43 @@ export class AreaManagementComponent {
   }
 
   onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) {
+      return;
+    }
     this.currentPage = page;
-    console.log('Page changed to:', page);
   }
+
+  previousPage(): void {
+    this.onPageChange(this.currentPage - 1);
+  }
+
+  nextPage(): void {
+    this.onPageChange(this.currentPage + 1);
+  }
+
+  jumpToPage(): void {
+    const page = Number(this.pageJumpInput);
+    if (!Number.isFinite(page) || page < 1 || page > this.totalPages) {
+      this.pageJumpInput = null;
+      return;
+    }
+    this.onPageChange(page);
+    this.pageJumpInput = null;
+  }
+
   onPageSizeChange(): void {
     this.currentPage = 1;
-    this.totalPages = Math.ceil(this.areas.length / this.pageSize);
+    this.updatePagination();
   }
+
+  updatePagination(): void {
+    this.totalItems = this.areas.length;
+    this.totalPages = Math.max(1, Math.ceil(this.totalItems / this.pageSize) || 1);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+  }
+
   applyFilter(): void {
     const { code, name, storekeeper, description, address, is_active } =
       this.filterValues;
@@ -198,19 +231,21 @@ export class AreaManagementComponent {
 
     if (isEmpty) {
       this.areas = [...this.originalAreas];
-      return;
+    } else {
+      this.areas = this.originalAreas.filter((loc) => {
+        return (
+          loc.code.toLowerCase().includes(code.toLowerCase()) &&
+          loc.name.toLowerCase().includes(name.toLowerCase()) &&
+          loc.storekeeper.toLowerCase().includes(storekeeper.toLowerCase()) &&
+          loc.description.toLowerCase().includes(description.toLowerCase()) &&
+          loc.address.toLowerCase().includes(address.toLowerCase()) &&
+          (is_active === '' || String(loc.is_active) === is_active)
+        );
+      });
     }
 
-    this.areas = this.originalAreas.filter((loc) => {
-      return (
-        loc.code.toLowerCase().includes(code.toLowerCase()) &&
-        loc.name.toLowerCase().includes(name.toLowerCase()) &&
-        loc.storekeeper.toLowerCase().includes(storekeeper.toLowerCase()) &&
-        loc.description.toLowerCase().includes(description.toLowerCase()) &&
-        loc.address.toLowerCase().includes(address.toLowerCase()) &&
-        (is_active === '' || String(loc.is_active) === is_active)
-      );
-    });
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
   //mobile
