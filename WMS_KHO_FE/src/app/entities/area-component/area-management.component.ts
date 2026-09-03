@@ -12,12 +12,16 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLinkWithHref } from '@angular/router';
 import { AreaService } from './service/area-service.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { UrlEncoderService } from '../encoded-redirect/services/url-encoder.service';
+import { PermissionService } from '../../services/permission.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
 export interface Area {
   id: number;
   code: string;
   name: string;
+  company: string;
+  factory: string;
+  tenant_id: string;
   storekeeper: string;
   description: string;
   address: string;
@@ -43,16 +47,19 @@ export interface Area {
   templateUrl: './area-management.component.html',
   styleUrl: './area-management.component.scss',
 })
-export class AreaManagementComponent {
+export class AreaManagementComponent implements OnInit {
   showMobileFilters: boolean = false;
+  canModify = true;
 
   //total item
   totalItems: number = 0;
   //colmn
   displayedColumns: string[] = [
-    'id',
+    // 'id',
+    'stt',
     'code',
     'name',
+    'company',
     'storekeeper',
     'description',
     'address',
@@ -62,6 +69,7 @@ export class AreaManagementComponent {
   filterValues = {
     code: '',
     name: '',
+    company: '',
     storekeeper: '',
     is_active: '',
     description: '',
@@ -91,9 +99,15 @@ export class AreaManagementComponent {
     private areaService: AreaService,
     private snackBar: MatSnackBar,
     private encoder: UrlEncoderService,
-    private router: Router
+    private router: Router,
+    private permissionService: PermissionService
   ) {}
+
   ngOnInit(): void {
+    this.canModify = this.permissionService.canModifyAreaLocation();
+    if (!this.canModify) {
+      this.displayedColumns = this.displayedColumns.filter((c) => c !== 'actions');
+    }
     this.loadData();
   }
   loadData(): void {
@@ -218,12 +232,13 @@ export class AreaManagementComponent {
   }
 
   applyFilter(): void {
-    const { code, name, storekeeper, description, address, is_active } =
+    const { code, name, company, storekeeper, description, address, is_active } =
       this.filterValues;
 
     const isEmpty =
       !code.trim() &&
       !name.trim() &&
+      !company.trim() &&
       !storekeeper.trim() &&
       !description.trim() &&
       !address.trim() &&
@@ -236,6 +251,7 @@ export class AreaManagementComponent {
         return (
           loc.code.toLowerCase().includes(code.toLowerCase()) &&
           loc.name.toLowerCase().includes(name.toLowerCase()) &&
+          (loc.company || '').toLowerCase().includes(company.toLowerCase()) &&
           loc.storekeeper.toLowerCase().includes(storekeeper.toLowerCase()) &&
           loc.description.toLowerCase().includes(description.toLowerCase()) &&
           loc.address.toLowerCase().includes(address.toLowerCase()) &&
@@ -257,6 +273,7 @@ export class AreaManagementComponent {
     this.filterValues = {
       code: '',
       name: '',
+      company: '',
       storekeeper: '',
       is_active: '',
       description: '',
