@@ -315,7 +315,7 @@
         <!-- Pagination -->
         <div class="pagination">
             <mat-form-field class="page-size-select" appearance="outline">
-                <mat-select [(ngModel)]="pageSize">
+                <mat-select [(ngModel)]="pageSize" (selectionChange)="onPageSizeChange()">
                     <mat-option [value]="10">10</mat-option>
                     <mat-option [value]="25">25</mat-option>
                     <mat-option [value]="50">50</mat-option>
@@ -323,10 +323,23 @@
                 </mat-select>
             </mat-form-field>
 
-            <div class="pagination-buttons">
-                <button *ngFor="let page of [].constructor(totalPages); let i = index" mat-button
-                    [class.page-active]="currentPage === i + 1" (click)="onPageChange(i + 1)">
-                    {{ i + 1 }}
+            <div class="pagination-nav">
+                <button mat-icon-button class="page-arrow" [disabled]="currentPage <= 1" (click)="previousPage()"
+                    matTooltip="Trang trước">
+                    <mat-icon>chevron_left</mat-icon>
+                </button>
+
+                <span class="current-page">{{ currentPage }}</span>
+
+                <input class="page-jump-input" type="number" min="1" [max]="totalPages"
+                    [(ngModel)]="pageJumpInput" (keyup.enter)="jumpToPage()"
+                    [attr.aria-label]="'Nhảy tới trang, tối đa ' + totalPages">
+
+                <span class="page-total">/ {{ totalPages }}</span>
+
+                <button mat-icon-button class="page-arrow" [disabled]="currentPage >= totalPages" (click)="nextPage()"
+                    matTooltip="Trang sau">
+                    <mat-icon>chevron_right</mat-icon>
                 </button>
             </div>
         </div>

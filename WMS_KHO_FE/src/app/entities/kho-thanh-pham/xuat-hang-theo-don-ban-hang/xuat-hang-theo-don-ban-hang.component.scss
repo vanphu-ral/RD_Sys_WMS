@@ -398,26 +398,63 @@
         }
     }
 
-    .pagination-buttons {
+    .pagination-nav {
         display: flex;
-        gap: 8px;
         align-items: center;
+        gap: 8px;
 
-        button {
+        .page-arrow {
+            width: 40px;
+            height: 40px;
+            color: #1e293b;
+
+            &:disabled {
+                color: #94a3b8;
+            }
+        }
+
+        .current-page {
             min-width: 40px;
             height: 40px;
-            border-radius: 8px;
-        }
-
-        .page-active {
+            padding: 0 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background-color: #1e293b;
             color: white;
+            border-radius: 8px;
             font-weight: 600;
+            font-size: 14px;
         }
 
-        .page-dots {
+        .page-jump-input {
+            width: 56px;
+            height: 40px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            color: #1e293b;
+            background: #fff;
+            outline: none;
+
+            &:focus {
+                border-color: #1e293b;
+            }
+
+            &::-webkit-outer-spin-button,
+            &::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+            appearance: textfield;
+        }
+
+        .page-total {
             color: #64748b;
-            padding: 0 4px;
+            font-size: 14px;
+            min-width: 28px;
         }
     }
 }
@@ -773,16 +810,15 @@
             margin: 0;
         }
 
-        .pagination-buttons {
+        .pagination-nav {
             justify-content: center;
-            flex-wrap: wrap;
-            gap: 6px;
             width: 100%;
 
-            button {
+            .page-arrow,
+            .current-page,
+            .page-jump-input {
                 min-width: 36px;
                 height: 36px;
-                font-size: 13px;
             }
         }
     }
@@ -842,10 +878,15 @@
         }
     }
 
-    .pagination-buttons button {
-        min-width: 32px;
-        height: 32px;
-        font-size: 12px;
+    .pagination-nav {
+
+        .page-arrow,
+        .current-page,
+        .page-jump-input {
+            min-width: 32px;
+            height: 32px;
+            font-size: 12px;
+        }
     }
 }
 

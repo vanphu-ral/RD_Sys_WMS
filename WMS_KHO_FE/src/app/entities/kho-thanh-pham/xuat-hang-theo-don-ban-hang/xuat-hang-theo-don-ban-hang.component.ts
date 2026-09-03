@@ -1,8 +1,7 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { KhoThanhPhamModule } from '../kho-thanh-pham.module';
 import { Router } from '@angular/router';
 import { XuatHangTheoDonBanService } from './service/xuat-hang-theo-don-ban.service.component';
-import { PermissionService } from '../../../services/permission.service';
 export interface SalesExportRequest {
   id: number;
   ma_yc_xk: string;
@@ -30,34 +29,33 @@ export interface SalesExportRequest {
 })
 export class XuatHangTheoDonBanHangComponent {
   displayedColumns: string[] = [
-    // 'id',
-    'stt',
+    'id',
     'ma_yc_xk',
     'kho_xuat',
-    // 'xuat_toi',
+    'xuat_toi',
     'don_vi_linh',
     'don_vi_nhan',
     'ly_do_xuat_nhap',
     'ngay_chung_tu',
     'so_phieu_xuat',
     'so_chung_tu',
-    // 'series_PGH',
+    'series_PGH',
     'status',
-    // 'scan_status',
+    'scan_status',
     'actions',
   ];
   filterValues = {
     ma_yc_xk: '',
     kho_xuat: '',
-    // xuat_toi: '',
+    xuat_toi: '',
     don_vi_linh: '',
     don_vi_nhan: '',
     ly_do_xuat_nhap: '',
     ngay_chung_tu: '',
     so_phieu_xuat: '',
     so_chung_tu: '',
-    // series_PGH: '',
-    // scan_status: '',
+    series_PGH: '',
+    scan_status: '',
     status: '',
   };
 
@@ -71,14 +69,14 @@ export class XuatHangTheoDonBanHangComponent {
     'ngay_chung_tu',
     'so_phieu_xuat',
     'so_chung_tu',
-    // 'series_PGH',
-    // 'status',
+    'series_PGH',
+    'status',
     'scan_status',
   ];
   salesRequests: SalesExportRequest[] = [];
   pagedSalesRequests: SalesExportRequest[] = [];
-  totalPages: number = 0;
-  pageNumbers: number[] = [];
+  totalPages: number = 1;
+  pageJumpInput: number | null = null;
 
   searchTerm: string = '';
   pageSize: number = 10;
@@ -86,19 +84,15 @@ export class XuatHangTheoDonBanHangComponent {
   totalItems: number = 0;
   areas: any[] = [];
   filteredData: SalesExportRequest[] = [];
-  warehouses: { id: number; name: string }[] = [];
+    warehouses: { id: number; name: string }[] = [];
   //mobile
   pagedTransfers: SalesExportRequest[] = [];
   showMobileFilters: boolean = false;
-  canModify = true;
   constructor(
     private router: Router,
-    private xuatDonBanService: XuatHangTheoDonBanService,
-    private cdr: ChangeDetectorRef,
-    private permissionService: PermissionService
-  ) { }
+    private xuatDonBanService: XuatHangTheoDonBanService
+  ) {}
   ngOnInit(): void {
-    this.canModify = this.permissionService.canPerformKhoThanhPhamActions();
     this.xuatDonBanService.getAreas().subscribe({
       next: (res) => {
         this.areas = res.data;
@@ -116,16 +110,16 @@ export class XuatHangTheoDonBanHangComponent {
     this.filterValues = {
       ma_yc_xk: '',
       kho_xuat: '',
-      // xuat_toi: '',
+      xuat_toi: '',
       don_vi_linh: '',
       don_vi_nhan: '',
       ly_do_xuat_nhap: '',
       ngay_chung_tu: '',
       so_chung_tu: '',
       so_phieu_xuat: '',
-      // series_PGH: '',
+      series_PGH: '',
       status: '',
-      // scan_status: '',
+      scan_status: '',
     };
     this.searchTerm = '';
     this.applyFilter();
@@ -138,45 +132,56 @@ export class XuatHangTheoDonBanHangComponent {
   loadSalesRequests(): void {
     this.xuatDonBanService.getSalesExportRequests().subscribe({
       next: (res) => {
-        const mapped = res.map((item) => {
-          const scanStatusBool =
-            item.scan_status === true;
+        const mapped = res.map((item) => ({
+          ...item,
+          ten_kho_xuat: this.getAreaName(item.kho_xuat),
+          ten_kho_nhan: this.getAreaName(item.xuat_toi),
+        }));
 
-          return {
-            ...item,
-            scan_status: scanStatusBool, // ép về boolean
-            ten_kho_xuat: this.getAreaName(item.kho_xuat),
-            ten_kho_nhan: this.getAreaName(item.xuat_toi),
-          };
-        });
-
+        // Sắp xếp theo id giảm dần
         this.salesRequests = mapped.sort((a, b) => b.id - a.id);
         this.filteredData = [...this.salesRequests];
         this.totalItems = this.salesRequests.length;
+        this.currentPage = 1;
         this.updatePagedSalesRequests();
       },
       error: (err) => console.error('Lỗi khi lấy đơn xuất:', err),
     });
   }
 
-
-  //phan trang
   applyPagination(): void {
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.pagedSalesRequests = this.salesRequests.slice(startIndex, endIndex);
-
-    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
-    this.pageNumbers = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    this.updatePagedSalesRequests();
   }
+
   onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) {
+      return;
+    }
     this.currentPage = page;
-    this.applyPagination();
+    this.updatePagedSalesRequests();
+  }
+
+  previousPage(): void {
+    this.onPageChange(this.currentPage - 1);
+  }
+
+  nextPage(): void {
+    this.onPageChange(this.currentPage + 1);
+  }
+
+  jumpToPage(): void {
+    const page = Number(this.pageJumpInput);
+    if (!Number.isFinite(page) || page < 1 || page > this.totalPages) {
+      this.pageJumpInput = null;
+      return;
+    }
+    this.onPageChange(page);
+    this.pageJumpInput = null;
   }
 
   onPageSizeChange(): void {
     this.currentPage = 1;
-    this.applyPagination();
+    this.updatePagedSalesRequests();
   }
 
   getAreaName(id: number): string {
@@ -214,8 +219,10 @@ export class XuatHangTheoDonBanHangComponent {
     }
   }
 
-  isApproved(value: any): boolean { return value === true || value === 'true' || value === 1 || value === '1'; }
-  getStatusClass(value: any): { [klass: string]: boolean } { return { approved: this.isApproved(value), pending: !this.isApproved(value) }; }
+  getStatusClass(value: boolean): string {
+    return value ? 'approved' : 'pending';
+  }
+
   getScanClass(value: boolean): string {
     return value ? 'scanned' : 'not-scanned';
   }
@@ -232,8 +239,7 @@ export class XuatHangTheoDonBanHangComponent {
   }
 
   onRefresh(): void {
-    this.loadSalesRequests();
-    this.cdr.detectChanges();
+    console.log('Refreshing data...');
   }
 
   onDetail(warehouse: SalesExportRequest): void {
@@ -249,11 +255,11 @@ export class XuatHangTheoDonBanHangComponent {
 
   applyFilter(): void {
     // Chuyển đổi label sang boolean cho status và scan_status
-    // const statusFilter: boolean | null = this.convertLabelToBoolean(
-    //   this.filterValues.status
-    // );
-    const scanFilter: boolean | null = this.convertLabelToBoolean(
+    const statusFilter: boolean | null = this.convertLabelToBoolean(
       this.filterValues.status
+    );
+    const scanFilter: boolean | null = this.convertLabelToBoolean(
+      this.filterValues.scan_status
     );
 
     // Lọc dữ liệu gốc theo tất cả điều kiện
@@ -278,22 +284,25 @@ export class XuatHangTheoDonBanHangComponent {
         });
 
       // Lọc theo status và scan_status
-      // const matchStatus = statusFilter === null || item.status === statusFilter;
+      const matchStatus = statusFilter === null || item.status === statusFilter;
       const matchScan = scanFilter === null || item.scan_status === scanFilter;
 
-      // return matchTextFields && matchStatus && matchScan;
+      return matchTextFields && matchStatus && matchScan;
     });
 
-    // Cập nhật dữ liệu hiển thị theo trang
+    this.currentPage = 1;
     this.updatePagedSalesRequests();
   }
 
   updatePagedSalesRequests(): void {
+    const source = this.filteredData || [];
+    this.totalItems = source.length;
+    this.totalPages = Math.max(1, Math.ceil(this.totalItems / this.pageSize) || 1);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    this.pagedSalesRequests = (this.filteredData || []).slice(
-      startIndex,
-      endIndex
-    );
+    this.pagedSalesRequests = source.slice(startIndex, endIndex);
   }
 }

@@ -76,8 +76,8 @@ export class ChuyenKhoComponent {
   pagedTransfers: InternalTransferRequest[] = [];
 
   searchTerm: string = '';
-  totalPages: number = 0;
-  pageNumbers: number[] = [];
+  totalPages: number = 1;
+  pageJumpInput: number | null = null;
   totalItems: number = 0;
   pageSize: number = 10;
   currentPage: number = 1;
@@ -140,6 +140,7 @@ export class ChuyenKhoComponent {
         this.internalTransfers = sorted;
         this.filteredData = [...sorted];
         this.totalItems = sorted.length;
+        this.currentPage = 1;
         this.updatePagedTransfers();
       },
       error: (err) => {
@@ -148,24 +149,39 @@ export class ChuyenKhoComponent {
     });
   }
 
-  //phan tran
   applyPagination(): void {
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.pagedTransfers = this.internalTransfers.slice(startIndex, endIndex);
-
-    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
-    this.pageNumbers = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    this.updatePagedTransfers();
   }
 
   onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) {
+      return;
+    }
     this.currentPage = page;
-    this.applyPagination();
+    this.updatePagedTransfers();
+  }
+
+  previousPage(): void {
+    this.onPageChange(this.currentPage - 1);
+  }
+
+  nextPage(): void {
+    this.onPageChange(this.currentPage + 1);
+  }
+
+  jumpToPage(): void {
+    const page = Number(this.pageJumpInput);
+    if (!Number.isFinite(page) || page < 1 || page > this.totalPages) {
+      this.pageJumpInput = null;
+      return;
+    }
+    this.onPageChange(page);
+    this.pageJumpInput = null;
   }
 
   onPageSizeChange(): void {
     this.currentPage = 1;
-    this.applyPagination();
+    this.updatePagedTransfers();
   }
 
   getWarehouseName(id: number): string {
@@ -274,13 +290,19 @@ export class ChuyenKhoComponent {
       // return matchTextFields && matchStatus && matchScan;
     });
 
-    // Cập nhật dữ liệu hiển thị theo trang
+    this.currentPage = 1;
     this.updatePagedTransfers();
   }
 
   updatePagedTransfers(): void {
+    const source = this.filteredData || [];
+    this.totalItems = source.length;
+    this.totalPages = Math.max(1, Math.ceil(this.totalItems / this.pageSize) || 1);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = startIndex + this.pageSize;
-    this.pagedTransfers = this.filteredData.slice(startIndex, endIndex);
+    this.pagedTransfers = source.slice(startIndex, endIndex);
   }
 }

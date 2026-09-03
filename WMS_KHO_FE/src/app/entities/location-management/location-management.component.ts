@@ -75,6 +75,7 @@ export class LocationManagementComponent implements OnInit {
   currentPage: number = 1;
   totalItems: number = 0;
   totalPages: number = 1;
+  pageJumpInput: number | null = null;
   areas: Area[] = [];
   constructor(
     private locationService: LocationService,
@@ -168,8 +169,29 @@ export class LocationManagementComponent implements OnInit {
   }
 
   onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) {
+      return;
+    }
     this.currentPage = page;
     this.loadLocations();
+  }
+
+  previousPage(): void {
+    this.onPageChange(this.currentPage - 1);
+  }
+
+  nextPage(): void {
+    this.onPageChange(this.currentPage + 1);
+  }
+
+  jumpToPage(): void {
+    const page = Number(this.pageJumpInput);
+    if (!Number.isFinite(page) || page < 1 || page > this.totalPages) {
+      this.pageJumpInput = null;
+      return;
+    }
+    this.onPageChange(page);
+    this.pageJumpInput = null;
   }
   onPageSizeChange(size: number): void {
     this.pageSize = size;

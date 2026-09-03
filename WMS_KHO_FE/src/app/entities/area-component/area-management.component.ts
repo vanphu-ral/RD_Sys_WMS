@@ -12,15 +12,12 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLinkWithHref } from '@angular/router';
 import { AreaService } from './service/area-service.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { UrlEncoderService } from '../encoded-redirect/services/url-encoder.service';
-import { PermissionService } from '../../services/permission.service';
 export interface Area {
   id: number;
   code: string;
   name: string;
-  company: string;
-  factory: string;
-  tenant_id: string;
   storekeeper: string;
   description: string;
   address: string;
@@ -41,23 +38,21 @@ export interface Area {
     MatSelectModule,
     CommonModule,
     RouterLinkWithHref,
+    MatTooltipModule,
   ],
   templateUrl: './area-management.component.html',
   styleUrl: './area-management.component.scss',
 })
-export class AreaManagementComponent implements OnInit {
+export class AreaManagementComponent {
   showMobileFilters: boolean = false;
-  canModify = true;
 
   //total item
   totalItems: number = 0;
   //colmn
   displayedColumns: string[] = [
-    // 'id',
-    'stt',
+    'id',
     'code',
     'name',
-    'company',
     'storekeeper',
     'description',
     'address',
@@ -67,7 +62,6 @@ export class AreaManagementComponent implements OnInit {
   filterValues = {
     code: '',
     name: '',
-    company: '',
     storekeeper: '',
     is_active: '',
     description: '',
@@ -91,20 +85,15 @@ export class AreaManagementComponent implements OnInit {
   pageSize: number = 10;
   currentPage: number = 1;
   totalPages: number = 1;
+  pageJumpInput: number | null = null;
 
   constructor(
     private areaService: AreaService,
     private snackBar: MatSnackBar,
     private encoder: UrlEncoderService,
-    private router: Router,
-    private permissionService: PermissionService
+    private router: Router
   ) {}
-
   ngOnInit(): void {
-    this.canModify = this.permissionService.canModifyAreaLocation();
-    if (!this.canModify) {
-      this.displayedColumns = this.displayedColumns.filter((c) => c !== 'actions');
-    }
     this.loadData();
   }
   loadData(): void {
@@ -191,21 +180,50 @@ export class AreaManagementComponent implements OnInit {
   }
 
   onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) {
+      return;
+    }
     this.currentPage = page;
-    console.log('Page changed to:', page);
   }
+
+  previousPage(): void {
+    this.onPageChange(this.currentPage - 1);
+  }
+
+  nextPage(): void {
+    this.onPageChange(this.currentPage + 1);
+  }
+
+  jumpToPage(): void {
+    const page = Number(this.pageJumpInput);
+    if (!Number.isFinite(page) || page < 1 || page > this.totalPages) {
+      this.pageJumpInput = null;
+      return;
+    }
+    this.onPageChange(page);
+    this.pageJumpInput = null;
+  }
+
   onPageSizeChange(): void {
     this.currentPage = 1;
-    this.totalPages = Math.ceil(this.areas.length / this.pageSize);
+    this.updatePagination();
   }
+
+  updatePagination(): void {
+    this.totalItems = this.areas.length;
+    this.totalPages = Math.max(1, Math.ceil(this.totalItems / this.pageSize) || 1);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+  }
+
   applyFilter(): void {
-    const { code, name, company, storekeeper, description, address, is_active } =
+    const { code, name, storekeeper, description, address, is_active } =
       this.filterValues;
 
     const isEmpty =
       !code.trim() &&
       !name.trim() &&
-      !company.trim() &&
       !storekeeper.trim() &&
       !description.trim() &&
       !address.trim() &&
@@ -213,20 +231,21 @@ export class AreaManagementComponent implements OnInit {
 
     if (isEmpty) {
       this.areas = [...this.originalAreas];
-      return;
+    } else {
+      this.areas = this.originalAreas.filter((loc) => {
+        return (
+          loc.code.toLowerCase().includes(code.toLowerCase()) &&
+          loc.name.toLowerCase().includes(name.toLowerCase()) &&
+          loc.storekeeper.toLowerCase().includes(storekeeper.toLowerCase()) &&
+          loc.description.toLowerCase().includes(description.toLowerCase()) &&
+          loc.address.toLowerCase().includes(address.toLowerCase()) &&
+          (is_active === '' || String(loc.is_active) === is_active)
+        );
+      });
     }
 
-    this.areas = this.originalAreas.filter((loc) => {
-      return (
-        loc.code.toLowerCase().includes(code.toLowerCase()) &&
-        loc.name.toLowerCase().includes(name.toLowerCase()) &&
-        (loc.company || '').toLowerCase().includes(company.toLowerCase()) &&
-        loc.storekeeper.toLowerCase().includes(storekeeper.toLowerCase()) &&
-        loc.description.toLowerCase().includes(description.toLowerCase()) &&
-        loc.address.toLowerCase().includes(address.toLowerCase()) &&
-        (is_active === '' || String(loc.is_active) === is_active)
-      );
-    });
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
   //mobile
@@ -238,7 +257,6 @@ export class AreaManagementComponent implements OnInit {
     this.filterValues = {
       code: '',
       name: '',
-      company: '',
       storekeeper: '',
       is_active: '',
       description: '',
